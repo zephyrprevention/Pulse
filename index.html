@@ -126,6 +126,14 @@
   .jojo-joke.hide{display:none}
   .jojo-joke b{color:var(--gold)}
 
+  /* mode d'emploi */
+  .steps{width:100%;max-width:340px;margin-bottom:24px}
+  .step{display:flex;align-items:flex-start;gap:14px;text-align:left;margin-bottom:16px}
+  .stepn{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:rgba(92,225,230,.14);border:1px solid rgba(92,225,230,.4);
+    color:var(--glow);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .stept{font-size:14px;color:#C9D4EC;line-height:1.45;padding-top:5px}
+  .stept b{color:var(--glow)}
+
   /* blague affichee au centre du cercle pendant le jeu */
   .centerjoke{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.85);z-index:7;pointer-events:none;
     width:64%;max-width:280px;display:flex;align-items:center;gap:10px;opacity:0;transition:opacity .3s,transform .3s}
@@ -171,6 +179,7 @@
   <div class="challenge" id="startChallenge">Atteins 100 &rarr; themes premium</div>
   <div class="big">Touche l'ecran quand la bille<br>entre dans la <b>zone lumineuse</b>.<br>Le sens s'inverse a chaque reussite.</div>
   <button class="go" onclick="PULSE.play()">Jouer</button>
+  <button class="ghost" onclick="PULSE.howto()">Comment jouer</button>
   <button class="ghost" onclick="PULSE.board()">Classement</button>
   <button class="ghost" onclick="PULSE.themes()">Themes</button>
 </div>
@@ -206,6 +215,18 @@
   <div class="tag">les meilleurs joueurs</div>
   <div class="board" id="boardList"><div class="board-loading">Chargement...</div></div>
   <button class="go" onclick="PULSE.home()">Retour</button>
+</div>
+
+<div class="overlay hide" id="howtoScreen">
+  <div class="title" style="font-size:36px">Comment <span>jouer</span></div>
+  <div class="tag">3 etapes</div>
+  <div class="steps">
+    <div class="step"><div class="stepn">1</div><div class="stept">Une bille tourne autour du cercle. Une <b>zone lumineuse</b> apparait a un endroit.</div></div>
+    <div class="step"><div class="stepn">2</div><div class="stept">Touche l'ecran <b>quand la bille entre dans la zone</b>. Vise le coeur dore pour un combo x2 !</div></div>
+    <div class="step"><div class="stepn">3</div><div class="stept">A chaque reussite le sens <b>s'inverse</b> et ca accelere. Tous les 10 points : palier, feu d'artifice et culture G !</div></div>
+    <div class="step"><div class="stepn">\u{1F3C6}</div><div class="stept">Atteins <b>100</b> pour debloquer le mode infini et tous les themes. Puis grimpe au <b>classement mondial</b> !</div></div>
+  </div>
+  <button class="go" onclick="PULSE.home()">J'ai compris</button>
 </div>
 
 <script>
@@ -318,18 +339,23 @@ var PULSE = (function(){
   var jojoTimer=null;
   function pick(a){return a[Math.floor(Math.random()*a.length)];}
 
-  // --- Blagues en deux temps : setup a un palier, chute au palier suivant ---
+  // --- Culture generale en deux temps : question a un palier, reponse au palier suivant ---
   var BLAGUES=[
-    {q:"Pourquoi la bille elle stresse jamais ? \u{1F914}", r:"Parce qu'elle sait tourner en rond sans perdre la boule ! \u{1F602}"},
-    {q:"Quel est le comble pour un cercle ? \u{1F914}", r:"C'est de ne jamais trouver son point final ! \u{1F605}"},
-    {q:"Pourquoi le neon il fait jamais la fete ? \u{1F914}", r:"Parce qu'il a peur de trop briller en societe ! \u{2728}"},
-    {q:"Que dit une zone lumineuse a une autre ? \u{1F914}", r:"Toi aussi t'as un cote eclaire ? \u{1F60E}"},
-    {q:"Pourquoi tu tapes toujours au bon moment ? \u{1F914}", r:"Parce que le timing, c'est dans ta nature ! \u{1F44A}"},
-    {q:"Quel est le sport prefere de la bille ? \u{1F914}", r:"Le tour de piste, evidemment ! \u{1F3C3}"},
-    {q:"Pourquoi le score il est jamais content ? \u{1F914}", r:"Parce qu'il veut toujours monter plus haut ! \u{1F4C8}"},
-    {q:"Comment la bille reste en forme ? \u{1F914}", r:"Elle fait des tours de terrain non-stop ! \u{1F4AA}"},
-    {q:"Que fait un joueur de Pulse quand il gagne ? \u{1F914}", r:"Il fait un tour d'honneur, forcement ! \u{1F3C6}"},
-    {q:"Pourquoi Jojo il est toujours de bonne humeur ? \u{1F914}", r:"Parce qu'avec toi, chaque partie est une fete ! \u{1F389}"}
+    {q:"Quelle est la planete la plus chaude du systeme solaire ? \u{1F914}", r:"Venus ! Son atmosphere piege la chaleur, plus chaude que Mercure \u{1F321}\uFE0F"},
+    {q:"Quel est l'organe le plus grand du corps humain ? \u{1F914}", r:"La peau ! Elle peut peser jusqu'a 4 kg \u{1F9B4}"},
+    {q:"Combien de coeurs possede une pieuvre ? \u{1F914}", r:"Trois ! Deux pour les branchies, un pour le corps \u{1F419}"},
+    {q:"Quel pays compte le plus d'habitants au monde ? \u{1F914}", r:"L'Inde, qui a depasse la Chine recemment \u{1F30F}"},
+    {q:"Quelle est la langue la plus parlee au monde ? \u{1F914}", r:"Le mandarin, en nombre de locuteurs natifs \u{1F5E3}\uFE0F"},
+    {q:"Quel metal est liquide a temperature ambiante ? \u{1F914}", r:"Le mercure ! Le seul metal liquide a 20\u00b0C \u{1F321}\uFE0F"},
+    {q:"Quel est l'animal terrestre le plus rapide ? \u{1F914}", r:"Le guepard : jusqu'a 110 km/h en pointe \u{1F406}"},
+    {q:"Combien de temps met la lumiere du Soleil a nous atteindre ? \u{1F914}", r:"Environ 8 minutes ! \u{2600}\uFE0F"},
+    {q:"Quel est le plus long fleuve du monde ? \u{1F914}", r:"Le Nil (ou l'Amazone selon les mesures) \u{1F30A}"},
+    {q:"Combien d'os compte le corps humain adulte ? \u{1F914}", r:"206 ! Un bebe en a plus de 270 \u{1F9B4}"},
+    {q:"Quelle planete est la plus grande du systeme solaire ? \u{1F914}", r:"Jupiter ! On pourrait y loger 1300 Terres \u{1FA90}"},
+    {q:"Quel est le seul continent sans reptiles ni serpents ? \u{1F914}", r:"L'Antarctique, trop froid pour eux \u{2744}\uFE0F"},
+    {q:"En quelle annee l'homme a-t-il marche sur la Lune ? \u{1F914}", r:"En 1969, avec Apollo 11 \u{1F680}"},
+    {q:"Quel fruit contient le plus de vitamine C ? \u{1F914}", r:"Souvent le kiwi ou l'orange... mais le cassis les depasse ! \u{1F95D}"},
+    {q:"Quel est l'ocean le plus grand du monde ? \u{1F914}", r:"Le Pacifique : plus grand que tous les continents reunis \u{1F30A}"}
   ];
   var accroches=[
     "Tu vas exploser ton record, je le sens !","Encore un effort, le top 20 t'attend !",
@@ -512,7 +538,7 @@ var PULSE = (function(){
     } else { die(); }
   }
 
-  function hideAll(){var a=['pseudo','start','over','win','themePicker','boardScreen'];for(var i=0;i<a.length;i++)$(a[i]).classList.add('hide');}
+  function hideAll(){var a=['pseudo','start','over','win','themePicker','boardScreen','howtoScreen'];for(var i=0;i<a.length;i++)$(a[i]).classList.add('hide');}
 
   function die(){
     running=false; shake=14;
@@ -622,6 +648,7 @@ var PULSE = (function(){
       showStart();
     },
     board:function(){ hideAll(); $('boardScreen').classList.remove('hide'); renderBoard(); },
+    howto:function(){ hideAll(); $('howtoScreen').classList.remove('hide'); },
     play:function(){
       hideAll();
       $('goalbar').classList.add('show');
