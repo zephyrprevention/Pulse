@@ -287,6 +287,7 @@ var PULSE = (function(){
     level:["Niveau suivant, tu montes en puissance !","Tu progresses, je suis fier \u{1F60E}","Encore un ! T'arretes plus."],
     hard:["Ca s'accelere... reste concentre !","Attention ca chauffe \u{1F605}","Respire, tu vas y arriver","La c'est du serieux, focus !"],
     unlock:["Nouveau theme pour toi, cadeau \u{1F381}","Tiens, un theme rien que pour toi !","Debloque ! T'as merite \u{1F31F}"],
+    infini:["Mode infini ! Maintenant on vise le record \u{1F525}","Plus de limite ! Montre-leur qui est le boss \u{1F60E}","La legende commence ici, vas-y !","Top 20 mondial, c'est pour toi ca !"],
     die:["Pas grave, on retente !","Presque ! T'y etais \u{1F642}","Allez, une derniere pour la route ?","Tombe sept fois, releve-toi huit \u{1F4AA}"]
   };
   var jojoTimer=null;
@@ -331,6 +332,7 @@ var PULSE = (function(){
   function R(){return Math.min(W,H)*0.30;}
 
   function updateGoal(){
+    if(score>GOAL) return; // en mode infini, la barre affiche RECORD (gere ailleurs)
     var pct=Math.min(score/GOAL,1)*100;
     $('fill').style.width=pct+'%';
     $('goalTxt').textContent=Math.min(score,GOAL)+' / '+GOAL;
@@ -339,32 +341,56 @@ var PULSE = (function(){
     level=n; $('levelchip').textContent='Niveau '+n; $('levelchip').classList.add('show');
   }
   function aDiff(a,b){var d=(a-b)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return d;}
+
+  // difficulte continue, valable meme au-dela de 100 (mode infini)
+  function speedFor(s){
+    if(s<=GOAL) return 0.016+0.044*(s/GOAL);        // 0->100 : montee douce jusqu'a 0.060
+    // au-dela : on continue a accelerer mais de facon dégressive, plafonnee
+    return Math.min(0.060 + (s-GOAL)*0.0011, 0.115);
+  }
+  function zoneFor(s){
+    if(s<=GOAL) return 0.40-0.25*(s/GOAL);           // 0->100 : 0.40 -> 0.15
+    // au-dela : la zone continue de retrecir, avec un minimum jouable
+    return Math.max(0.15 - (s-GOAL)*0.0016, 0.075);
+  }
   function newTarget(){
     var t;do{t=Math.random()*Math.PI*2;}while(Math.abs(aDiff(t,angle))<0.9);
-    targetA=t; var prog=Math.min(score/GOAL,1); zone=0.40-0.25*prog;
+    targetA=t; zone=zoneFor(score);
   }
   function burst(x,y,c,n){for(var i=0;i<n;i++){var a=Math.random()*Math.PI*2,s=2+Math.random()*5;particles.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color:c});}}
   function ptOn(a,r){return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};}
 
-  // franchissement d'un palier (10,20,...100)
+  var passed100=false;
+
+  // franchissement d'un palier (10,20,...100) puis niveaux infinis au-dela
   function checkMilestone(prev){
-    var pl = Math.floor(score/10)*10;      // dernier palier atteint
+    var pl = Math.floor(score/10)*10;
     if(pl>=10 && Math.floor(prev/10)*10 < pl){
-      var nv = pl/10 + 1;                   // niveau apres ce palier
-      // un theme se debloque-t-il a ce palier ?
+      var nv = pl/10 + 1;
       var freshTheme=null;
       for(var i=0;i<THEMES.length;i++){
         if(THEMES[i].at===pl && !unlockedSet[THEMES[i].id]){ unlockedSet[THEMES[i].id]=true; freshTheme=THEMES[i]; }
       }
-      if(freshTheme){
+      if(pl===GOAL && !passed100){
+        // franchissement de 100 : on debloque tout et on bascule en mode infini SANS arreter
+        passed100=true;
+        for(var j=0;j<THEMES.length;j++)unlockedSet[THEMES[j].id]=true;
+        saveUnlocked();
+        toast('100 !', 'Mode infini \u2014 vise le record !');
+        setTimeout(function(){ jojo('infini'); }, 900);
+        $('goalTxt').textContent='RECORD';
+        $('fill').style.width='100%';
+        setLevel(nv);
+      } else if(freshTheme){
         saveUnlocked();
         toast('Palier '+pl, 'Theme '+freshTheme.name+' debloque !');
         setTimeout(function(){ jojo('unlock'); }, 900);
+        setLevel(nv);
       } else {
-        toast('Palier '+pl, 'Niveau '+nv+' !');
-        setTimeout(function(){ jojo('level'); }, 800);
+        toast(pl<GOAL?('Palier '+pl):('Niveau '+nv), pl<GOAL?('Niveau '+nv+' !'):'Continue !');
+        setTimeout(function(){ jojo(pl<GOAL?'level':'infini'); }, 800);
+        setLevel(nv);
       }
-      if(pl<GOAL) setLevel(nv);
     }
   }
 
@@ -374,35 +400,22 @@ var PULSE = (function(){
     if(d<=zone){
       var perfect=d<zone*0.35;
       var prev=score;
-      score+=perfect?2:1; $('score').textContent=score; updateGoal();
+      score+=perfect?2:1; $('score').textContent=score;
+      if(score<=GOAL) updateGoal();
       var p=ptOn(angle,R());
       burst(p.x,p.y,perfect?THEME.core:THEME.glow,perfect?26:16);
       flash=perfect?0.5:0.28;
-      var prog=Math.min(score/GOAL,1); speed=0.016+0.044*prog;
+      speed=speedFor(score);
       dir*=-1; newTarget();
 
       checkMilestone(prev);
 
-      // Jojo commente de temps en temps (pas a chaque coup pour ne pas saturer)
       if(perfect){ comboStreak++; if(comboStreak>=2){ jojo('perfect'); comboStreak=0; } }
       else { comboStreak=0; if(score>=50 && Math.random()<0.14) jojo('hard'); else if(Math.random()<0.10) jojo('good'); }
-
-      if(score>=GOAL) winGame();
     } else { die(); }
   }
 
   function hideAll(){var a=['pseudo','start','over','win','themePicker','boardScreen'];for(var i=0;i<a.length;i++)$(a[i]).classList.add('hide');}
-
-  function winGame(){
-    running=false;
-    for(var i=0;i<THEMES.length;i++)unlockedSet[THEMES[i].id]=true;
-    saveUnlocked();
-    if(score>best){best=score;try{localStorage.setItem('pulse_best',String(best));}catch(e){}$('best').textContent=best;}
-    submitScore(score);
-    for(var k=0;k<3;k++){(function(kk){setTimeout(function(){burst(cx,cy-R()*0.2,THEME.core,30);},kk*120);})(k);}
-    $('goalbar').classList.remove('show'); $('levelchip').classList.remove('show'); $('jojo').classList.remove('show');
-    setTimeout(function(){$('win').classList.remove('hide');},650);
-  }
 
   function die(){
     running=false; shake=14;
@@ -413,7 +426,11 @@ var PULSE = (function(){
     if(record) submitScore(score);
     $('finalScore').textContent=score;
     var remain=GOAL-score;
-    $('progMini').innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour tout debloquer':'');
+    if(score>=GOAL){
+      $('progMini').innerHTML = 'Mode infini \u2014 score de <b>'+score+'</b> !';
+    } else {
+      $('progMini').innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour le mode infini':'');
+    }
     $('goalbar').classList.remove('show'); $('levelchip').classList.remove('show');
     jojo('die');
     setTimeout(function(){$('over').classList.remove('hide');$('jojo').classList.remove('show');},1600);
@@ -499,8 +516,9 @@ var PULSE = (function(){
     play:function(){
       hideAll();
       $('goalbar').classList.add('show');
+      $('goalTxt').textContent='0 / 100';
       score=0;$('score').textContent=0;speed=0.016;dir=1;angle=-Math.PI/2;
-      particles=[];flash=0;shake=0;comboStreak=0;updateGoal();newTarget();
+      particles=[];flash=0;shake=0;comboStreak=0;passed100=false;updateGoal();newTarget();
       setLevel(1);
       running=true; ready=false;
       setTimeout(function(){ready=true;},150);
