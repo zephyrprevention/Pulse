@@ -134,13 +134,12 @@
   .stept{font-size:14px;color:#C9D4EC;line-height:1.45;padding-top:5px}
   .stept b{color:var(--glow)}
 
-  /* blague affichee au centre du cercle pendant le jeu */
-  .centerjoke{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.85);z-index:7;pointer-events:none;
-    width:64%;max-width:280px;display:flex;align-items:center;gap:10px;opacity:0;transition:opacity .3s,transform .3s}
-  .centerjoke.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  .centerjoke img{width:46px;height:auto;flex:0 0 auto;filter:drop-shadow(0 2px 5px rgba(0,0,0,.5))}
-  .centerjoke .ctxt{font-size:14px;font-weight:600;color:#EAF2FF;line-height:1.35;text-align:left;
-    background:rgba(10,16,32,.92);border:1px solid rgba(255,209,102,.25);border-radius:14px;padding:9px 13px}
+  /* culture G : bandeau discret en haut, ne gene pas le jeu */
+  .centerjoke{position:fixed;left:50%;top:74px;transform:translateX(-50%) translateY(-8px);z-index:7;pointer-events:none;
+    width:90%;max-width:360px;opacity:0;transition:opacity .3s,transform .3s}
+  .centerjoke.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .centerjoke .ctxt{font-size:13px;font-weight:600;color:#EAF2FF;line-height:1.3;text-align:center;
+    background:rgba(10,16,32,.92);border:1px solid rgba(255,209,102,.25);border-radius:12px;padding:8px 14px}
 </style>
 </head>
 <body>
@@ -221,10 +220,12 @@
   <div class="title" style="font-size:36px">Comment <span>jouer</span></div>
   <div class="tag">3 etapes</div>
   <div class="steps">
-    <div class="step"><div class="stepn">1</div><div class="stept">Une bille tourne autour du cercle. Une <b>zone lumineuse</b> apparait a un endroit.</div></div>
-    <div class="step"><div class="stepn">2</div><div class="stept">Touche l'ecran <b>quand la bille entre dans la zone</b>. Vise le coeur dore pour un combo x2 !</div></div>
-    <div class="step"><div class="stepn">3</div><div class="stept">A chaque reussite le sens <b>s'inverse</b> et ca accelere. Tous les 10 points : palier, feu d'artifice et culture G !</div></div>
-    <div class="step"><div class="stepn">&#127942;</div><div class="stept">Atteins <b>100</b> pour debloquer le mode infini et tous les themes. Puis grimpe au <b>classement mondial</b> !</div></div>
+    <div class="step"><div class="stepn">1</div><div class="stept">Une bille tourne autour du cercle. Touche l'ecran <b>quand elle entre dans la zone lumineuse</b>.</div></div>
+    <div class="step"><div class="stepn">2</div><div class="stept">Vise le <b>coeur dore</b> pour un combo x2. Le sens s'inverse et ca accelere a chaque reussite.</div></div>
+    <div class="step"><div class="stepn">&#128309;</div><div class="stept"><b>20</b> : 2e bille &bull; <b>30</b> : le cercle tourne &bull; <b>40</b> : la zone pulse</div></div>
+    <div class="step"><div class="stepn">&#127919;</div><div class="stept"><b>50</b> : 3e bille &bull; <b>60</b> : la zone se deplace &bull; <b>70</b> : 2e anneau interieur !</div></div>
+    <div class="step"><div class="stepn">&#11088;</div><div class="stept">Si <b>plusieurs billes touchent en meme temps</b> : bonus <b>+5</b> (double) ou <b>+10</b> (triple) !</div></div>
+    <div class="step"><div class="stepn">&#127942;</div><div class="stept">Atteins <b>100</b> : mode infini + tous les themes. Puis grimpe au <b>classement mondial</b> !</div></div>
   </div>
   <button class="go" onclick="PULSE.home()">J'ai compris</button>
 </div>
@@ -410,7 +411,25 @@ var PULSE = (function(){
 
   var running=false, ready=false, score=0, angle=0, speed=0.016, dir=1, targetA=0, zone=0.4;
   var particles=[], flash=0, shake=0, level=1, comboStreak=0;
+  // features progressives (reparties 20 -> 70)
+  var angle2=0, angle3=0, ball2=false, ball3=false, innerRing=false, angleIn=0, targetIn=0;
+  var zonePulse=false, pulsePhase=0, ringSpin=false, spinAng=0, zoneDrift=false, driftV=0;
   function R(){return Math.min(W,H)*0.30;}
+  function Rin(){return Math.min(W,H)*0.185;}
+  function updateFeatures(){
+    ball2     = (score>=20);  // 2e bille
+    ringSpin  = (score>=30);  // le cercle tourne
+    zonePulse = (score>=40);  // la zone pulse
+    ball3     = (score>=50);  // 3e bille
+    zoneDrift = (score>=60);  // la zone se deplace
+    innerRing = (score>=70);  // 2e anneau interieur + sa bille
+  }
+  function zoneNow(){
+    var z=zone;
+    if(zonePulse){ z = zone * (0.82 + 0.18*Math.sin(pulsePhase)); }
+    return z;
+  }
+  function intensity(){ return Math.min(score/120, 1.2); }
 
   function updateGoal(){
     if(score>GOAL) return; // en mode infini, la barre affiche RECORD (gere ailleurs)
@@ -437,6 +456,7 @@ var PULSE = (function(){
   function newTarget(){
     var t;do{t=Math.random()*Math.PI*2;}while(Math.abs(aDiff(t,angle))<0.9);
     targetA=t; zone=zoneFor(score);
+    if(innerRing){ targetIn=Math.random()*Math.PI*2; }
   }
   function burst(x,y,c,n){for(var i=0;i<n;i++){var a=Math.random()*Math.PI*2,s=2+Math.random()*5;particles.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color:c});}}
   function ptOn(a,r){return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};}
@@ -475,6 +495,14 @@ var PULSE = (function(){
 
       // FEU D'ARTIFICE a chaque palier
       fireworks();
+
+      // annonce des nouvelles mecaniques
+      if(pl===20){ setTimeout(function(){ jojo('level','2e bille ! Vise quand l\'une touche la zone \u{1F535}'); }, 700); }
+      if(pl===30){ setTimeout(function(){ jojo('level','Le cercle se met a tourner... accroche-toi ! \u{1F300}'); }, 700); }
+      if(pl===40){ setTimeout(function(){ jojo('level','La zone se met a pulser, timing serre ! \u{1F4A0}'); }, 700); }
+      if(pl===50){ setTimeout(function(){ jojo('level','3e bille ! La c\'est le delire total \u{1F3AF}'); }, 700); }
+      if(pl===60){ setTimeout(function(){ jojo('level','La zone se deplace toute seule... folie ! \u{1F30A}'); }, 700); }
+      if(pl===70){ setTimeout(function(){ jojo('level','2e anneau interieur ! Delire ULTIME \u{1F525}'); }, 700); }
 
       // gestion des blagues en deux temps
       var palierIndex = pl/10; // 1,2,3...
@@ -519,21 +547,58 @@ var PULSE = (function(){
 
   function tap(){
     if(!running||!ready) return;
-    var d=Math.abs(aDiff(angle,targetA));
-    if(d<=zone){
-      var perfect=d<zone*0.35;
+    var z=zoneNow();
+    // distances de toutes les billes actives a la zone
+    var d1=Math.abs(aDiff(angle,targetA));
+    var d2=ball2?Math.abs(aDiff(angle2,targetA)):999;
+    var d3=ball3?Math.abs(aDiff(angle3,targetA)):999;
+    var dIn=innerRing?Math.abs(aDiff(angleIn,targetIn)):999;
+    // la bille interieure vise la zone interieure (targetIn), les autres la zone exterieure
+    var dOuter=Math.min(d1,d2,d3);
+    var hitAngle = (d1<=d2 && d1<=d3)?angle : (d2<=d3?angle2:angle3);
+    var outerHit = dOuter<=z;
+    var innerHit = innerRing && dIn<=z;
+
+    if(outerHit || innerHit){
       var prev=score;
-      score+=perfect?2:1; $('score').textContent=score;
+      // compte combien de billes exterieures sont dans la zone en meme temps
+      var multi=0; if(d1<=z)multi++; if(d2<=z)multi++; if(d3<=z)multi++;
+      var perfect = dOuter<z*0.35;
+      var gain, fxColor, fxCount, msg=null;
+
+      if(multi>=3){ gain=10; fxColor=THEME.core; fxCount=50; msg='TRIPLE ! +10'; }
+      else if(multi>=2){ gain=5; fxColor=THEME.core; fxCount=40; msg='Double touche ! +5'; }
+      else if(perfect){ gain=2; fxColor=THEME.core; fxCount=26; }
+      else { gain=1; fxColor=THEME.glow; fxCount=16; }
+      // si seule la bille interieure touche
+      if(!outerHit && innerHit){ gain=1; fxColor=THEME.glow; fxCount=16; }
+
+      score+=gain; $('score').textContent=score;
       if(score<=GOAL) updateGoal();
-      var p=ptOn(angle,R());
-      burst(p.x,p.y,perfect?THEME.core:THEME.glow,perfect?26:16);
-      flash=perfect?0.5:0.28;
+
+      var pr=outerHit?R():Rin();
+      var pa=ptOn(outerHit?hitAngle:angleIn, pr);
+      burst(pa.x,pa.y,fxColor,fxCount);
+
+      if(multi>=2){
+        // explosions sur chaque bille dans la zone
+        if(d1<=z){var q=ptOn(angle,R());burst(q.x,q.y,THEME.glow,18);}
+        if(d2<=z){var q2=ptOn(angle2,R());burst(q2.x,q2.y,THEME.core,18);}
+        if(d3<=z){var q3=ptOn(angle3,R());burst(q3.x,q3.y,'#FF4D9D',18);}
+        toast('+'+gain, msg);
+        flash=0.65;
+      } else {
+        flash=perfect?0.5:0.28;
+      }
+
       speed=speedFor(score);
       dir*=-1; newTarget();
+      updateFeatures();
 
       checkMilestone(prev);
 
-      if(perfect){ comboStreak++; if(comboStreak>=2){ jojo('perfect'); comboStreak=0; } }
+      if(multi>=2){ jojo('perfect', msg+' incroyable \u{1F525}'); comboStreak=0; }
+      else if(perfect){ comboStreak++; if(comboStreak>=2){ jojo('perfect'); comboStreak=0; } }
       else { comboStreak=0; if(score>=50 && Math.random()<0.14) jojo('hard'); else if(Math.random()<0.10) jojo('good'); }
     } else { die(); }
   }
@@ -572,21 +637,51 @@ var PULSE = (function(){
 
   function draw(){
     var ox=0,oy=0;
+    var inten=running?intensity():0;
+    // shake permanent leger qui monte avec le score (effet "vibration")
     if(shake>0){ox=(Math.random()-0.5)*shake;oy=(Math.random()-0.5)*shake;shake*=0.85;if(shake<0.5)shake=0;}
+    if(running && inten>0.5){ var vib=(inten-0.5)*3; ox+=(Math.random()-0.5)*vib; oy+=(Math.random()-0.5)*vib; }
     ctx.clearRect(0,0,W,H); ctx.save(); ctx.translate(ox,oy);
+
+    // rotation globale du cercle a partir de 30 (spinAng gere dans loop)
+    if(ringSpin){ ctx.translate(cx,cy); ctx.rotate(spinAng); ctx.translate(-cx,-cy); }
+
     var r=R();
+    var zn=zoneNow();
+    // anneau exterieur
     ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(90,107,140,.28)';ctx.lineWidth=3;ctx.stroke();
     if(running){
-      ctx.beginPath();ctx.arc(cx,cy,r,targetA-zone,targetA+zone);
+      ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn,targetA+zn);
       ctx.strokeStyle=THEME.glow;ctx.globalAlpha=.92;ctx.lineWidth=14;ctx.lineCap='round';
       ctx.shadowColor=THEME.glow;ctx.shadowBlur=22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.beginPath();ctx.arc(cx,cy,r,targetA-zone*0.35,targetA+zone*0.35);ctx.strokeStyle=THEME.core;ctx.lineWidth=14;ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn*0.35,targetA+zn*0.35);ctx.strokeStyle=THEME.core;ctx.lineWidth=14;ctx.stroke();
     }
-    if(particles.length>300) particles.splice(0, particles.length-300); // filet anti-crash memoire
+
+    // anneau interieur (des 70)
+    if(running && innerRing){
+      var ri=Rin();
+      ctx.beginPath();ctx.arc(cx,cy,ri,0,Math.PI*2);ctx.strokeStyle='rgba(90,107,140,.25)';ctx.lineWidth=3;ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,ri,targetIn-zn,targetIn+zn);
+      ctx.strokeStyle='#FF4D9D';ctx.globalAlpha=.9;ctx.lineWidth=11;ctx.lineCap='round';
+      ctx.shadowColor='#FF4D9D';ctx.shadowBlur=16;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+    }
+
+    if(particles.length>300) particles.splice(0, particles.length-300);
     for(var i=particles.length-1;i>=0;i--){var pt=particles[i];pt.x+=pt.vx;pt.y+=pt.vy;pt.vx*=0.94;pt.vy*=0.94;pt.life-=0.03;
       if(pt.life<=0){particles.splice(i,1);continue;}ctx.globalAlpha=pt.life;ctx.fillStyle=pt.color;ctx.beginPath();ctx.arc(pt.x,pt.y,3.2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
-    if(running){var pp=ptOn(angle,r);ctx.beginPath();ctx.arc(pp.x,pp.y,11,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;}
-    if(flash>0){ctx.fillStyle='rgba(255,255,255,'+flash*0.14+')';ctx.fillRect(-50,-50,W+100,H+100);flash*=0.82;if(flash<0.01)flash=0;}
+
+    if(running){
+      // bille principale
+      var pp=ptOn(angle,r);ctx.beginPath();ctx.arc(pp.x,pp.y,11,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;
+      // 2e bille (des 20)
+      if(ball2){ var pp2=ptOn(angle2,r);ctx.beginPath();ctx.arc(pp2.x,pp2.y,10,0,Math.PI*2);ctx.fillStyle=THEME.core;ctx.shadowColor=THEME.core;ctx.shadowBlur=16;ctx.fill();ctx.shadowBlur=0; }
+      // 3e bille (des 50)
+      if(ball3){ var pp3=ptOn(angle3,r);ctx.beginPath();ctx.arc(pp3.x,pp3.y,10,0,Math.PI*2);ctx.fillStyle='#FF4D9D';ctx.shadowColor='#FF4D9D';ctx.shadowBlur=16;ctx.fill();ctx.shadowBlur=0; }
+      // bille de l'anneau interieur (des 70)
+      if(innerRing){ var ppi=ptOn(angleIn,Rin());ctx.beginPath();ctx.arc(ppi.x,ppi.y,9,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#FF4D9D';ctx.shadowBlur=14;ctx.fill();ctx.shadowBlur=0; }
+    }
+
+    if(flash>0){ctx.fillStyle='rgba(255,255,255,'+flash*0.14+')';ctx.fillRect(-100,-100,W+200,H+200);flash*=0.82;if(flash<0.01)flash=0;}
     ctx.restore();
   }
   var lastT=0;
@@ -596,7 +691,15 @@ var PULSE = (function(){
     if(dt>50) dt=50; // evite un saut si l'onglet a ete en pause
     // 60 images/s = reference : on normalise sur dt/16.667
     var step=dt/16.667;
-    if(running){angle+=speed*dir*step;if(angle>Math.PI)angle-=Math.PI*2;if(angle<-Math.PI)angle+=Math.PI*2;}
+    if(running){
+      angle+=speed*dir*step;if(angle>Math.PI)angle-=Math.PI*2;if(angle<-Math.PI)angle+=Math.PI*2;
+      if(ball2){ angle2-=speed*dir*step*0.85; if(angle2>Math.PI)angle2-=Math.PI*2; if(angle2<-Math.PI)angle2+=Math.PI*2; }
+      if(ball3){ angle3+=speed*dir*step*1.25; if(angle3>Math.PI)angle3-=Math.PI*2; if(angle3<-Math.PI)angle3+=Math.PI*2; }
+      if(innerRing){ angleIn-=speed*dir*step*1.1; if(angleIn>Math.PI)angleIn-=Math.PI*2; if(angleIn<-Math.PI)angleIn+=Math.PI*2; }
+      if(zonePulse){ pulsePhase+=0.08*step; }
+      if(ringSpin){ spinAng+=0.006*step; if(spinAng>Math.PI*2)spinAng-=Math.PI*2; }
+      if(zoneDrift){ targetA+=0.004*step; if(targetA>Math.PI)targetA-=Math.PI*2; }
+    }
     draw(); requestAnimationFrame(loop);
   }
   loop();
@@ -655,6 +758,9 @@ var PULSE = (function(){
       $('goalTxt').textContent='0 / 100';
       score=0;$('score').textContent=0;speed=0.016;dir=1;angle=-Math.PI/2;
       particles=[];flash=0;shake=0;comboStreak=0;passed100=false;updateGoal();newTarget();
+      angle2=Math.PI; angle3=Math.PI/2; angleIn=0; targetIn=0;
+      ball2=false; ball3=false; innerRing=false; zonePulse=false; ringSpin=false; zoneDrift=false;
+      pulsePhase=0; spinAng=0;
       currentJoke=null; jokePending=false; $('jojoJoke').classList.add('hide'); $('centerjoke').classList.remove('show');
       setLevel(1);
       running=true; ready=false;
