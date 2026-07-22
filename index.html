@@ -168,7 +168,7 @@
 
   /* ---------- Jojo ---------- */
   .jojo{position:fixed;left:50%;bottom:calc(122px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
-    z-index:6;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:88%;
+    z-index:6;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:80%;
     background:rgba(10,15,30,.8);border:1px solid var(--glass-b);border-radius:18px;padding:8px 14px 8px 8px;
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.34,1.56,.64,1)}
@@ -177,11 +177,18 @@
      la ou Jojo s'affiche : sa bulle masquait donc la raquette au moment precis ou
      le joueur doit la reperer. On remonte Jojo en haut du terrain pendant ce mode. */
   body.arkmode .jojo{bottom:auto;top:calc(104px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-14px)}
+  /* Le bandeau s'affiche a 34 % de la hauteur : en ARKANOID c'est exactement la
+     rangee haute des champignons. On le remonte dans la bande libre entre le
+     plafond du terrain et le premier cercle. */
+  body.arkmode .toast{top:21%}
   body.arkmode .jojo.show{transform:translateX(-50%) translateY(0)}
   .jojo .avatar{width:46px;height:auto;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
   .jojo .bubble{text-align:left}
   .jojo .who{font-size:9px;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;font-weight:800;margin-bottom:2px}
-  .jojo .msg{font-size:14px;color:var(--ink);font-weight:600;line-height:1.3}
+  /* Les phrases longues couvraient le terrain : bulle plus etroite, texte plus
+     petit, et jamais plus de 3 lignes. */
+  .jojo .msg{font-size:13px;color:var(--ink);font-weight:600;line-height:1.28;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 
   .jojo-intro{display:flex;align-items:center;gap:12px;margin-bottom:24px;background:var(--glass);
     border:1px solid var(--glass-b);border-radius:var(--r-md);padding:12px 16px;max-width:340px}
@@ -495,12 +502,13 @@
     <div class="step"><div class="stepn">1</div><div class="stept">Une bille tourne autour du cercle. <b>Touche l'&eacute;cran</b> pile quand elle passe dans la zone lumineuse.</div></div>
     <div class="step"><div class="stepn">2</div><div class="stept">&Agrave; chaque r&eacute;ussite, le sens s'inverse et une <b>nouvelle zone</b> appara&icirc;t. Rate&nbsp;: tu perds une vie et tu repars au dernier palier.</div></div>
     <div class="step"><div class="stepn">3</div><div class="stept">Ench&acirc;ine les r&eacute;ussites&nbsp;: &agrave; 6 de combo le <b>mode FEVER</b> s'allume et <b>double tes points</b>. &Agrave; 12, c'est <b>x3</b>&nbsp;!</div></div>
-    <div class="step"><div class="stepn">4</div><div class="stept">Des <b>questions de culture G</b> ponctuent la partie (+10 pts, +1 vie)&nbsp;: fr&eacute;quentes au d&eacute;but, plus espac&eacute;es ensuite pour ne pas casser ton rythme.</div></div>
+    <div class="step"><div class="stepn">4</div><div class="stept">Des <b>questions de culture G</b> ponctuent la partie&nbsp;: bonne r&eacute;ponse <b>+10 pts et +1 vie</b>, mauvaise r&eacute;ponse <b>&minus;2 vies</b>. R&eacute;fl&eacute;chis avant de tapoter&nbsp;!</div></div>
     <div class="step"><div class="stepn">5</div><div class="stept">La <b>barre du bas</b> te dit toujours ce que tu vises. Elle va jusqu'&agrave; <b>150</b>, avec un <b>rep&egrave;re color&eacute; au milieu</b>&nbsp;: moiti&eacute; gauche = les 100 points qui d&eacute;bloquent tous les <b>th&egrave;mes premium</b>, moiti&eacute; droite = les 50 derniers avant ton premier bonus. Ensuite elle devient la jauge du <b>prochain objectif</b>.</div></div>
-    <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, &agrave; <b>500</b> puis &agrave; <b>700</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4). Les <b>3 premiers rat&eacute;s y sont offerts</b>.</div></div>
+    <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, <b>500</b>, <b>700</b> et <b>1000</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4, x5). Aucun cadeau pendant&nbsp;: tes vies sont l&agrave; pour &ccedil;a.</div></div>
     <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>ARKANOID</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>4 champignons roses</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper.</div></div>
     <div class="step"><div class="stepn">8</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme.</div></div>
-    <div class="step"><div class="stepn">9</div><div class="stept">Apr&egrave;s 700, les bonus <b>se m&eacute;ritent</b>&nbsp;: un <b>combo de 15</b> t'offre un ARKANOID, <b>3 touches multiples</b> (2&nbsp;billes ou plus d'un coup) t'offrent la GRAVIT&Eacute;. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x5, x6, x7... <b>Perdre une vie remet les deux compteurs &agrave; z&eacute;ro.</b></div></div>
+    <div class="step"><div class="stepn">9</div><div class="stept">&#127767; <b>&Eacute;CLIPSE</b>&nbsp;: l'anneau <b>enfle et se contracte</b> sans arr&ecirc;t. Ton timing, lui, n'a pas chang&eacute;&nbsp;&mdash; c'est l'&oelig;il qu'il faut garder froid.</div></div>
+    <div class="step"><div class="stepn">10</div><div class="stept">Apr&egrave;s 1000, les bonus <b>se m&eacute;ritent</b>. Les trois compteurs sont affich&eacute;s en bas de l'&eacute;cran, tu choisis lequel tu vises. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x6, x7, x8... <b>Perdre une vie remet les trois compteurs &agrave; z&eacute;ro.</b></div></div>
   </div>
   <div class="ntitle">Bar&egrave;me des billes</div>
   <div class="ptrow"><span><i class="dot w"></i> Blanche</span><span class="pv">+2</span></div>
@@ -517,11 +525,13 @@
   <div class="ptrow"><span>&#127955; ARKANOID &agrave; 150 pts</span><span class="pv">points x2</span></div>
   <div class="ptrow"><span>&#127955; ARKANOID &agrave; 500 pts</span><span class="pv">points x3</span></div>
   <div class="ptrow"><span>&#127757; GRAVIT&Eacute; &agrave; 700 pts</span><span class="pv">points x4</span></div>
-  <div class="ptrow"><span>Puis&nbsp;: combo de <b>15</b></span><span class="pv">&#127955; ARKANOID</span></div>
-  <div class="ptrow"><span>Puis&nbsp;: <b>3</b> touches &agrave; 2 billes ou +</span><span class="pv">&#127757; GRAVIT&Eacute;</span></div>
-  <div class="ptrow"><span>Chaque bonus m&eacute;rit&eacute;</span><span class="pv">x5, x6, x7...</span></div>
+  <div class="ptrow"><span>&#127767; &Eacute;CLIPSE &agrave; 1000 pts</span><span class="pv">points x5</span></div>
+  <div class="ptrow"><span>Puis&nbsp;: combo de <b>30</b></span><span class="pv">&#127955; ARKANOID</span></div>
+  <div class="ptrow"><span>Puis&nbsp;: <b>6</b> touches &agrave; 2 billes ou +</span><span class="pv">&#127757; GRAVIT&Eacute;</span></div>
+  <div class="ptrow"><span>Puis&nbsp;: <b>10</b> touches en plein centre</span><span class="pv">&#127767; &Eacute;CLIPSE</span></div>
+  <div class="ptrow"><span>Chaque bonus m&eacute;rit&eacute;</span><span class="pv">x6, x7, x8...</span></div>
   <div class="ptrow"><span>Le multiplicateur du bonus se <b>cumule</b> avec le Fever</span><span class="pv">&#128293;</span></div>
-  <div class="ptrow"><span>Apr&egrave;s chaque bonus, 8 s de repos</span><span class="pv">&#9208;</span></div>
+  <div class="ptrow"><span>Apr&egrave;s chaque bonus, 16 s de repos</span><span class="pv">&#9208;</span></div>
   <div class="ntitle">Combo Fever</div>
   <div class="ptrow"><span>&#128293; Combo 6+</span><span class="pv">points x2</span></div>
   <div class="ptrow"><span>&#9889; Combo 12+</span><span class="pv">points x3</span></div>
@@ -612,33 +622,73 @@ var PULSE = (function(){
   function sfxDie(){ beep(300,0.18,'sawtooth',0.4); setTimeout(function(){beep(160,0.28,'sawtooth',0.4);},110); }
   function sfxLevel(){ beep(523,0.10,'triangle',0.5); setTimeout(function(){beep(784,0.14,'triangle',0.45);},90); }
 
-  // ---- Melodie retro originale en boucle (style arcade, libre de droits) ----
-  // notes en Hz, 0 = silence
-  var MELODY=[
-    440,0,554,659, 587,0,494,440, 392,0,440,494, 523,0,494,440,
-    440,0,554,659, 587,0,494,587, 659,0,587,523, 494,0,440,0
-  ];
-  var melodyStep=0, melodyTimer=null;
+  // ---- Musique retro originale, en plusieurs ambiances (libre de droits) ----
+  // Une seule boucle de 32 notes tournait du debut a la fin d'une partie : au
+  // bout de deux minutes elle devenait du bruit. Il y a maintenant un motif par
+  // moment de jeu, et le tempo se resserre avec la progression.
+  // 0 = silence.
+  var MUSIC={
+    /* debut de partie : la boucle d'origine, calme, en la mineur */
+    base:{ms:200, type:'triangle', n:[
+      440,0,554,659, 587,0,494,440, 392,0,440,494, 523,0,494,440,
+      440,0,554,659, 587,0,494,587, 659,0,587,523, 494,0,440,0]},
+    /* apres 110 pts : plus clair, plus ouvert */
+    mid:{ms:186, type:'triangle', n:[
+      523,0,659,784, 698,0,587,523, 587,0,698,784, 880,0,784,659,
+      523,0,659,784, 880,0,784,698, 659,0,587,523, 494,0,523,0]},
+    /* apres 320 pts : ca se tend, on descend d'un ton */
+    late:{ms:172, type:'square', n:[
+      587,0,698,880, 784,0,659,587, 523,0,587,659, 698,0,659,587,
+      587,698,880,1046, 988,0,880,784, 698,0,659,587, 523,0,494,0]},
+    /* ARKANOID : staccato de flipper, court et rebondissant */
+    ark:{ms:150, type:'square', n:[
+      880,0,660,0, 990,0,660,0, 880,0,1174,0, 990,0,660,0,
+      784,0,587,0, 880,0,587,0, 1046,0,880,0, 784,0,587,0]},
+    /* GRAVITE : un pendule, qui descend et remonte */
+    grav:{ms:176, type:'sawtooth', n:[
+      330,392,440,523, 587,523,440,392, 330,392,440,523, 659,523,440,392,
+      294,349,440,523, 587,659,523,440, 392,440,523,587, 523,440,392,330]},
+    /* ECLIPSE : notes tenues, tres espacees, ca respire comme l'anneau */
+    ecl:{ms:230, type:'sine', n:[
+      440,0,0,0, 587,0,0,0, 523,0,0,0, 392,0,0,0,
+      466,0,0,0, 622,0,0,0, 554,0,0,0, 415,0,0,0]}
+  };
+  function musicBankNow(){
+    if(seqKind==='arkanoid') return 'ark';
+    if(seqKind==='gravite')  return 'grav';
+    if(seqKind==='eclipse')  return 'ecl';
+    var d=dscore||0;
+    return d>=320 ? 'late' : d>=110 ? 'mid' : 'base';
+  }
+  var melodyStep=0, melodyTimer=null, melodyBank='';
+  function playNote(freq,type){
+    try{
+      var o=AC.createOscillator(), g=AC.createGain();
+      o.type=type||'triangle'; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.0001,AC.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.5,AC.currentTime+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+0.18);
+      o.connect(g); g.connect(musicGain);
+      o.start(); o.stop(AC.currentTime+0.19);
+    }catch(e){}
+  }
+  /* setTimeout et non setInterval : le tempo et l'ambiance peuvent changer
+     entre deux notes, sans couper la musique. */
   function startMusic(){
     if(!soundOn||!AC||melodyTimer) return;
-    var interval=200; // ms par note
-    melodyTimer=setInterval(function(){
-      var n=MELODY[melodyStep % MELODY.length];
+    function tick(){
+      var id=musicBankNow(), bank=MUSIC[id]||MUSIC.base;
+      if(id!==melodyBank){ melodyBank=id; melodyStep=0; }   /* on repart sur le 1er temps */
+      var n=bank.n[melodyStep % bank.n.length];
       melodyStep++;
-      if(n>0 && soundOn && AC){
-        try{
-          var o=AC.createOscillator(), g=AC.createGain();
-          o.type='triangle'; o.frequency.value=n;
-          g.gain.setValueAtTime(0.0001,AC.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.5,AC.currentTime+0.02);
-          g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+0.18);
-          o.connect(g); g.connect(musicGain);
-          o.start(); o.stop(AC.currentTime+0.19);
-        }catch(e){}
-      }
-    }, interval);
+      if(n>0 && soundOn && AC) playNote(n, bank.type);
+      /* jusqu'a 30 % plus rapide en fin de partie */
+      var ms=bank.ms*(1-Math.min((dscore||0)/1200,0.30));
+      melodyTimer=setTimeout(tick, Math.max(95,ms));
+    }
+    melodyTimer=setTimeout(tick, 10);
   }
-  function stopMusic(){ if(melodyTimer){ clearInterval(melodyTimer); melodyTimer=null; } }
+  function stopMusic(){ if(melodyTimer){ clearTimeout(melodyTimer); melodyTimer=null; } }
   function toggleSound(){
     soundOn=!soundOn;
     try{ localStorage.setItem('pulse_sound', soundOn?'1':'0'); }catch(e){}
@@ -1621,20 +1671,24 @@ var PULSE = (function(){
   var BARMAX=150;                    // graduation maxi de la barre du milieu
   var ARK_AT=150;                    // 1er ARKANOID (fin de la barre)
   var SEQ_MS=15000;                  // duree de TOUS les bonus : 15 secondes
-  var REST_MS=8000;                  // repos apres un bonus : rien ne peut retomber
+  var REST_MS=16000;                 // repos apres un bonus : rien ne peut retomber
 
   /* Bonus programmes, dans l'ordre. Passe le dernier, on bascule au merite. */
   var SCRIPTED=[
     {at:ARK_AT, kind:'arkanoid', mult:2},
     {at:500,    kind:'arkanoid', mult:3},
-    {at:700,    kind:'gravite',  mult:4}
+    {at:700,    kind:'gravite',  mult:4},
+    {at:1000,   kind:'eclipse',  mult:5}
   ];
   var scriptIdx=0;
 
-  /* Conditions de merite (apres les paliers programmes) */
-  var MERIT_COMBO=15;                // combo a atteindre -> ARKANOID
-  var MERIT_MULTI=3;                 // touches a 2 billes ou + -> GRAVITE
-  var meritOn=false, multiHits=0, earned=0;
+  /* Conditions de merite (apres les paliers programmes). Volontairement hautes :
+     un bonus toutes les deux minutes reste un evenement, un bonus toutes les
+     vingt secondes devient le jeu lui-meme. */
+  var MERIT_COMBO=30;                // combo a atteindre        -> ARKANOID
+  var MERIT_MULTI=6;                 // touches a 2 billes ou +  -> GRAVITE
+  var MERIT_PERF=10;                 // touches en plein centre  -> ECLIPSE
+  var meritOn=false, multiHits=0, perfHits=0, earned=0;
 
   var seqKind='', seqT=0, seqMult=1; // bonus en cours ('' = jeu normal)
   var seqCount=0, restT=0;           // bonus joues / temps de repos restant
@@ -1692,7 +1746,10 @@ var PULSE = (function(){
   /* ECLIPSE : amplitude VOLONTAIREMENT forte. A +-0.10 sur un cycle de 5 s,
      l'anneau bougeait de ~12 px : personne ne le voyait. A 0.22, le rayon varie
      de plus de 50 % entre le minimum et le maximum, et le cycle dure ~2 s. */
-  function eclipseAmp(){ return Math.min(0.22 + (score-3000)*0.00002, 0.30); }
+  /* ECLIPSE : l'anneau enfle et se contracte de plus de 50 % entre son minimum
+     et son maximum, sur un cycle d'environ 2 s. L'amplitude ne suit plus le
+     score (devenu enorme) mais le nombre de bonus deja traverses. */
+  function eclipseAmp(){ return Math.min(0.22 + seqCount*0.012, 0.32); }
 
   /* ================== MODE ARKANOID (phase 1000) ==================
      Le cercle se deroule : la piste devient une raquette en bas de l'ecran et la
@@ -2180,10 +2237,13 @@ var PULSE = (function(){
         lbl = (sc.kind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+sc.mult;
         val = score+' / '+sc.at;
       } else {
-        var cp=Math.min(combo/MERIT_COMBO,1), mp=Math.min(multiHits/MERIT_MULTI,1);
-        pct = Math.max(cp,mp)*100;
-        if(cp>=mp){ lbl='\u{1F3D3} Combo pour un ARKANOID'; val=Math.min(combo,MERIT_COMBO)+' / '+MERIT_COMBO; }
-        else { lbl='\u{1F30D} Touches multiples \u2192 GRAVIT\u00c9'; val=multiHits+' / '+MERIT_MULTI; }
+        /* les trois compteurs cote a cote : le joueur choisit ce qu'il vise */
+        var cp=Math.min(combo/MERIT_COMBO,1), mp=Math.min(multiHits/MERIT_MULTI,1), pp=Math.min(perfHits/MERIT_PERF,1);
+        pct = Math.max(cp,mp,pp)*100;
+        lbl = '\u{1F3D3} '+Math.min(combo,MERIT_COMBO)+'/'+MERIT_COMBO
+            +'  \u{1F30D} '+Math.min(multiHits,MERIT_MULTI)+'/'+MERIT_MULTI
+            +'  \u{1F317} '+Math.min(perfHits,MERIT_PERF)+'/'+MERIT_PERF;
+        val = '\u00e0 m\u00e9riter';
       }
     }
     var key=lbl+'|'+val+'|'+Math.round(pct)+'|'+hot;
@@ -2266,7 +2326,7 @@ var PULSE = (function(){
     /* ralenti plus long et plus marque : c'est PENDANT lui que le joueur lit
        l'annonce. A 1,4 s le texte disparaissait avant d'avoir ete lu. */
     slowmoT=2400; timeScale=0.28;
-    graceHits=3;
+    graceHits=0;                     /* plus de rodage : les vies sont deja la */
     fireworks(); sfxLevel(); sfxFever();
     haptic([30,50,30,50,90]); doFlash(0.55,'255,209,102');
     toast(p.name, p.sub, true);
@@ -2301,14 +2361,14 @@ var PULSE = (function(){
   function endSeq(){
     seqKind=''; seqT=0; seqMult=1; restT=REST_MS;
     phaseId='';
-    combo=0; multiHits=0;             /* les compteurs de merite repartent a zero */
+    combo=0; multiHits=0; perfHits=0; /* les compteurs de merite repartent a zero */
     newTarget(); arkTargetX=null;
-    freezeT=200; slowmoT=1000; timeScale=0.4; graceHits=3;
+    freezeT=200; slowmoT=1000; timeScale=0.4; graceHits=0;
     doFlash(0.35,'255,255,255'); sfxLevel();
     if(!meritOn && scriptIdx>=SCRIPTED.length){
       meritOn=true;
-      toast('\u{1F3C5} \u00c0 TOI DE JOUER', 'les bonus se m\u00e9ritent maintenant');
-      setTimeout(function(){ jojo('level','Fini les cadeaux ! Un combo de '+MERIT_COMBO+' t\'offre un ARKANOID, '+MERIT_MULTI+' touches multiples t\'offrent la GRAVIT\u00c9 \u{1F3C5}'); }, 900);
+      toast('\u{1F3C5} \u00c0 TOI DE JOUER', 'les bonus se m\u00e9ritent \u2014 vise la barre du bas');
+      setTimeout(function(){ jojo('level','Fini les cadeaux : les bonus se gagnent maintenant \u{1F3C5}'); }, 900);
     } else {
       toast('Bonus termin\u00e9', meritOn ? 'gagne le prochain !' : '');
     }
@@ -2337,12 +2397,16 @@ var PULSE = (function(){
     /* 2) au merite : le combo ouvre l'ARKANOID, les touches multiples la GRAVITE */
     if(meritOn){
       if(combo>=MERIT_COMBO){
-        earned++; toast('\u{1F3D3} COMBO '+MERIT_COMBO+' !','ARKANOID m\u00e9rit\u00e9 \u2014 points \u00d7'+(4+earned));
-        startSeq('arkanoid', 4+earned); return true;
+        earned++; toast('\u{1F3D3} ARKANOID !','m\u00e9rit\u00e9 \u2014 points \u00d7'+(5+earned));
+        startSeq('arkanoid', 5+earned); return true;
       }
       if(multiHits>=MERIT_MULTI){
-        earned++; toast('\u{1F30D} '+MERIT_MULTI+' TOUCHES MULTIPLES !','GRAVIT\u00c9 m\u00e9rit\u00e9e \u2014 points \u00d7'+(4+earned));
-        startSeq('gravite', 4+earned); return true;
+        earned++; toast('\u{1F30D} GRAVIT\u00c9 !','m\u00e9rit\u00e9e \u2014 points \u00d7'+(5+earned));
+        startSeq('gravite', 5+earned); return true;
+      }
+      if(perfHits>=MERIT_PERF){
+        earned++; toast('\u{1F317} \u00c9CLIPSE !','m\u00e9rit\u00e9e \u2014 points \u00d7'+(5+earned));
+        startSeq('eclipse', 5+earned); return true;
       }
     }
     return false;
@@ -2368,6 +2432,9 @@ var PULSE = (function(){
     if(pl>=10 && Math.floor(prev/10)*10 < pl){
       var nv = pl/10 + 1;
       var freshTheme=unlockReached();
+      /* Pendant ARKANOID : aucune celebration. Le bandeau "Palier" tombait en
+         plein sur les champignons, et un QCM coupait le rebond en cours. */
+      if(phaseIs('arkanoid')) return;
 
       /* apres 100, les scores filent vite (x2/x3) : on ne celebre + quiz que tous les 50 pts
          pour preserver le flow, sinon feu d'artifice et QCM a chaque tap */
@@ -2414,7 +2481,7 @@ var PULSE = (function(){
   }
 
   /* ---------- QCM culture G ---------- */
-  var quizAnswered=false;
+  var quizAnswered=false, quizFatal=false;
   var LETTERS=['A','B','C'];
 
   /* Texte "replie" : minuscules, sans accents ni ponctuation. Sert a la fois
@@ -2569,11 +2636,19 @@ var PULSE = (function(){
         sfxBonus(); haptic(40);
       }
     } else {
-      fb.textContent='Rate ! La bonne reponse etait en vert'; fb.className='quizfeed ko';
-      sfxDie();
+      /* Une mauvaise reponse coute deux vies : sans sanction, le QCM etait une
+         loterie gratuite qu'on repondait au hasard. */
+      quizFatal = (lives<2);
+      lives = Math.max(0, lives-2); updateLives();
+      fb.innerHTML = quizFatal
+        ? 'Rat\u00e9 ! La bonne r\u00e9ponse \u00e9tait en vert \u2014 <b>plus de vies...</b>'
+        : 'Rat\u00e9 ! La bonne r\u00e9ponse \u00e9tait en vert \u2014 <b>\u22122 vies \u{1F494}</b>';
+      fb.className='quizfeed ko';
+      sfxDie(); haptic([60,50,60]); doFlash(0.45,'255,77,109');
     }
     setTimeout(function(){
       $('quizbox').classList.add('hide');
+      if(quizFatal){ quizFatal=false; running=true; die(false); return; }
       running=true; ready=false;
       if(soundOn) startMusic();
       setTimeout(function(){ ready=true; }, 350);
@@ -2658,6 +2733,7 @@ var PULSE = (function(){
       /* MERITE : une touche a 2 billes ou plus rapproche de la GRAVITE.
          Ne compte que hors bonus, sinon un bonus en declencherait un autre. */
       if(multi>=2 && !seqKind && meritOn){ multiHits++; }
+      if(perfect && !seqKind && meritOn){ perfHits++; }
       if(multi>=2){
         if(hitW){var q=ptOn(angle,R());burst(q.x,q.y,'#fff',18);}
         if(hitY){var q2=ptOn(angle2,R());burst(q2.x,q2.y,'#FFD166',18);}
@@ -2710,7 +2786,7 @@ var PULSE = (function(){
       return;
     }
     var lostCombo=combo;
-    running=false; shake=16; combo=0; goldT=0; multiHits=0;
+    running=false; shake=16; combo=0; goldT=0; multiHits=0; perfHits=0;
     /* point d'impact : la balle en mode arkanoid, la bille sur l'anneau sinon */
     var p = (phaseIs('arkanoid') && arkBall) ? {x:arkBall.x,y:Math.min(arkBall.y,arkPadY()+40)} : ptOn(angle,R());
     if(near){ floatText(p.x,p.y-26,'PRESQUE !','#FFD166',true); }
@@ -3362,7 +3438,7 @@ var PULSE = (function(){
     $('goalbar').classList.add('show'); $('goalbar').classList.remove('phase2');
     $('goalTxt').textContent='0 / '+BARMAX;
     scriptIdx=0; seqKind=''; seqT=0; seqMult=1; seqCount=0; restT=0;
-    meritOn=false; multiHits=0; earned=0; lastMilestone=0; goalCache='';
+    meritOn=false; multiHits=0; perfHits=0; earned=0; lastMilestone=0; goalCache='';
     score=0;dscore=0;$('score').textContent=0;speed=speedFor(0);dir=1;angle=-Math.PI/2;
     particles=[];floats=[];frites=[];flash=0;shake=0;passed100=false;
     if(THEME&&THEME.frites){ for(var bf=0;bf<10;bf++) friteRain2(); }
