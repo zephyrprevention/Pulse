@@ -510,8 +510,8 @@
     <div class="step"><div class="stepn">5</div><div class="stept">La <b>barre du bas</b> te dit toujours ce que tu vises. Elle va jusqu'&agrave; <b>150</b>, avec un <b>rep&egrave;re color&eacute; au milieu</b>&nbsp;: moiti&eacute; gauche = les 100 points qui d&eacute;bloquent tous les <b>th&egrave;mes premium</b>, moiti&eacute; droite = les 50 derniers avant ton premier bonus. Ensuite elle devient la jauge du <b>prochain objectif</b>.</div></div>
     <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, <b>500</b>, <b>700</b> et <b>1000</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4, x5). Aucun cadeau pendant&nbsp;: tes vies sont l&agrave; pour &ccedil;a.</div></div>
     <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>T&Eacute;NIFLIP</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>4 champignons roses</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper.</div></div>
-    <div class="step"><div class="stepn">8</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme.</div></div>
-    <div class="step"><div class="stepn">9</div><div class="stept">&#127767; <b>&Eacute;CLIPSE</b>&nbsp;: l'anneau <b>enfle et se contracte</b> sans arr&ecirc;t. Ton timing, lui, n'a pas chang&eacute;&nbsp;&mdash; c'est l'&oelig;il qu'il faut garder froid.</div></div>
+    <div class="step"><div class="stepn">8</div><div class="stept">&#127767; <b>&Eacute;CLIPSE</b>&nbsp;: l'anneau <b>enfle et se contracte</b> sans arr&ecirc;t. Ton timing, lui, n'a pas chang&eacute;&nbsp;&mdash; c'est l'&oelig;il qu'il faut garder froid.</div></div>
+    <div class="step"><div class="stepn">9</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme &mdash; et un tour complet va m&ecirc;me un peu <b>plus vite</b> que d'habitude.</div></div>
     <div class="step"><div class="stepn">10</div><div class="stept">Apr&egrave;s 1000, les bonus <b>se m&eacute;ritent</b>. Les trois compteurs sont affich&eacute;s en bas de l'&eacute;cran, tu choisis lequel tu vises. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x6, x7, x8... <b>Perdre une vie remet les trois compteurs &agrave; z&eacute;ro.</b></div></div>
   </div>
   <div class="ntitle">Bar&egrave;me des billes</div>
@@ -528,8 +528,8 @@
   <div class="ntitle">Les bonus de 15 secondes</div>
   <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 150 pts</span><span class="pv">points x2</span></div>
   <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 500 pts</span><span class="pv">points x3</span></div>
-  <div class="ptrow"><span>&#127757; GRAVIT&Eacute; &agrave; 700 pts</span><span class="pv">points x4</span></div>
-  <div class="ptrow"><span>&#127767; &Eacute;CLIPSE &agrave; 1000 pts</span><span class="pv">points x5</span></div>
+  <div class="ptrow"><span>&#127767; &Eacute;CLIPSE &agrave; 700 pts</span><span class="pv">points x4</span></div>
+  <div class="ptrow"><span>&#127757; GRAVIT&Eacute; &agrave; 1000 pts</span><span class="pv">points x5</span></div>
   <div class="ptrow"><span>Puis&nbsp;: combo de <b>30</b></span><span class="pv">&#127955; T&Eacute;NIFLIP</span></div>
   <div class="ptrow"><span>Puis&nbsp;: <b>6</b> touches &agrave; 2 billes ou +</span><span class="pv">&#127757; GRAVIT&Eacute;</span></div>
   <div class="ptrow"><span>Puis&nbsp;: <b>10</b> touches en plein centre</span><span class="pv">&#127767; &Eacute;CLIPSE</span></div>
@@ -627,28 +627,36 @@ var PULSE = (function(){
   function sfxLevel(){ beep(523,0.10,'triangle',0.5); setTimeout(function(){beep(784,0.14,'triangle',0.45);},90); }
 
   // ---- Musique retro originale, en plusieurs ambiances (libre de droits) ----
-  // Quatre ambiances : la boucle d'origine hors bonus, un motif de flipper en
-  // TENIFLIP, une danse slave en GRAVITE, une ritournelle de campagne en ECLIPSE. Le changement se
+  // Quatre ambiances : la danse slave en musique generale, un motif de flipper en
+  // TENIFLIP, un pendule en GRAVITE, une ritournelle de campagne en ECLIPSE. Le changement se
   // fait sur le premier temps du nouveau motif, sans coupure. 0 = silence.
   var MUSIC={
-    /* La boucle d'origine de l'appli : c'est elle qui tourne tout le reste du
-       temps, du premier point jusqu'a la fin de la partie. */
-    base:{ms:200, type:'triangle', n:[
+    /* MUSIQUE GENERALE : danse slave en mi mineur, l'idiome "jeu de briques
+       russe". Arrangement original dans l'esprit de "Korobeiniki" (chant
+       traditionnel russe, domaine public), et non la transcription de la version
+       d'un jeu existant. Un peu ralentie par rapport a un motif de bonus : elle
+       tourne en permanence, elle ne doit pas epuiser.
+       (L'ancienne boucle d'origine est conservee juste en dessous sous le nom
+       "calme", si tu veux la remettre : il suffit de renommer les deux cles.) */
+    base:{ms:170, type:'triangle', n:[
+      440,659,587,523, 494,523,440,0,
+      392,494,587,494, 440,0,330,0,
+      523,659,784,659, 587,523,494,0,
+      440,523,659,587, 523,494,440,0]},
+    calme:{ms:200, type:'triangle', n:[
       440,0,554,659, 587,0,494,440, 392,0,440,494, 523,0,494,440,
       440,0,554,659, 587,0,494,587, 659,0,587,523, 494,0,440,0]},
     /* TENIFLIP : staccato de flipper, court et rebondissant */
     ark:{ms:150, type:'square', n:[
       880,0,660,0, 990,0,660,0, 880,0,1174,0, 990,0,660,0,
       784,0,587,0, 880,0,587,0, 1046,0,880,0, 784,0,587,0]},
-    /* GRAVITE : danse slave en mi mineur, croches serrees, le style "jeu de
-       briques russe". Arrangement original ecrit pour l'appli, dans l'idiome de
-       "Korobeiniki" (chant traditionnel russe, domaine public) et non la
-       transcription de la version d'un jeu existant. */
-    delire:{ms:148, type:'square', n:[
-      440,659,587,523, 494,523,440,0,
-      392,494,587,494, 440,0,330,0,
-      523,659,784,659, 587,523,494,0,
-      440,523,659,587, 523,494,440,0]},
+    /* GRAVITE : un pendule. La ligne descend puis remonte, comme les billes qui
+       plongent en bas de l'anneau et flanent en haut. */
+    grav:{ms:172, type:'sawtooth', n:[
+      330,392,440,523, 587,523,440,392,
+      330,392,440,523, 659,523,440,392,
+      294,349,440,523, 587,659,523,440,
+      392,440,523,587, 523,440,392,330]},
     /* ECLIPSE : ritournelle de campagne francaise, majeur naif, balancement de
        musette, un peu pince-sans-rire — l'esprit d'une comedie rurale des
        annees 80. Melodie originale : le theme de "La Soupe aux choux" est signe
@@ -661,7 +669,7 @@ var PULSE = (function(){
   };
   function musicBankNow(){
     if(seqKind==='arkanoid') return 'ark';
-    if(seqKind==='gravite') return 'delire';
+    if(seqKind==='gravite') return 'grav';
     if(seqKind==='eclipse') return 'ecl';
     return 'base';
   }
@@ -2063,7 +2071,143 @@ var PULSE = (function(){
     {q:"La radioactivité a été découverte au XXe siècle.", o:["Vrai","Faux"], a:1},
     {q:"Le premier vaccin a été mis au point par Alexander Fleming.", o:["Vrai","Faux"], a:1},
     {q:"Copernic affirmait que la Terre était au centre de l'univers.", o:["Vrai","Faux"], a:1},
-    {q:"Galilée a été récompensé par l'Église pour ses travaux.", o:["Vrai","Faux"], a:1}
+    {q:"Galilée a été récompensé par l'Église pour ses travaux.", o:["Vrai","Faux"], a:1},
+
+    // ===== VRAI / FAUX (lot 2) : 134 affirmations supplementaires =====
+    {q:"Le mot robot vient du tchèque.", o:["Vrai","Faux"], a:0},
+    {q:"L'espéranto est une langue construite.", o:["Vrai","Faux"], a:0},
+    {q:"Le mandarin est la langue la plus parlée au monde comme langue maternelle.", o:["Vrai","Faux"], a:0},
+    {q:"L'alphabet cyrillique est utilisé en Grèce.", o:["Vrai","Faux"], a:1},
+    {q:"Le japonais utilise trois systèmes d'écriture.", o:["Vrai","Faux"], a:0},
+    {q:"L'arabe s'écrit de droite à gauche.", o:["Vrai","Faux"], a:0},
+    {q:"Le latin est encore une langue officielle du Vatican.", o:["Vrai","Faux"], a:0},
+    {q:"Le portugais est la langue la plus parlée d'Amérique du Sud.", o:["Vrai","Faux"], a:0},
+    {q:"Le drapeau du Japon représente une étoile.", o:["Vrai","Faux"], a:1},
+    {q:"Le drapeau suisse est de forme carrée.", o:["Vrai","Faux"], a:0},
+    {q:"Le drapeau du Canada porte une feuille d'érable.", o:["Vrai","Faux"], a:0},
+    {q:"Le drapeau olympique est vert.", o:["Vrai","Faux"], a:1},
+    {q:"La croix rouge sur fond blanc est l'inverse du drapeau suisse.", o:["Vrai","Faux"], a:0},
+    {q:"Le premier drapeau planté sur la Lune était celui de l'ONU.", o:["Vrai","Faux"], a:1},
+    {q:"L'ONU a été fondée après la Seconde Guerre mondiale.", o:["Vrai","Faux"], a:0},
+    {q:"Le siège de l'ONU se trouve à Genève.", o:["Vrai","Faux"], a:1},
+    {q:"Le prix Nobel est remis en Suède, sauf celui de la paix.", o:["Vrai","Faux"], a:0},
+    {q:"Alfred Nobel a inventé la dynamite.", o:["Vrai","Faux"], a:0},
+    {q:"Le prix Nobel de mathématiques existe.", o:["Vrai","Faux"], a:1},
+    {q:"Le franc suisse est la monnaie du Liechtenstein.", o:["Vrai","Faux"], a:0},
+    {q:"Le yen est la monnaie de la Corée du Sud.", o:["Vrai","Faux"], a:1},
+    {q:"La livre sterling est plus ancienne que l'euro.", o:["Vrai","Faux"], a:0},
+    {q:"Le dollar est la monnaie de l'Australie comme des États-Unis.", o:["Vrai","Faux"], a:0},
+    {q:"Une bourse peut baisser et monter le même jour.", o:["Vrai","Faux"], a:0},
+    {q:"L'or est coté en euros sur les marchés internationaux.", o:["Vrai","Faux"], a:1},
+    {q:"Le Bitcoin est émis par une banque centrale.", o:["Vrai","Faux"], a:1},
+    {q:"Un chèque de banque et un chèque ordinaire sont la même chose.", o:["Vrai","Faux"], a:1},
+    {q:"Le code IBAN sert à identifier un compte bancaire.", o:["Vrai","Faux"], a:0},
+    {q:"Le taux d'intérêt d'un livret A est fixé par l'État.", o:["Vrai","Faux"], a:0},
+    {q:"Une année fiscale correspond toujours à l'année civile en France.", o:["Vrai","Faux"], a:0},
+    {q:"Le Concorde volait plus vite que le son.", o:["Vrai","Faux"], a:0},
+    {q:"Le Concorde vole encore aujourd'hui.", o:["Vrai","Faux"], a:1},
+    {q:"Le TGV détient le record du monde de vitesse sur rail.", o:["Vrai","Faux"], a:0},
+    {q:"Le métro de Paris a ouvert au XIXe siècle.", o:["Vrai","Faux"], a:0},
+    {q:"La première ligne de métro au monde a été ouverte à Londres.", o:["Vrai","Faux"], a:0},
+    {q:"Le canal du Midi relie l'Atlantique à la Méditerranée.", o:["Vrai","Faux"], a:0},
+    {q:"Un avion de ligne vole généralement à plus de 10 000 mètres.", o:["Vrai","Faux"], a:0},
+    {q:"Les boîtes noires des avions sont noires.", o:["Vrai","Faux"], a:1},
+    {q:"Un hélicoptère peut planer sur place.", o:["Vrai","Faux"], a:0},
+    {q:"Le premier vol commercial supersonique date des années 1990.", o:["Vrai","Faux"], a:1},
+    {q:"Un sous-marin peut faire surface en vidant ses ballasts.", o:["Vrai","Faux"], a:0},
+    {q:"Le Titanic était équipé de canots pour tous ses passagers.", o:["Vrai","Faux"], a:1},
+    {q:"Un phare sert à signaler un danger aux navires.", o:["Vrai","Faux"], a:0},
+    {q:"Le nœud est une unité de vitesse marine.", o:["Vrai","Faux"], a:0},
+    {q:"Bâbord désigne la droite d'un navire.", o:["Vrai","Faux"], a:1},
+    {q:"Le mille marin est plus long que le kilomètre.", o:["Vrai","Faux"], a:0},
+    {q:"Le Kraken est un animal marin réel.", o:["Vrai","Faux"], a:1},
+    {q:"Les marées hautes se produisent deux fois par jour environ.", o:["Vrai","Faux"], a:0},
+    {q:"Le Gulf Stream réchauffe les côtes européennes.", o:["Vrai","Faux"], a:0},
+    {q:"La Méditerranée est reliée à l'Atlantique.", o:["Vrai","Faux"], a:0},
+    {q:"Un microscope sert à observer les astres.", o:["Vrai","Faux"], a:1},
+    {q:"Le télescope de Galilée était plus puissant que ceux d'aujourd'hui.", o:["Vrai","Faux"], a:1},
+    {q:"Le stéthoscope a été inventé par un médecin français.", o:["Vrai","Faux"], a:0},
+    {q:"Le braille a été inventé par un Français.", o:["Vrai","Faux"], a:0},
+    {q:"Le morse a été mis au point au XIXe siècle.", o:["Vrai","Faux"], a:0},
+    {q:"Le premier appareil photo produisait des images en couleur.", o:["Vrai","Faux"], a:1},
+    {q:"La photographie argentique utilise des sels d'argent.", o:["Vrai","Faux"], a:0},
+    {q:"Le cinéma a précédé la photographie.", o:["Vrai","Faux"], a:1},
+    {q:"La télévision couleur est apparue avant la Seconde Guerre mondiale en France.", o:["Vrai","Faux"], a:1},
+    {q:"Le disque vinyle tourne dans le sens des aiguilles d'une montre.", o:["Vrai","Faux"], a:0},
+    {q:"Un CD stocke les données sous forme de creux lus par un laser.", o:["Vrai","Faux"], a:0},
+    {q:"La cassette VHS a été inventée après le DVD.", o:["Vrai","Faux"], a:1},
+    {q:"Le premier jeu vidéo grand public date des années 1970.", o:["Vrai","Faux"], a:0},
+    {q:"Une manette de jeu s'appelle aussi un pad.", o:["Vrai","Faux"], a:0},
+    {q:"Le pixel est la plus petite unité d'une image numérique.", o:["Vrai","Faux"], a:0},
+    {q:"Un fichier JPEG conserve toute l'information de l'image d'origine.", o:["Vrai","Faux"], a:1},
+    {q:"Le format PDF a été créé par Adobe.", o:["Vrai","Faux"], a:0},
+    {q:"Une adresse IP identifie un appareil sur un réseau.", o:["Vrai","Faux"], a:0},
+    {q:"Le courrier électronique est plus ancien que le Web.", o:["Vrai","Faux"], a:0},
+    {q:"Le premier moteur de recherche s'appelait Google.", o:["Vrai","Faux"], a:1},
+    {q:"Un émoji et un émoticône sont exactement la même chose.", o:["Vrai","Faux"], a:1},
+    {q:"Le langage Python doit son nom à un serpent.", o:["Vrai","Faux"], a:1},
+    {q:"Un bug informatique tire son nom d'un véritable insecte.", o:["Vrai","Faux"], a:0},
+    {q:"Le nombre pi est un nombre entier.", o:["Vrai","Faux"], a:1},
+    {q:"Pi vaut environ 3,1416.", o:["Vrai","Faux"], a:0},
+    {q:"Un nombre décimal peut avoir une infinité de chiffres après la virgule.", o:["Vrai","Faux"], a:0},
+    {q:"Le zéro a été utilisé par les Romains dans leur numération.", o:["Vrai","Faux"], a:1},
+    {q:"Les chiffres arabes viennent en réalité d'Inde.", o:["Vrai","Faux"], a:0},
+    {q:"Une heure compte 3600 secondes.", o:["Vrai","Faux"], a:0},
+    {q:"Un mètre cube vaut mille litres.", o:["Vrai","Faux"], a:0},
+    {q:"Un hectare vaut 10 000 mètres carrés.", o:["Vrai","Faux"], a:0},
+    {q:"Un tour complet fait 360 degrés.", o:["Vrai","Faux"], a:0},
+    {q:"La racine carrée de 144 est 12.", o:["Vrai","Faux"], a:0},
+    {q:"Un pourcentage peut dépasser 100.", o:["Vrai","Faux"], a:0},
+    {q:"Deux droites parallèles se croisent à l'infini en géométrie euclidienne.", o:["Vrai","Faux"], a:1},
+    {q:"Le théorème de Pythagore concerne les triangles rectangles.", o:["Vrai","Faux"], a:0},
+    {q:"Un dé à six faces a autant de chances de tomber sur chaque face.", o:["Vrai","Faux"], a:0},
+    {q:"Au loto, les numéros sortis la semaine dernière ont moins de chances de revenir.", o:["Vrai","Faux"], a:1},
+    {q:"Un jeu de 52 cartes compte quatre couleurs.", o:["Vrai","Faux"], a:0},
+    {q:"Le jeu de tarot se joue avec 78 cartes.", o:["Vrai","Faux"], a:0},
+    {q:"Aux échecs, la dame est la pièce la plus mobile.", o:["Vrai","Faux"], a:0},
+    {q:"Le jeu de go est d'origine africaine.", o:["Vrai","Faux"], a:1},
+    {q:"Le Rubik's Cube a été inventé par un Hongrois.", o:["Vrai","Faux"], a:0},
+    {q:"Le Monopoly a été créé en France.", o:["Vrai","Faux"], a:1},
+    {q:"Le Scrabble se joue avec des dés.", o:["Vrai","Faux"], a:1},
+    {q:"Une partie de belote se joue à quatre.", o:["Vrai","Faux"], a:0},
+    {q:"Le poker se joue avec un jeu de 32 cartes en version classique.", o:["Vrai","Faux"], a:1},
+    {q:"Les dominos comportent des faces vierges.", o:["Vrai","Faux"], a:0},
+    {q:"Le yoyo est un jouet plus ancien que le XXe siècle.", o:["Vrai","Faux"], a:0},
+    {q:"Les fléchettes se jouent sur une cible divisée en 20 secteurs.", o:["Vrai","Faux"], a:0},
+    {q:"Le billard français se joue sans trous.", o:["Vrai","Faux"], a:0},
+    {q:"Le mont Fuji se trouve en Chine.", o:["Vrai","Faux"], a:1},
+    {q:"Venise est bâtie sur une seule île.", o:["Vrai","Faux"], a:1},
+    {q:"La Tamise traverse Manchester.", o:["Vrai","Faux"], a:1},
+    {q:"Le Colisée de Rome était un théâtre couvert.", o:["Vrai","Faux"], a:1},
+    {q:"La tour de Pise penche parce qu'elle a été conçue ainsi.", o:["Vrai","Faux"], a:1},
+    {q:"Big Ben est le nom de la tour, pas de la cloche.", o:["Vrai","Faux"], a:1},
+    {q:"Le Kremlin se situe à Saint-Pétersbourg.", o:["Vrai","Faux"], a:1},
+    {q:"Barcelone est la capitale de l'Espagne.", o:["Vrai","Faux"], a:1},
+    {q:"La Sagrada Familia a été achevée du vivant de Gaudí.", o:["Vrai","Faux"], a:1},
+    {q:"Le Taj Mahal est un palais royal habité.", o:["Vrai","Faux"], a:1},
+    {q:"La statue du Christ Rédempteur se trouve à Buenos Aires.", o:["Vrai","Faux"], a:1},
+    {q:"Le mur de Chine a été construit en une seule fois.", o:["Vrai","Faux"], a:1},
+    {q:"Les moaï se trouvent en Polynésie française.", o:["Vrai","Faux"], a:1},
+    {q:"Stonehenge date du Moyen Âge.", o:["Vrai","Faux"], a:1},
+    {q:"Les pyramides mayas se trouvent en Égypte.", o:["Vrai","Faux"], a:1},
+    {q:"Le Sphinx de Gizeh a une tête de lion.", o:["Vrai","Faux"], a:1},
+    {q:"Pompéi a été détruite par un tremblement de terre.", o:["Vrai","Faux"], a:1},
+    {q:"Le Parthénon est un temple romain.", o:["Vrai","Faux"], a:1},
+    {q:"La Vallée des Rois se situe au Soudan.", o:["Vrai","Faux"], a:1},
+    {q:"Le Louvre a toujours été un musée.", o:["Vrai","Faux"], a:1},
+    {q:"La Joconde mesure plus de deux mètres de haut.", o:["Vrai","Faux"], a:1},
+    {q:"Van Gogh a peint la chapelle Sixtine.", o:["Vrai","Faux"], a:1},
+    {q:"Beethoven a composé quinze symphonies.", o:["Vrai","Faux"], a:1},
+    {q:"Le piano a été inventé au XXe siècle.", o:["Vrai","Faux"], a:1},
+    {q:"La guitare classique compte douze cordes.", o:["Vrai","Faux"], a:1},
+    {q:"Une clé de sol se place sur la quatrième ligne de la portée.", o:["Vrai","Faux"], a:1},
+    {q:"Le tango est une danse d'origine brésilienne.", o:["Vrai","Faux"], a:1},
+    {q:"Le flamenco vient du Portugal.", o:["Vrai","Faux"], a:1},
+    {q:"La valse se danse à quatre temps.", o:["Vrai","Faux"], a:1},
+    {q:"Un orchestre symphonique se passe généralement de chef.", o:["Vrai","Faux"], a:1},
+    {q:"Le violoncelle se joue debout.", o:["Vrai","Faux"], a:1},
+    {q:"La harpe possède moins de dix cordes.", o:["Vrai","Faux"], a:1},
+    {q:"Le tambour est un instrument à vent.", o:["Vrai","Faux"], a:1}
   ];
 
 
@@ -2162,8 +2306,8 @@ var PULSE = (function(){
   var SCRIPTED=[
     {at:ARK_AT, kind:'arkanoid', mult:2},
     {at:500,    kind:'arkanoid', mult:3},
-    {at:700,    kind:'gravite',  mult:4},
-    {at:1000,   kind:'eclipse',  mult:5}
+    {at:700,    kind:'eclipse',  mult:4},
+    {at:1000,   kind:'gravite',  mult:5}
   ];
   var scriptIdx=0;
 
@@ -2224,7 +2368,16 @@ var PULSE = (function(){
      sin(angle) > 0 en bas (y vers le bas en canvas). Facteur applique a l'identique
      dans loop() ET dans la compensation de latence de tap(), sinon les touches
      deviendraient injustes du cote rapide. */
-  function gravF(a){ return phaseIs('gravite') ? (1 + 0.95*Math.sin(a)) : 1; }
+  /* Le profil v(a)=K(1+A.sin a) fait un tour en (1/K).2pi/racine(1-A^2). Avec
+     A=0.95 et K=1, un tour durait 3,2 fois le temps normal : en 15 secondes on
+     n'avait que 31 % des occasions de marquer habituelles. La bille passait sa
+     vie a ramper en haut de l'anneau.
+     On garde donc un plongeon tres lisible (4 fois plus rapide en bas qu'en
+     haut) mais on remonte K pour que le tour soit 5 % PLUS RAPIDE que la
+     normale : le bonus devient enfin payant. */
+  var GRAV_A=0.62;
+  var GRAV_K=1.05/Math.sqrt(1-GRAV_A*GRAV_A);   /* ~1.34 */
+  function gravF(a){ return phaseIs('gravite') ? GRAV_K*(1+GRAV_A*Math.sin(a)) : 1; }
   /* Rythme de points courant : x10 pendant GRAVITE, x2 de plus a chaque cycle
      complet. S'applique au cercle ET a l'Teniflip, en plus du combo/fever. */
   function rateNow(){ return seqKind ? seqMult : 1; }
