@@ -623,42 +623,33 @@ var PULSE = (function(){
   function sfxLevel(){ beep(523,0.10,'triangle',0.5); setTimeout(function(){beep(784,0.14,'triangle',0.45);},90); }
 
   // ---- Musique retro originale, en plusieurs ambiances (libre de droits) ----
-  // Une seule boucle de 32 notes tournait du debut a la fin d'une partie : au
-  // bout de deux minutes elle devenait du bruit. Il y a maintenant un motif par
-  // moment de jeu, et le tempo se resserre avec la progression.
-  // 0 = silence.
+  // Trois ambiances : la boucle d'origine hors bonus, un motif de flipper en
+  // ARKANOID, une danse slave pendant les deux autres delires. Le changement se
+  // fait sur le premier temps du nouveau motif, sans coupure. 0 = silence.
   var MUSIC={
-    /* debut de partie : la boucle d'origine, calme, en la mineur */
+    /* La boucle d'origine de l'appli : c'est elle qui tourne tout le reste du
+       temps, du premier point jusqu'a la fin de la partie. */
     base:{ms:200, type:'triangle', n:[
       440,0,554,659, 587,0,494,440, 392,0,440,494, 523,0,494,440,
       440,0,554,659, 587,0,494,587, 659,0,587,523, 494,0,440,0]},
-    /* apres 110 pts : plus clair, plus ouvert */
-    mid:{ms:186, type:'triangle', n:[
-      523,0,659,784, 698,0,587,523, 587,0,698,784, 880,0,784,659,
-      523,0,659,784, 880,0,784,698, 659,0,587,523, 494,0,523,0]},
-    /* apres 320 pts : ca se tend, on descend d'un ton */
-    late:{ms:172, type:'square', n:[
-      587,0,698,880, 784,0,659,587, 523,0,587,659, 698,0,659,587,
-      587,698,880,1046, 988,0,880,784, 698,0,659,587, 523,0,494,0]},
     /* ARKANOID : staccato de flipper, court et rebondissant */
     ark:{ms:150, type:'square', n:[
       880,0,660,0, 990,0,660,0, 880,0,1174,0, 990,0,660,0,
       784,0,587,0, 880,0,587,0, 1046,0,880,0, 784,0,587,0]},
-    /* GRAVITE : un pendule, qui descend et remonte */
-    grav:{ms:176, type:'sawtooth', n:[
-      330,392,440,523, 587,523,440,392, 330,392,440,523, 659,523,440,392,
-      294,349,440,523, 587,659,523,440, 392,440,523,587, 523,440,392,330]},
-    /* ECLIPSE : notes tenues, tres espacees, ca respire comme l'anneau */
-    ecl:{ms:230, type:'sine', n:[
-      440,0,0,0, 587,0,0,0, 523,0,0,0, 392,0,0,0,
-      466,0,0,0, 622,0,0,0, 554,0,0,0, 415,0,0,0]}
+    /* GRAVITE et ECLIPSE : danse slave en mi mineur, croches serrees, le style
+       "jeu de briques russe". Arrangement original ecrit pour l'appli, dans
+       l'idiome de "Korobeiniki" (chant traditionnel russe, domaine public) et
+       non la transcription de la version d'un jeu existant. */
+    delire:{ms:148, type:'square', n:[
+      440,659,587,523, 494,523,440,0,
+      392,494,587,494, 440,0,330,0,
+      523,659,784,659, 587,523,494,0,
+      440,523,659,587, 523,494,440,0]}
   };
   function musicBankNow(){
     if(seqKind==='arkanoid') return 'ark';
-    if(seqKind==='gravite')  return 'grav';
-    if(seqKind==='eclipse')  return 'ecl';
-    var d=dscore||0;
-    return d>=320 ? 'late' : d>=110 ? 'mid' : 'base';
+    if(seqKind==='gravite' || seqKind==='eclipse') return 'delire';
+    return 'base';
   }
   var melodyStep=0, melodyTimer=null, melodyBank='';
   function playNote(freq,type){
@@ -682,9 +673,7 @@ var PULSE = (function(){
       var n=bank.n[melodyStep % bank.n.length];
       melodyStep++;
       if(n>0 && soundOn && AC) playNote(n, bank.type);
-      /* jusqu'a 30 % plus rapide en fin de partie */
-      var ms=bank.ms*(1-Math.min((dscore||0)/1200,0.30));
-      melodyTimer=setTimeout(tick, Math.max(95,ms));
+      melodyTimer=setTimeout(tick, bank.ms);
     }
     melodyTimer=setTimeout(tick, 10);
   }
