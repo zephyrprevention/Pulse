@@ -537,6 +537,7 @@
   <div class="ptrow"><span><i class="dot p"></i> Champignon rose touch&eacute; (x3 sur le terrain)</span><span class="pv">+3</span></div>
   <div class="ptrow"><span><i class="dot v"></i> Champignon <b>vert</b>&nbsp;: une touche</span><span class="pv">+1 &#9829;</span></div>
   <div class="ptrow"><span>Le vert change de coin &agrave; chaque TENIFLIP, et paie en points si tes vies sont au maxi</span><span class="pv">&#127919;</span></div>
+  <div class="ptrow"><span>Tu d&eacute;marres &agrave; <b>6 vies</b> et tu peux monter jusqu'&agrave; <b>10</b></span><span class="pv">&#10084;&#65039;</span></div>
   <div class="ptrow"><span>Balle laiss&eacute;e passer</span><span class="pv">-1 vie</span></div>
   <div class="ntitle">Les bonus de 15 secondes</div>
   <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 150 pts</span><span class="pv">points x2</span></div>
@@ -2432,7 +2433,11 @@ var PULSE = (function(){
   /* ---------- etat ---------- */
   var running=false, ready=false, score=0, angle=0, speed=0.020, dir=1, targetA=0, zone=0.4;
   var particles=[], floats=[], shocks=[], flash=0, flashRGB='255,255,255', shake=0, level=1;
-  var lives=6, MAXLIVES=6;
+  /* Le vrai bug du champignon vert : la partie demarrait avec lives=MAXLIVES,
+     donc "lives<MAXLIVES" etait faux des le depart et le vert payait toujours
+     en points. Gagner une vie n'avait aucun sens tant que le depart valait le
+     plafond. On separe donc les deux : on commence a 6, on peut monter a 10. */
+  var lives=6, START_LIVES=6, MAXLIVES=10;
   var combo=0, comboRun=0, recordShown=false; // combo courant / meilleur combo / record battu ce run
   var stats={taps:0,hits:0};
   var freezeT=0, timeScale=1, slowmoT=0;    // hit-stop + ralenti de mort
@@ -3452,7 +3457,8 @@ var PULSE = (function(){
     var fb=$('quizFeed');
     if(chosen===correct){
       score+=10; setScore();
-      lives++; updateLives();
+      if(lives<MAXLIVES) lives++;
+      updateLives();
       unlockReached();
       if(score>=GOAL) reach100();
       updateFeatures();
@@ -4264,7 +4270,7 @@ var PULSE = (function(){
     initAudio(); if(AC&&AC.state==='suspended'){try{AC.resume();}catch(e){}}
     updateSoundBtn();
     document.body.classList.add('playing');
-    lives=MAXLIVES; updateLives();
+    lives=START_LIVES; updateLives();
     $('goalbar').classList.add('show'); $('goalbar').classList.remove('phase2');
     $('goalTxt').textContent='0 / '+BARMAX;
     scriptIdx=0; seqKind=''; seqT=0; seqMult=1; seqCount=0; restT=0;
