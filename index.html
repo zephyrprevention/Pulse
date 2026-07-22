@@ -350,6 +350,14 @@
   .quizhead{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
   .quizhead b{color:#fff}
   .quizq{font-size:23px;font-weight:800;color:#fff;line-height:1.35;margin-bottom:22px}
+  /* choix de la melodie, dans l'ecran Pause */
+  .melolab{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:800;margin:14px 0 8px}
+  .melorow{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+  .melobtn{font-size:13px;font-weight:800;padding:9px 15px;border-radius:100px;cursor:pointer;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);color:var(--dim);
+    -webkit-tap-highlight-color:transparent;transition:.18s}
+  .melobtn.on{background:rgba(92,225,230,.16);border-color:var(--glow);color:var(--glow);
+    box-shadow:0 0 14px rgba(92,225,230,.3)}
   .quizopts{display:flex;flex-direction:column;gap:13px;width:100%}
   /* Vrai/Faux : deux boutons cote a cote, on repond d'un pouce sans lire une liste */
   .quizopts.tf{flex-direction:row;gap:11px}
@@ -476,6 +484,8 @@
 <div class="overlay hide" id="pauseScreen">
   <div class="title">PAUSE</div>
   <div class="tag">souffle un coup</div>
+  <div class="melolab">M&eacute;lodie de fond</div>
+  <div class="melorow" id="meloRow"></div>
   <button class="go" onclick="PULSE.resume()">Reprendre</button>
   <button class="ghost" id="phaseTestBtn" style="display:none" onclick="PULSE.testPhase()">&#9193; Tester la phase suivante</button>
   <button class="ghost" onclick="PULSE.quit()">Quitter la partie</button>
@@ -631,21 +641,32 @@ var PULSE = (function(){
   // TENIFLIP, un pendule en GRAVITE, une ritournelle de campagne en ECLIPSE. Le changement se
   // fait sur le premier temps du nouveau motif, sans coupure. 0 = silence.
   var MUSIC={
-    /* MUSIQUE GENERALE : danse slave en mi mineur, l'idiome "jeu de briques
-       russe". Arrangement original dans l'esprit de "Korobeiniki" (chant
-       traditionnel russe, domaine public), et non la transcription de la version
-       d'un jeu existant. Un peu ralentie par rapport a un motif de bonus : elle
-       tourne en permanence, elle ne doit pas epuiser.
-       (L'ancienne boucle d'origine est conservee juste en dessous sous le nom
-       "calme", si tu veux la remettre : il suffit de renommer les deux cles.) */
-    base:{ms:170, type:'triangle', n:[
+    /* ===== NEON : melodie originale, ecrite pour cette appli =====
+       Une boucle qui tourne en continu use vite. Trois choix contre ca :
+       - 64 pas au lieu de 32 : elle dure 12 s, on ne l'anticipe plus ;
+       - une note sur deux seulement : elle respire au lieu de marteler ;
+       - une vraie phrase en quatre temps : une question (la->mi, un saut de
+         quinte, c'est le crochet), la meme reponse une quarte plus bas, une
+         ouverture qui monte, puis une descente qui retombe sur le debut.
+       En la mineur : Am, G, F, puis descente vers Am. */
+    neon:{ms:190, type:'triangle', n:[
+      440,0,659,0,   587,494,523,0,  440,0,392,0,   440,0,0,0,
+      392,0,587,0,   523,440,494,0,  392,0,330,0,   392,0,0,0,
+      349,0,523,0,   494,440,392,0,  349,0,440,0,   523,0,0,0,
+      587,0,523,0,   494,0,440,0,    392,392,440,0, 494,0,0,0]},
+    /* danse slave, l'idiome "jeu de briques russe" : arrangement original dans
+       l'esprit de "Korobeiniki", chant traditionnel russe du domaine public */
+    slave:{ms:170, type:'triangle', n:[
       440,659,587,523, 494,523,440,0,
       392,494,587,494, 440,0,330,0,
       523,659,784,659, 587,523,494,0,
       440,523,659,587, 523,494,440,0]},
+    /* la toute premiere boucle de l'appli */
     calme:{ms:200, type:'triangle', n:[
       440,0,554,659, 587,0,494,440, 392,0,440,494, 523,0,494,440,
       440,0,554,659, 587,0,494,587, 659,0,587,523, 494,0,440,0]},
+    /* silence : les bruitages restent, la melodie se tait */
+    aucune:{ms:500, type:'triangle', n:[0]},
     /* TENIFLIP : staccato de flipper, court et rebondissant */
     ark:{ms:150, type:'square', n:[
       880,0,660,0, 990,0,660,0, 880,0,1174,0, 990,0,660,0,
@@ -667,11 +688,46 @@ var PULSE = (function(){
       392,0,494,587, 659,0,587,523,
       494,523,587,494, 440,0,0,0]}
   };
+  /* La melodie de fond est affaire de gout, et un aller-retour par message pour
+     l'ajuster serait absurde : elle se choisit dans le menu Pause et le choix
+     est conserve sur l'appareil. */
+  var MELOS=[['neon','N\u00e9on'],['slave','Slave'],['calme','Calme'],['aucune','Aucune']];
+  function meloExists(k){ for(var i=0;i<MELOS.length;i++){ if(MELOS[i][0]===k) return true; } return false; }
+  var meloPick='neon';
+  try{ var mp=localStorage.getItem('pulse_melo'); if(mp&&meloExists(mp)) meloPick=mp; }catch(e){}
   function musicBankNow(){
     if(seqKind==='arkanoid') return 'ark';
-    if(seqKind==='gravite') return 'grav';
-    if(seqKind==='eclipse') return 'ecl';
-    return 'base';
+    if(seqKind==='gravite')  return 'grav';
+    if(seqKind==='eclipse')  return 'ecl';
+    return meloPick;
+  }
+  function setMelody(k){
+    if(!meloExists(k)) return;
+    meloPick=k;
+    try{ localStorage.setItem('pulse_melo',k); }catch(e){}
+    melodyBank='';                     /* force la bascule des le prochain temps */
+    updateMeloBtns();
+    if(soundOn && AC && k!=='aucune'){ var b=MUSIC[k]; playNote(b.n[0]||440, b.type); }
+  }
+  function updateMeloBtns(){
+    var box=$('meloRow'); if(!box) return;
+    for(var i=0;i<box.children.length;i++){
+      var el=box.children[i];
+      if(el.getAttribute('data-m')===meloPick) el.classList.add('on');
+      else el.classList.remove('on');
+    }
+  }
+  function buildMeloBtns(){
+    var box=$('meloRow'); if(!box || box.children.length) return;
+    for(var i=0;i<MELOS.length;i++){
+      (function(k,lab){
+        var b=document.createElement('button');
+        b.className='melobtn'; b.setAttribute('data-m',k); b.textContent=lab;
+        b.onclick=function(){ setMelody(k); };
+        box.appendChild(b);
+      })(MELOS[i][0], MELOS[i][1]);
+    }
+    updateMeloBtns();
   }
   var melodyStep=0, melodyTimer=null, melodyBank='';
   function playNote(freq,type){
@@ -690,7 +746,7 @@ var PULSE = (function(){
   function startMusic(){
     if(!soundOn||!AC||melodyTimer) return;
     function tick(){
-      var id=musicBankNow(), bank=MUSIC[id]||MUSIC.base;
+      var id=musicBankNow(), bank=MUSIC[id]||MUSIC.neon;
       if(id!==melodyBank){ melodyBank=id; melodyStep=0; }   /* on repart sur le 1er temps */
       var n=bank.n[melodyStep % bank.n.length];
       melodyStep++;
@@ -4066,6 +4122,7 @@ var PULSE = (function(){
   function doPause(){
     if(!running) return;
     running=false; stopMusic();
+    buildMeloBtns();
     hideAll(); document.body.classList.add('playing');
     /* bouton de test des phases : admin uniquement, et seulement s'il reste une phase */
     var pb=$('phaseTestBtn');
@@ -4160,6 +4217,7 @@ var PULSE = (function(){
 
   /* ---------- API publique ---------- */
   return {
+    setMelody:setMelody,
     savePseudo:function(){
       var p=cleanPseudo($('pseudoInput').value);
       var hint=$('pseudoHint'), btn=$('pseudoBtn');
