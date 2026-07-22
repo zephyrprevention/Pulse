@@ -99,6 +99,22 @@
     transform:translateX(-100%);animation:shimmer 2.6s infinite}
   @keyframes shimmer{60%,100%{transform:translateX(100%)}}
   @media (prefers-reduced-motion:reduce){.fill::after{animation:none}}
+  /* segment 100 -> 150 : la zone qui declenche ARKANOID */
+  .trackwrap{position:relative}
+  .seg2{position:absolute;left:66.667%;right:0;top:0;bottom:0;background:rgba(255,209,102,.16)}
+  /* le trait : 3 couleurs empilees, impossible a confondre avec la jauge */
+  .mark{position:absolute;left:66.667%;top:-5px;bottom:-5px;width:3px;margin-left:-1.5px;border-radius:3px;
+    background:linear-gradient(180deg,#5CE1E6 0%,#5CE1E6 33%,#FFD166 33%,#FFD166 66%,#FF4D9D 66%,#FF4D9D 100%);
+    box-shadow:0 0 9px rgba(255,209,102,.95);z-index:2}
+  .goallabels{display:flex;margin-top:5px;font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+  .goallabels .lb1{width:66.667%;text-align:right;padding-right:6px;color:var(--dim)}
+  .goallabels .lb2{flex:1;text-align:right;color:var(--gold)}
+  /* pastille de sequence (compte a rebours ARKANOID / GRAVITE) */
+  .seqchip{position:fixed;top:calc(76px + env(safe-area-inset-top));left:16px;z-index:6;pointer-events:none;
+    font-size:11px;font-weight:900;letter-spacing:1px;color:var(--gold);
+    background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.45);border-radius:100px;
+    padding:5px 12px;opacity:0;transform:translateY(-6px);transition:.3s;font-variant-numeric:tabular-nums}
+  .seqchip.show{opacity:1;transform:translateY(0)}
 
   #rivals{position:fixed;top:calc(118px + env(safe-area-inset-top));left:0;right:0;display:none;
     flex-direction:column;align-items:center;gap:3px;z-index:5;pointer-events:none}
@@ -349,11 +365,16 @@
 <div id="rivals"></div>
 
 <div class="goalbar" id="goalbar">
-  <div class="goaltop"><div class="g1">Objectif</div><div class="g2" id="goalTxt">0 / 100</div></div>
-  <div class="track"><div class="fill" id="fill"></div></div>
+  <div class="goaltop"><div class="g1">Objectif</div><div class="g2" id="goalTxt">0 / 150</div></div>
+  <div class="trackwrap">
+    <div class="track"><div class="seg2"></div><div class="fill" id="fill"></div></div>
+    <div class="mark"></div>
+  </div>
+  <div class="goallabels"><span class="lb1">100 pts</span><span class="lb2">50 &rarr; &#x1F3D3; Arkanoid</span></div>
 </div>
 
 <div class="levelchip" id="levelchip">Niveau 1</div>
+<div class="seqchip" id="seqchip"></div>
 <div class="toast" id="toast"><div class="t1" id="toastT1"></div><div class="t2" id="toastT2"></div></div>
 <div class="centerjoke" id="centerjoke"><div class="ctxt" id="centerjokeTxt"></div></div>
 <div id="countd"></div>
@@ -1543,6 +1564,26 @@ var PULSE = (function(){
     if(chg) saveUnlocked();
   })();
   var GOAL=100;
+  /* ---------- barre d'objectif et cycle de sequences ----------
+     La barre va desormais jusqu'a 150 : les 100 premiers points restent
+     l'objectif historique (themes premium), les 50 suivants sont le sas qui
+     bascule le jeu en ARKANOID. Passe 150, le jeu ne suit plus le score mais
+     une horloge : ARKANOID 1 min, puis GRAVITE 20 s a points x10, puis on
+     recommence avec un rythme de points double a chaque cycle. */
+  var BARMAX=150;                    // graduation maxi de la barre du milieu
+  var ARK_AT=150;                    // score qui declenche le premier ARKANOID
+  var CYCLE_ARK_MS=60000;            // 1 minute d'ARKANOID
+  var CYCLE_GRAV_MS=20000;           // 20 secondes de GRAVITE renforcee
+  var GRAV_MULT=10;                  // points x10 pendant la sequence GRAVITE
+  var cycleNo=0;                     // 0 = pas encore entre dans le cycle
+  var cyclePhaseT=0;                 // temps restant dans la sequence en cours (ms)
+  var cycleMult=1;                   // rythme de points, x2 a chaque cycle complet
+  var lastMilestone=0;               // dernier score fete (les paliers suivent le rythme)
+  /* Score de DIFFICULTE : le score affiche est gonfle par le x10 et le x2 par
+     cycle, il ne peut plus regler la vitesse ni la taille des zones. dscore
+     compte les memes reussites, mais au tarif de base : la courbe de difficulte
+     reste celle d'origine. Avant 150 points, dscore == score. */
+  var dscore=0;
 
   /* ---------- etat ---------- */
   var running=false, ready=false, score=0, angle=0, speed=0.020, dir=1, targetA=0, zone=0.4;
@@ -1566,13 +1607,14 @@ var PULSE = (function(){
      changent jamais : seule la lecture de l'image change.
      Pour ajouter une phase : une entree ici + son effet dans loop()/draw(). */
   var PHASES=[
-    {id:'arkanoid', at:1000, name:'\u{1F3D3} ARKANOID', sub:'glisse ton doigt',
+    {id:'arkanoid', at:ARK_AT, name:'\u{1F3D3} ARKANOID', sub:'1 min \u2014 glisse ton doigt',
      line:'Glisse ton doigt pour déplacer la barre. La balle rebondit toute seule — ne la laisse pas passer ! \u{1F3D3}'},
-    {id:'gravite',  at:2000, name:'\u{1F30D} GRAVITÉ', sub:'les billes balancent',
-     line:'Retour au cercle — mais les billes accélèrent en bas, comme un pendule \u{1F30D}'},
-    {id:'eclipse',  at:3000, name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
+    {id:'gravite',  at:null, name:'\u{1F30D} GRAVITÉ \u00d710', sub:'20 s \u2014 points \u00d710',
+     line:'Retour au cercle, mais les billes plongent vraiment en bas... et tout compte \u00d710 pendant 20 s ! \u{1F30D}'},
+    {id:'eclipse',  at:null, name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
      line:'L\'anneau enfle et se contracte... garde ton timing, il n\'a pas change \u{1F317}'}
   ];
+  function phaseById(id){ for(var i=0;i<PHASES.length;i++){ if(PHASES[i].id===id) return PHASES[i]; } return null; }
   var phaseId='', phaseIdx=-1;
   var graceHits=0;                           // taps pardonnes juste apres un changement
   var breathPhase=0, breathAmp=0;            // ECLIPSE : amplitude lissee (jamais de saut)
@@ -1583,7 +1625,10 @@ var PULSE = (function(){
      sin(angle) > 0 en bas (y vers le bas en canvas). Facteur applique a l'identique
      dans loop() ET dans la compensation de latence de tap(), sinon les touches
      deviendraient injustes du cote rapide. */
-  function gravF(a){ return phaseIs('gravite') ? (1 + 0.55*Math.sin(a)) : 1; }
+  function gravF(a){ return phaseIs('gravite') ? (1 + 0.95*Math.sin(a)) : 1; }
+  /* Rythme de points courant : x10 pendant GRAVITE, x2 de plus a chaque cycle
+     complet. S'applique au cercle ET a l'Arkanoid, en plus du combo/fever. */
+  function rateNow(){ return cycleMult * (phaseIs('gravite') ? GRAV_MULT : 1); }
   /* ECLIPSE : amplitude VOLONTAIREMENT forte. A +-0.10 sur un cycle de 5 s,
      l'anneau bougeait de ~12 px : personne ne le voyait. A 0.22, le rayon varie
      de plus de 50 % entre le minimum et le maximum, et le cycle dure ~2 s. */
@@ -1607,8 +1652,10 @@ var PULSE = (function(){
 
   function arkTop(){ return Math.max(84, H*0.14); }
   function arkPadY(){ return Math.min(H-165, H*0.88); }          // au-dessus du HUD du bas
-  function arkPadHalf(){ return Math.max(64-(score-1000)*0.003, 34); }
-  function arkBallSpeed(){ return Math.min(7.5+(score-1000)*0.0008, 12); }
+  /* La difficulte suit desormais le NUMERO DE CYCLE et non le score : le score
+     explose (x10, puis x2 par cycle), il ne peut plus servir d'echelle. */
+  function arkPadHalf(){ return Math.max(64-(cycleNo>1?(cycleNo-1)*6:0), 34); }
+  function arkBallSpeed(){ return Math.min(7.5+(cycleNo>1?(cycleNo-1)*0.9:0), 12); }
   /* Vitesse maxi de suivi du doigt. Assez elevee pour que la barre reponde tout de
      suite, mais finie : sans plafond elle se teleporterait sous la balle et il n'y
      aurait plus aucune anticipation a avoir. */
@@ -1681,7 +1728,8 @@ var PULSE = (function(){
       toast(feverName(feverM), feverM===3?'Triple points !':'Points doubles !');
       sfxFever(); haptic([20,30,20,30,50]); doFlash(0.55,'255,209,102');
     }
-    var total=(perfect?10:4)*mm;
+    var total=(perfect?10:4)*mm*rateNow();
+    dscore+=(perfect?10:4)*mm;
     score+=total; setScore();
     burst(b.x,padY-10, perfect?'#FFD166':THEME.core, perfect?36:20);
     shock(b.x,padY-10, perfect?'#FFD166':THEME.glow);
@@ -1690,7 +1738,7 @@ var PULSE = (function(){
     haptic(perfect?30:14);
     if(perfect){ sfxPerfect(); floatText(b.x,padY-62,'EN PLEIN CENTRE !','#FFD166',false); }
     else sfxPoint();
-    speed=speedFor(score);
+    speed=speedFor(dscore);
     if(!checkPhase()) checkMilestone(prev);
   }
 
@@ -1850,7 +1898,7 @@ var PULSE = (function(){
   }
   function newTarget(){
     var t;do{t=Math.random()*Math.PI*2;}while(Math.abs(aDiff(t,angle))<0.9);
-    targetA=t; zone=zoneFor(score); zoneAnim=1;
+    targetA=t; zone=zoneFor(dscore); zoneAnim=1;
     if(innerRing){ targetIn=Math.random()*Math.PI*2; }
   }
 
@@ -1929,7 +1977,7 @@ var PULSE = (function(){
   function setScore(){
     var el=$('score'); el.textContent=score;
     el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-    if(score<=GOAL) updateGoal();
+    if(score<=BARMAX) updateGoal();
     wizzCreditMilestones();
     updateWizzBtn();
     if(!recordShown && best>0 && score>best && document.body.classList.contains('playing')){
@@ -1939,10 +1987,10 @@ var PULSE = (function(){
     }
   }
   function updateGoal(){
-    if(score>GOAL) return;
-    var pct=Math.min(score/GOAL,1)*100;
+    if(cycleNo>0 || score>BARMAX) return;
+    var pct=Math.min(score/BARMAX,1)*100;
     $('fill').style.width=pct+'%';
-    $('goalTxt').textContent=Math.min(score,GOAL)+' / '+GOAL;
+    $('goalTxt').textContent=Math.min(score,BARMAX)+' / '+BARMAX;
   }
   function setLevel(n){
     level=n; $('levelchip').textContent='Niveau '+n; $('levelchip').classList.add('show');
@@ -1995,8 +2043,7 @@ var PULSE = (function(){
     saveUnlocked();
     toast('100 !', 'Th\u00e8mes premium d\u00e9bloqu\u00e9s !');
     setTimeout(function(){ jojo('infini'); }, 900);
-    $('goalTxt').textContent='RECORD';
-    $('fill').style.width='100%';
+    /* la barre ne s'arrete plus a 100 : il reste 50 points avant l'ARKANOID */
   }
   /* ---------- rituel de transition de phase ----------
      Toujours les memes 6 temps, pour que le changement soit lu comme une
@@ -2020,16 +2067,53 @@ var PULSE = (function(){
     haptic([30,50,30,50,90]); doFlash(0.55,'255,209,102');
     toast(p.name, p.sub);
     setTimeout(function(){ jojo('level', p.line); }, 1150);
-    setLevel(Math.floor(score/10)+1);
+    setLevelAuto();
+  }
+  /* Le niveau ne peut plus suivre le score (qui explose) : dans le cycle il
+     compte les sequences traversees. */
+  function setLevelAuto(){
+    if(cycleNo>0) setLevel(16 + (cycleNo-1)*2 + (phaseIs('gravite')?1:0));
+    else setLevel(Math.floor(score/10)+1);
+  }
+
+  /* ---------- cycle ARKANOID (1 min) -> GRAVITE x10 (20 s) -> on recommence ----------
+     A la fin de chaque paire de sequences, le rythme de points double. */
+  function startCycle(kind){
+    cyclePhaseT = (kind==='arkanoid') ? CYCLE_ARK_MS : CYCLE_GRAV_MS;
+    startPhase(phaseById(kind));
+    seqTxt='';
+    updateSeqChip();
+  }
+  function enterCycle(){
+    cycleNo=1; cycleMult=1; phaseIdx=0;
+    $('fill').style.width='100%';
+    $('goalTxt').textContent='\u{1F3D3} ARKANOID';
+    $('seqchip').classList.add('show');
+    startCycle('arkanoid');
+  }
+  function nextCycleStep(){
+    if(phaseIs('arkanoid')){ startCycle('gravite'); return; }
+    /* fin des DEUX sequences : le rythme de points est double */
+    cycleMult*=2; cycleNo++;
+    startCycle('arkanoid');
+    setTimeout(function(){ toast('RYTHME \u00d7'+cycleMult, 'Cycle '+cycleNo+' \u2014 tous les points doubl\u00e9s !'); }, 1500);
+  }
+  var seqTxt='';
+  function updateSeqChip(){
+    var el=$('seqchip'); if(!el) return;
+    if(cycleNo<=0){ if(seqTxt!==''){ seqTxt=''; el.classList.remove('show'); } return; }
+    var s=Math.max(0,Math.ceil(cyclePhaseT/1000));
+    var t=(phaseIs('gravite') ? '\u{1F30D} GRAVIT\u00c9 \u00d7'+(GRAV_MULT*cycleMult) : '\u{1F3D3} ARKANOID \u00d7'+cycleMult)+' \u00b7 '+s+'s';
+    if(t!==seqTxt){ seqTxt=t; el.textContent=t; el.classList.add('show'); }
   }
   /* Ne depend pas de l'ancien score : un palier franchi via un bonus de QCM
      (+10 pts hors tap) declenche quand meme la phase au tap suivant.
      Renvoie true si une phase vient de demarrer -> elle remplace alors la
      celebration de palier habituelle, pour n'avoir qu'un seul message a l'ecran. */
   function checkPhase(){
-    for(var i=0;i<PHASES.length;i++){
-      if(phaseIdx<i && score>=PHASES[i].at){ phaseIdx=i; startPhase(PHASES[i]); return true; }
-    }
+    /* une seule bascule pilotee par le score : 150 points -> on entre dans le
+       cycle. Ensuite c'est l'horloge qui commande (voir loop). */
+    if(cycleNo===0 && score>=ARK_AT){ enterCycle(); return true; }
     return false;
   }
   /* ADMIN uniquement : saute au palier de la phase suivante, pour tester une
@@ -2037,10 +2121,12 @@ var PULSE = (function(){
      passent tous les deux par ici. */
   function jumpToNextPhase(){
     if(!isAdmin) return false;
-    var nxt=PHASES[phaseIdx+1];
-    if(!nxt) return false;
-    score=Math.max(score,nxt.at); setScore();
-    speed=speedFor(score); updateFeatures(); checkPhase();
+    if(cycleNo===0){
+      score=Math.max(score,ARK_AT); setScore();
+      speed=speedFor(dscore); updateFeatures(); checkPhase();
+    } else {
+      cyclePhaseT=0; nextCycleStep();
+    }
     return true;
   }
 
@@ -2052,8 +2138,13 @@ var PULSE = (function(){
 
       /* apres 100, les scores filent vite (x2/x3) : on ne celebre + quiz que tous les 50 pts
          pour preserver le flow, sinon feu d'artifice et QCM a chaque tap */
-      var major = (pl<=GOAL) || (pl%50===0);
-      if(!major){ setLevel(nv); return; }
+      /* apres 100, les scores filent vite : on espace les celebrations
+         proportionnellement au rythme de points en cours, sinon feu d'artifice
+         et QCM a chaque tap des que le x10 est actif */
+      var major;
+      if(pl<=GOAL){ major = true; }
+      else { major = (score-lastMilestone) >= 50*rateNow(); if(major) lastMilestone=score; }
+      if(!major){ if(cycleNo===0) setLevelAuto(); return; }
 
       fireworks(); sfxLevel(); haptic([30,40,60]);
 
@@ -2065,7 +2156,7 @@ var PULSE = (function(){
       if(pl===70){ setTimeout(function(){ jojo('level','2e anneau interieur ! Delire ULTIME \u{1F525}'); }, 700); }
 
       if(pl>=GOAL && !passed100){
-        reach100(); setLevel(nv);
+        reach100(); setLevelAuto();
       } else if(freshTheme){
         if(freshTheme.id==='belgique'){
           friteRain(); setTimeout(friteRain,250); setTimeout(friteRain,500);
@@ -2075,11 +2166,11 @@ var PULSE = (function(){
           toast('Palier '+pl, 'Theme '+freshTheme.name+' debloque !');
           setTimeout(function(){ jojo('unlock', 'Theme '+freshTheme.name+' debloque ! Choisis-le dans le menu Themes \u{1F381}'); }, 900);
         }
-        setLevel(nv);
+        setLevelAuto();
       } else {
         toast(pl<GOAL?('Palier '+pl):('Niveau '+nv), pl<GOAL?('Niveau '+nv+' !'):'Continue !');
         setTimeout(function(){ jojo('level', pick(accroches)); }, 800);
-        setLevel(nv);
+        setLevelAuto();
       }
       var quizDue = (pl<=40) || (pl<=100 && pl%20===0) || (pl>100 && pl%30===0);
       if(quizDue){
@@ -2313,7 +2404,8 @@ var PULSE = (function(){
       }
       var feverM=mult();
       var m = goldT>0 ? 3 : feverM;
-      var total=gain*m;
+      var total=gain*m*rateNow();
+      dscore+=gain*m;
       if(goldT<=0 && feverM>oldM){
         toast(feverName(feverM), feverM===3?'Triple points !':'Points doubles !');
         sfxFever(); haptic([20,30,20,30,50]); doFlash(0.55,'255,209,102');
@@ -2346,7 +2438,7 @@ var PULSE = (function(){
       }
       haptic(multi>=2?45:perfect?30:14);
 
-      speed=speedFor(score);
+      speed=speedFor(dscore);
       dir*=-1; newTarget(); dirCueT=500;
       updateFeatures();
       if(!checkPhase()) checkMilestone(prev);
@@ -2395,7 +2487,7 @@ var PULSE = (function(){
       lives--; updateLives(); sfxDie();
       var checkpoint=Math.floor(score/10)*10;
       score=checkpoint; setScore();
-      speed=speedFor(score);
+      speed=speedFor(dscore);
       updateFeatures();
       toast('-1 vie', near ? 'rat\u00e9 de justesse !' : (lives>0 ? (lives+' vie'+(lives>1?'s':'')+' restante'+(lives>1?'s':'')) : 'derni\u00e8re chance !'));
       if(lostCombo>=6){ floatText(cx,cy-40,'Combo '+lostCombo+' perdu','#FF9DB0',false); }
@@ -2433,6 +2525,7 @@ var PULSE = (function(){
     }
     else { $('progMini').innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour le mode infini':''); }
     $('goalbar').classList.remove('show'); $('levelchip').classList.remove('show'); $('centerjoke').classList.remove('show');
+    $('seqchip').classList.remove('show');
     $('jojoJoke').classList.add('hide');
     $('quizbox').classList.add('hide');
 
@@ -2663,6 +2756,13 @@ var PULSE = (function(){
     }
 
     if(goldT>0 && running){ goldT-=dt; if(goldT<=0){ goldT=0; toast('Rush termin\u00e9',''); } }
+    /* horloge des sequences : elle tourne en temps reel, mais s'arrete pendant
+       le hit-stop, les QCM et les pauses (running=false) */
+    if(running && cycleNo>0 && freezeT<=0){
+      cyclePhaseT-=dt;
+      if(cyclePhaseT<=0){ cyclePhaseT=0; nextCycleStep(); }
+      updateSeqChip();
+    }
     if(wizzShakeT>0){ wizzShakeT-=dt; }
     if(dirCueT>0){ dirCueT-=dt; }
     if(running && freezeT<=0 && phaseIs('arkanoid')){
@@ -2728,7 +2828,9 @@ var PULSE = (function(){
   }
   /* credite les paliers franchis pendant la partie (500, 700, 900, ...) */
   function wizzCreditMilestones(){
-    var reached = score>=500 ? 2 + Math.floor((score-500)/200) : 0;  /* nb de paliers passes */
+    /* base sur dscore et non sur le score affiche : sinon le x10 de la sequence
+       GRAVITE distribuerait des dizaines de WIZZ en 20 secondes */
+    var reached = dscore>=500 ? 2 + Math.floor((dscore-500)/200) : 0;  /* nb de paliers passes */
     if(reached>wizzMilestone){
       var added = reached - wizzMilestone;
       wizzStock += added; wizzMilestone = reached; saveWizzStock();
@@ -3018,8 +3120,10 @@ var PULSE = (function(){
     document.body.classList.add('playing');
     lives=MAXLIVES; updateLives();
     $('goalbar').classList.add('show');
-    $('goalTxt').textContent='0 / 100';
-    score=0;$('score').textContent=0;speed=speedFor(0);dir=1;angle=-Math.PI/2;
+    $('goalTxt').textContent='0 / '+BARMAX;
+    cycleNo=0; cyclePhaseT=0; cycleMult=1; lastMilestone=0; seqTxt='';
+    $('seqchip').classList.remove('show');
+    score=0;dscore=0;$('score').textContent=0;speed=speedFor(0);dir=1;angle=-Math.PI/2;
     particles=[];floats=[];frites=[];flash=0;shake=0;passed100=false;
     if(THEME&&THEME.frites){ for(var bf=0;bf<10;bf++) friteRain2(); }
     combo=0;comboRun=0;stats={taps:0,hits:0};recordShown=false;
