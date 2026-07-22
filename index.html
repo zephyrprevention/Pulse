@@ -88,9 +88,15 @@
   /* ---------- barre d'objectif ---------- */
   .goalbar{position:fixed;left:20px;right:20px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:5;pointer-events:none;display:none}
   .goalbar.show{display:block}
-  .goaltop{display:flex;justify-content:space-between;margin-bottom:6px;align-items:baseline}
-  .goaltop .g1{font-size:9px;letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;font-weight:700}
-  .goaltop .g2{font-size:12px;font-weight:800;color:var(--glow);font-variant-numeric:tabular-nums}
+  .goaltop{display:flex;justify-content:space-between;margin-bottom:7px;align-items:baseline;gap:10px}
+  /* 9px + 2,5px d'interlettrage etait deja limite ; ce libelle porte maintenant
+     l'objectif en cours, il doit se lire d'un coup d'oeil */
+  .goaltop .g1{font-size:12px;letter-spacing:.3px;color:var(--dim);font-weight:800;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+  .goaltop .g1.hot{color:var(--gold)}
+  .goaltop .g2{font-size:13px;font-weight:900;color:var(--glow);font-variant-numeric:tabular-nums;
+    white-space:nowrap;flex-shrink:0}
+  .goaltop .g2.hot{color:var(--gold)}
   .track{height:9px;border-radius:100px;background:rgba(90,107,140,.2);overflow:hidden;position:relative}
   .fill{height:100%;width:0;border-radius:100px;background:linear-gradient(90deg,var(--glow),var(--gold));
     box-shadow:0 0 16px var(--glow);transition:width .35s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden}
@@ -110,13 +116,14 @@
   .goallabels .lb1{width:50%;text-align:right;padding-right:7px;color:var(--dim)}
   .goallabels .lb2{flex:1;text-align:right;color:var(--gold)}
   .goalbar.phase2 .mark,.goalbar.phase2 .seg2,.goalbar.phase2 .goallabels{display:none}
-  /* pastille de sequence (compte a rebours ARKANOID / GRAVITE) */
-  .seqchip{position:fixed;top:calc(76px + env(safe-area-inset-top));left:16px;z-index:6;pointer-events:none;
-    font-size:11px;font-weight:900;letter-spacing:1px;color:var(--gold);
-    background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.45);border-radius:100px;
-    padding:5px 12px;opacity:0;transform:translateY(-6px);transition:.3s;font-variant-numeric:tabular-nums}
-  .seqchip.show{opacity:1;transform:translateY(0)}
+  /* La pastille de sequence occupait le meme bandeau que les vies (centrees) et
+     que le niveau (a droite) : sur un ecran de telephone les trois se
+     chevauchaient. L'information a rejoint la barre d'objectif, en bas, qui
+     est deja l'endroit ou l'on regarde ce qu'il reste a faire. */
 
+  /* En ARKANOID cette liste se superpose au plafond du terrain (le meme y) :
+     on la retire, le terrain doit rester lisible. */
+  body.playing.arkmode #rivals{display:none}
   #rivals{position:fixed;top:calc(118px + env(safe-area-inset-top));left:0;right:0;display:none;
     flex-direction:column;align-items:center;gap:3px;z-index:5;pointer-events:none}
   body.playing #rivals{display:flex}
@@ -141,10 +148,17 @@
 
   /* ---------- toast + compte à rebours ---------- */
   .toast{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%) scale(.8);z-index:7;pointer-events:none;
-    text-align:center;opacity:0;transition:opacity .25s,transform .25s cubic-bezier(.34,1.56,.64,1)}
+    text-align:center;opacity:0;transition:opacity .25s,transform .25s cubic-bezier(.34,1.56,.64,1);
+    width:92vw;max-width:520px}
   .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  .toast .t1{font-size:46px;font-weight:900;letter-spacing:-1px;color:#fff;text-shadow:0 0 34px var(--glow)}
-  .toast .t2{font-size:14px;font-weight:700;color:var(--gold);margin-top:2px}
+  /* le titre descend d'un cran quand il est long : a 46px, "3 TOUCHES MULTIPLES"
+     sortait de l'ecran des deux cotes et devenait illisible */
+  .toast .t1{font-size:46px;font-weight:900;letter-spacing:-1px;color:#fff;text-shadow:0 0 34px var(--glow);
+    line-height:1.04;word-break:break-word}
+  .toast .t1.sm{font-size:31px;letter-spacing:-.5px}
+  .toast .t1.xs{font-size:23px;letter-spacing:0}
+  .toast .t2{font-size:15px;font-weight:800;color:var(--gold);margin-top:5px;line-height:1.3;
+    text-shadow:0 2px 10px rgba(0,0,0,.6)}
 
   #countd{position:fixed;inset:0;z-index:25;display:none;align-items:center;justify-content:center;pointer-events:none}
   #countd.show{display:flex}
@@ -308,6 +322,7 @@
   .dot.w{background:#fff;color:#fff}
   .dot.y{background:#FFD166;color:#FFD166}
   .dot.r{background:#FF3B3B;color:#FF3B3B}
+  .dot.p{background:#FF4D9D;color:#FF4D9D}
   .ptrow{display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:9px 13px;border-radius:var(--r-sm);background:var(--glass);border:1px solid var(--glass-b);
     margin-bottom:8px;font-size:14px;color:var(--ink);width:100%;max-width:340px}
@@ -366,7 +381,7 @@
 <div id="rivals"></div>
 
 <div class="goalbar" id="goalbar">
-  <div class="goaltop"><div class="g1">Objectif</div><div class="g2" id="goalTxt">0 / 150</div></div>
+  <div class="goaltop"><div class="g1" id="goalLbl">Objectif</div><div class="g2" id="goalTxt">0 / 150</div></div>
   <div class="trackwrap">
     <div class="track"><div class="seg2"></div><div class="fill" id="fill"></div></div>
     <div class="mark"></div>
@@ -375,7 +390,6 @@
 </div>
 
 <div class="levelchip" id="levelchip">Niveau 1</div>
-<div class="seqchip" id="seqchip"></div>
 <div class="toast" id="toast"><div class="t1" id="toastT1"></div><div class="t2" id="toastT2"></div></div>
 <div class="centerjoke" id="centerjoke"><div class="ctxt" id="centerjokeTxt"></div></div>
 <div id="countd"></div>
@@ -475,15 +489,18 @@
 
 <div class="overlay hide" id="howtoScreen">
   <div class="title" style="font-size:38px">Comment <span>jouer</span></div>
-  <div class="tag">2 minutes pour tout capter</div>
+  <div class="tag">3 minutes pour tout capter</div>
   <div class="jojo-intro"><img class="avatar" id="jojoIntroImg" alt="Jojo"><div class="jojo-hi">Salut, moi c'est <b>Jojo</b> !<br>Je t'accompagne pendant tes parties.</div></div>
   <div class="steps">
     <div class="step"><div class="stepn">1</div><div class="stept">Une bille tourne autour du cercle. <b>Touche l'&eacute;cran</b> pile quand elle passe dans la zone lumineuse.</div></div>
     <div class="step"><div class="stepn">2</div><div class="stept">&Agrave; chaque r&eacute;ussite, le sens s'inverse et une <b>nouvelle zone</b> appara&icirc;t. Rate&nbsp;: tu perds une vie et tu repars au dernier palier.</div></div>
     <div class="step"><div class="stepn">3</div><div class="stept">Ench&acirc;ine les r&eacute;ussites&nbsp;: &agrave; 6 de combo le <b>mode FEVER</b> s'allume et <b>double tes points</b>. &Agrave; 12, c'est <b>x3</b>&nbsp;!</div></div>
     <div class="step"><div class="stepn">4</div><div class="stept">Des <b>questions de culture G</b> ponctuent la partie (+10 pts, +1 vie)&nbsp;: fr&eacute;quentes au d&eacute;but, plus espac&eacute;es ensuite pour ne pas casser ton rythme.</div></div>
-    <div class="step"><div class="stepn">5</div><div class="stept">&Agrave; <b>100</b>, tu d&eacute;bloques tous les <b>th&egrave;mes premium</b>. La partie continue ensuite sans limite&nbsp;: vise le top 20 mondial&nbsp;!</div></div>
-    <div class="step"><div class="stepn">6</div><div class="stept">Tous les <b>1000 points</b>, le jeu se transforme &mdash; il arrive m&ecirc;me que le cercle disparaisse compl&egrave;tement et qu'il faille <b>glisser le doigt</b> au lieu de taper. Jojo t'explique &agrave; chaque fois en une phrase, et les <b>3 premiers rat&eacute;s sont offerts</b>. &Agrave; toi de d&eacute;couvrir ce qui t'attend&nbsp;!</div></div>
+    <div class="step"><div class="stepn">5</div><div class="stept">La <b>barre du bas</b> te dit toujours ce que tu vises. Elle va jusqu'&agrave; <b>150</b>, avec un <b>rep&egrave;re color&eacute; au milieu</b>&nbsp;: moiti&eacute; gauche = les 100 points qui d&eacute;bloquent tous les <b>th&egrave;mes premium</b>, moiti&eacute; droite = les 50 derniers avant ton premier bonus. Ensuite elle devient la jauge du <b>prochain objectif</b>.</div></div>
+    <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, &agrave; <b>500</b> puis &agrave; <b>700</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4). Les <b>3 premiers rat&eacute;s y sont offerts</b>.</div></div>
+    <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>ARKANOID</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>4 champignons roses</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper.</div></div>
+    <div class="step"><div class="stepn">8</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme.</div></div>
+    <div class="step"><div class="stepn">9</div><div class="stept">Apr&egrave;s 700, les bonus <b>se m&eacute;ritent</b>&nbsp;: un <b>combo de 15</b> t'offre un ARKANOID, <b>3 touches multiples</b> (2&nbsp;billes ou plus d'un coup) t'offrent la GRAVIT&Eacute;. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x5, x6, x7... <b>Perdre une vie remet les deux compteurs &agrave; z&eacute;ro.</b></div></div>
   </div>
   <div class="ntitle">Bar&egrave;me des billes</div>
   <div class="ptrow"><span><i class="dot w"></i> Blanche</span><span class="pv">+2</span></div>
@@ -491,6 +508,20 @@
   <div class="ptrow"><span><i class="dot r"></i> Rouge (d&egrave;s 50)</span><span class="pv">+8</span></div>
   <div class="ptrow"><span>2 billes dans la zone</span><span class="pv">+6 &agrave; +20</span></div>
   <div class="ptrow"><span>Les trois d'un coup</span><span class="pv">+30</span></div>
+  <div class="ntitle">&#127955; Bar&egrave;me en ARKANOID</div>
+  <div class="ptrow"><span>Renvoi de la balle</span><span class="pv">+4</span></div>
+  <div class="ptrow"><span>Renvoi en plein centre de la barre</span><span class="pv">+10</span></div>
+  <div class="ptrow"><span><i class="dot p"></i> Champignon touch&eacute; (x4 sur le terrain)</span><span class="pv">+3</span></div>
+  <div class="ptrow"><span>Balle laiss&eacute;e passer</span><span class="pv">-1 vie</span></div>
+  <div class="ntitle">Les bonus de 15 secondes</div>
+  <div class="ptrow"><span>&#127955; ARKANOID &agrave; 150 pts</span><span class="pv">points x2</span></div>
+  <div class="ptrow"><span>&#127955; ARKANOID &agrave; 500 pts</span><span class="pv">points x3</span></div>
+  <div class="ptrow"><span>&#127757; GRAVIT&Eacute; &agrave; 700 pts</span><span class="pv">points x4</span></div>
+  <div class="ptrow"><span>Puis&nbsp;: combo de <b>15</b></span><span class="pv">&#127955; ARKANOID</span></div>
+  <div class="ptrow"><span>Puis&nbsp;: <b>3</b> touches &agrave; 2 billes ou +</span><span class="pv">&#127757; GRAVIT&Eacute;</span></div>
+  <div class="ptrow"><span>Chaque bonus m&eacute;rit&eacute;</span><span class="pv">x5, x6, x7...</span></div>
+  <div class="ptrow"><span>Le multiplicateur du bonus se <b>cumule</b> avec le Fever</span><span class="pv">&#128293;</span></div>
+  <div class="ptrow"><span>Apr&egrave;s chaque bonus, 8 s de repos</span><span class="pv">&#9208;</span></div>
   <div class="ntitle">Combo Fever</div>
   <div class="ptrow"><span>&#128293; Combo 6+</span><span class="pv">points x2</span></div>
   <div class="ptrow"><span>&#9889; Combo 12+</span><span class="pv">points x3</span></div>
@@ -498,6 +529,7 @@
   <div class="ntitle">&#9889; Le WIZZ</div>
   <div class="ptrow"><span>&Agrave; 500 pts</span><span class="pv">+2 WIZZ</span></div>
   <div class="ptrow"><span>Puis tous les 200 pts (700, 900...)</span><span class="pv">+1 WIZZ</span></div>
+  <div class="ptrow"><span>Compt&eacute; au tarif de base&nbsp;: les multiplicateurs de bonus n'en donnent pas plus</span><span class="pv">&#9878;</span></div>
   <div class="ptrow"><span>R&eacute;serve conserv&eacute;e entre les parties</span><span class="pv">&#128190;</span></div>
   <div class="ptrow"><span>Effet sur les joueurs en ligne</span><span class="pv">&eacute;cran secou&eacute; !</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
@@ -1514,17 +1546,30 @@ var PULSE = (function(){
   var currentJoke=null, jokePending=false;
 
   function jojo(cat,txt){
+    /* Pendant ARKANOID, la bulle de Jojo n'apporte rien et masque le terrain :
+       le joueur suit la balle, pas un texte. On se tait. */
+    if(phaseIs('arkanoid')) return;
     var m = txt || pick(JOJO[cat]||['...']);
     $('jojoMsg').textContent=m;
     $('jojo').classList.add('show');
     if(jojoTimer)clearTimeout(jojoTimer);
-    var dur = (cat==='die'||cat==='joke') ? 3200 : 2200;
+    /* une explication de phase (GRAVITE...) est une phrase a lire, pas une
+       exclamation : on lui laisse le temps d'etre lue */
+    var dur = (cat==='level') ? 4200 : (cat==='die'||cat==='joke') ? 3200 : 2200;
     jojoTimer=setTimeout(function(){$('jojo').classList.remove('show');}, dur);
   }
-  function toast(t1,t2){
-    $('toastT1').textContent=t1; $('toastT2').textContent=t2||'';
-    var el=$('toast'); el.classList.add('show');
-    setTimeout(function(){el.classList.remove('show');},1400);
+  var toastTimer=null;
+  function toast(t1,t2,slow){
+    var el=$('toast'), el1=$('toastT1');
+    el1.textContent=t1; $('toastT2').textContent=t2||'';
+    var n=String(t1).length;
+    el1.className = 't1'+(n>20?' xs':(n>12?' sm':''));
+    el.classList.add('show');
+    /* sans ce clearTimeout, le minuteur d'un toast precedent effacait le
+       suivant au bout de quelques dixiemes : le message le plus important
+       (l'annonce de sequence) etait celui qu'on n'avait pas le temps de lire */
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){el.classList.remove('show');}, slow?3400:1600);
   }
   var centerJokeTimer=null;
   function centerJoke(txt){
@@ -1682,6 +1727,10 @@ var PULSE = (function(){
      le combo reste la recompense du geste (rattraper la balle), les
      champignons sont la recompense de la trajectoire. */
   var BUMP_R=27, BUMP_PTS=3;
+  /* Jojo se tait pendant ARKANOID : le rappel de la commande doit donc etre
+     ecrit sur le terrain lui-meme, sinon plus personne ne dit au joueur que
+     la barre suit le doigt. Il s'efface tout seul en quelques secondes. */
+  var arkHintT=0;
   var arkBumps=[];
   function arkBuildBumps(){
     var top=arkTop(), padY=arkPadY();
@@ -1691,12 +1740,17 @@ var PULSE = (function(){
     var yTop=top+130, yBot=padY-100;
     if(yBot-yTop<60){ arkBumps=[]; return; }          /* ecran trop court */
     var my=(yTop+yBot)/2, dy=Math.min((yBot-yTop)/2, 86);
-    var mx=W/2, dx=Math.min(W*0.24, 110);
+    /* GRILLE 2x2 et non plus losange : en losange, les cercles du haut et du bas
+       tombaient sur le compteur de combo au centre de l'ecran, et les trois
+       elements se chevauchaient. Ici le couloir central reste entierement
+       libre — on garde au moins le rayon du compteur (46) + le rayon d'un
+       champignon + une marge. */
+    var mx=W/2, dx=Math.min(Math.max(W*0.24, 46+BUMP_R+16), W/2-BUMP_R-14);
     arkBumps=[
-      {x:mx,    y:my-dy, hit:0, cool:0},
-      {x:mx-dx, y:my,    hit:0, cool:0},
-      {x:mx+dx, y:my,    hit:0, cool:0},
-      {x:mx,    y:my+dy, hit:0, cool:0}
+      {x:mx-dx, y:my-dy, hit:0, cool:0},
+      {x:mx+dx, y:my-dy, hit:0, cool:0},
+      {x:mx-dx, y:my+dy, hit:0, cool:0},
+      {x:mx+dx, y:my+dy, hit:0, cool:0}
     ];
   }
   /* Points d'un champignon : memes multiplicateurs que le reste (fever, rush,
@@ -1882,6 +1936,18 @@ var PULSE = (function(){
       ctx.globalAlpha=alpha*0.18; ctx.lineWidth=2; ctx.setLineDash([4,6]);
       ctx.beginPath(); ctx.moveTo(land,b.y+12); ctx.lineTo(land,padY-30); ctx.stroke();
       ctx.setLineDash([]);
+    }
+    /* rappel de la commande, en haut du terrain (zone sans champignons) */
+    if(arkHintT>0){
+      var ha=alpha*Math.min(1, arkHintT/700);
+      ctx.globalAlpha=ha*0.9; ctx.textAlign='center';
+      ctx.fillStyle=THEME.glow;
+      ctx.font='900 13px -apple-system,BlinkMacSystemFont,sans-serif';
+      ctx.fillText('GLISSE TON DOIGT', W/2, top+34);
+      ctx.globalAlpha=ha*0.6; ctx.fillStyle='rgba(255,255,255,.85)';
+      ctx.font='700 11px -apple-system,BlinkMacSystemFont,sans-serif';
+      ctx.fillText('la barre te suit, la balle rebondit seule', W/2, top+52);
+      ctx.globalAlpha=alpha;
     }
     arkDrawBumps(alpha);
     /* trainee de la balle */
@@ -2080,34 +2146,53 @@ var PULSE = (function(){
       doFlash(0.5,'255,209,102'); haptic([40,60,80]);
     }
   }
+  /* Barre d'objectif = seule zone de texte du jeu qui bouge en permanence.
+     Elle porte trois choses : CE QU'ON VISE (a gauche), OU L'ON EN EST (a
+     droite) et la jauge. Elle n'est reecrite que lorsque son contenu change,
+     sinon on toucherait au DOM 60 fois par seconde. */
+  var goalCache='';
   function updateGoal(){
+    var lbl, val, pct, hot=false;
     if(scriptIdx===0){
       if(score>BARMAX) return;
       /* echelle en DEUX MOITIES pour que le repere tombe pile au centre :
          0-100 occupe la moitie gauche, 100-150 la moitie droite. */
-      var pct = score<=GOAL ? (score/GOAL)*50 : 50 + Math.min((score-GOAL)/(BARMAX-GOAL),1)*50;
-      $('fill').style.width=pct+'%';
-      $('goalTxt').textContent=Math.min(score,BARMAX)+' / '+BARMAX;
-      return;
+      pct = score<=GOAL ? (score/GOAL)*50 : 50 + Math.min((score-GOAL)/(BARMAX-GOAL),1)*50;
+      lbl = score<GOAL ? 'Objectif' : '\u{1F3D3} ARKANOID \u00e0 '+BARMAX;
+      val = Math.min(score,BARMAX)+' / '+BARMAX;
+      hot = score>=GOAL;
+    } else {
+      /* Passe le 1er ARKANOID, la barre ne mesure plus 150 points : elle devient
+         la jauge de ce qu'il reste a faire. */
+      var g=$('goalbar'); if(g && !g.classList.contains('phase2')) g.classList.add('phase2');
+      if(seqKind){
+        pct = Math.max(0,Math.min(seqT/SEQ_MS,1))*100;
+        lbl = (seqKind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+seqMult;
+        val = Math.max(0,Math.ceil(seqT/1000))+' s';
+        hot = true;
+      } else if(restT>0){
+        pct = 100-Math.min(restT/REST_MS,1)*100;
+        lbl = 'Reprise en cours...';
+        val = Math.ceil(restT/1000)+' s';
+      } else if(scriptIdx<SCRIPTED.length){
+        var sc=SCRIPTED[scriptIdx], from=SCRIPTED[scriptIdx-1].at;
+        pct = Math.max(0,Math.min((score-from)/(sc.at-from),1))*100;
+        lbl = (sc.kind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+sc.mult;
+        val = score+' / '+sc.at;
+      } else {
+        var cp=Math.min(combo/MERIT_COMBO,1), mp=Math.min(multiHits/MERIT_MULTI,1);
+        pct = Math.max(cp,mp)*100;
+        if(cp>=mp){ lbl='\u{1F3D3} Combo pour un ARKANOID'; val=Math.min(combo,MERIT_COMBO)+' / '+MERIT_COMBO; }
+        else { lbl='\u{1F30D} Touches multiples \u2192 GRAVIT\u00c9'; val=multiHits+' / '+MERIT_MULTI; }
+      }
     }
-    /* Passe le 1er ARKANOID, la barre ne mesure plus 150 points : elle devient
-       la jauge de ce qu'il reste a faire — prochain palier, temps de bonus
-       restant, ou avancee vers le prochain bonus merite. */
-    var g=$('goalbar'); if(g && !g.classList.contains('phase2')) g.classList.add('phase2');
-    if(seqKind){
-      $('fill').style.width=Math.max(0,Math.min(seqT/SEQ_MS,1))*100+'%';
-      $('goalTxt').textContent='BONUS \u00d7'+seqMult;
-      return;
-    }
-    if(scriptIdx<SCRIPTED.length){
-      var sc=SCRIPTED[scriptIdx], from=SCRIPTED[scriptIdx-1].at;
-      $('fill').style.width=Math.max(0,Math.min((score-from)/(sc.at-from),1))*100+'%';
-      $('goalTxt').textContent=score+' / '+sc.at;
-      return;
-    }
-    var best2=Math.max(Math.min(combo/MERIT_COMBO,1), Math.min(multiHits/MERIT_MULTI,1));
-    $('fill').style.width=best2*100+'%';
-    $('goalTxt').textContent='\u00c0 M\u00c9RITER';
+    var key=lbl+'|'+val+'|'+Math.round(pct)+'|'+hot;
+    if(key===goalCache) return;
+    goalCache=key;
+    $('fill').style.width=pct+'%';
+    var eL=$('goalLbl'), eV=$('goalTxt');
+    if(eL){ eL.textContent=lbl; eL.className='g1'+(hot?' hot':''); }
+    if(eV){ eV.textContent=val; eV.className='g2'+(hot?' hot':''); }
   }
   function setLevel(n){
     level=n; $('levelchip').textContent='Niveau '+n; $('levelchip').classList.add('show');
@@ -2178,11 +2263,13 @@ var PULSE = (function(){
        jouable a la sortie du ralenti, jamais une geometrie heritee au hasard */
     if(p.id==='arkanoid') arkReset(); else newTarget();
     freezeT=260;
-    slowmoT=1400; timeScale=0.35;
+    /* ralenti plus long et plus marque : c'est PENDANT lui que le joueur lit
+       l'annonce. A 1,4 s le texte disparaissait avant d'avoir ete lu. */
+    slowmoT=2400; timeScale=0.28;
     graceHits=3;
     fireworks(); sfxLevel(); sfxFever();
     haptic([30,50,30,50,90]); doFlash(0.55,'255,209,102');
-    toast(p.name, p.sub);
+    toast(p.name, p.sub, true);
     setTimeout(function(){ jojo('level', p.line); }, 1150);
     setLevelAuto();
   }
@@ -2203,12 +2290,13 @@ var PULSE = (function(){
      lesquelles rien ne peut retomber : la recompense reste un evenement. */
   function startSeq(kind, mult){
     seqKind=kind; seqT=SEQ_MS; seqMult=mult; restT=0; seqCount++;
+    arkHintT = (kind==='arkanoid') ? 4200 : 0;
     var base=phaseById(kind);
     startPhase({ id:base.id,
                  name:base.name+' \u00d7'+mult,
-                 sub:'15 s \u2014 points \u00d7'+mult,
+                 sub:base.sub+' \u00b7 15 s \u00b7 points \u00d7'+mult,
                  line:base.line });
-    seqTxt=''; updateSeqChip();
+    updateGoal();
   }
   function endSeq(){
     seqKind=''; seqT=0; seqMult=1; restT=REST_MS;
@@ -2229,24 +2317,7 @@ var PULSE = (function(){
 
   /* Pastille : soit le decompte du bonus en cours, soit ce qu'il reste a faire
      pour declencher le prochain. Le joueur doit toujours savoir ou il vise. */
-  var seqTxt='';
-  function updateSeqChip(){
-    var el=$('seqchip'); if(!el) return;
-    if(!document.body.classList.contains('playing')){ seqTxt=''; el.classList.remove('show'); return; }
-    var t;
-    if(seqKind){
-      t=(seqKind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+seqMult+' \u00b7 '+Math.max(0,Math.ceil(seqT/1000))+'s';
-    } else if(restT>0){
-      t='\u23F8 repos \u00b7 '+Math.ceil(restT/1000)+'s';
-    } else if(scriptIdx<SCRIPTED.length){
-      var sc=SCRIPTED[scriptIdx];
-      t=(sc.kind==='gravite'?'\u{1F30D}':'\u{1F3D3}')+' \u00d7'+sc.mult+' \u00e0 '+sc.at+' pts';
-    } else {
-      t='\u{1F3D3} '+Math.min(combo,MERIT_COMBO)+'/'+MERIT_COMBO+' combo \u00b7 \u{1F30D} '+Math.min(multiHits,MERIT_MULTI)+'/'+MERIT_MULTI+' multi';
-    }
-    if(t!==seqTxt){ seqTxt=t; el.textContent=t; el.classList.add('show'); updateGoal(); }
-  }
-
+  function updateSeqChip(){ updateGoal(); }
   /* Ne depend pas de l'ancien score : un palier franchi via un bonus de QCM
      (+10 pts hors tap) declenche quand meme la phase au tap suivant.
      Renvoie true si une phase vient de demarrer -> elle remplace alors la
@@ -2690,7 +2761,6 @@ var PULSE = (function(){
     }
     else { $('progMini').innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour le mode infini':''); }
     $('goalbar').classList.remove('show'); $('levelchip').classList.remove('show'); $('centerjoke').classList.remove('show');
-    $('seqchip').classList.remove('show');
     $('jojoJoke').classList.add('hide');
     $('quizbox').classList.add('hide');
 
@@ -2933,6 +3003,7 @@ var PULSE = (function(){
       updateSeqChip();
     }
     if(wizzShakeT>0){ wizzShakeT-=dt; }
+    if(arkHintT>0 && running){ arkHintT-=dt; }
     if(dirCueT>0){ dirCueT-=dt; }
     if(running && freezeT<=0 && phaseIs('arkanoid')){
       arkStep(step);
@@ -3291,8 +3362,7 @@ var PULSE = (function(){
     $('goalbar').classList.add('show'); $('goalbar').classList.remove('phase2');
     $('goalTxt').textContent='0 / '+BARMAX;
     scriptIdx=0; seqKind=''; seqT=0; seqMult=1; seqCount=0; restT=0;
-    meritOn=false; multiHits=0; earned=0; lastMilestone=0; seqTxt='';
-    $('seqchip').classList.remove('show');
+    meritOn=false; multiHits=0; earned=0; lastMilestone=0; goalCache='';
     score=0;dscore=0;$('score').textContent=0;speed=speedFor(0);dir=1;angle=-Math.PI/2;
     particles=[];floats=[];frites=[];flash=0;shake=0;passed100=false;
     if(THEME&&THEME.frites){ for(var bf=0;bf<10;bf++) friteRain2(); }
@@ -3308,7 +3378,7 @@ var PULSE = (function(){
     ball2=false; ball3=false; innerRing=false; zonePulse=false; ringSpin=false; zoneDrift=false;
     pulsePhase=0; spinAng=0; zoneAnim=0;
     phaseId=''; phaseIdx=-1; graceHits=0; breathPhase=0; breathAmp=0;
-    arkIn=0; arkBall=null; arkTrail=[]; arkSquash=0;
+    arkIn=0; arkBall=null; arkTrail=[]; arkSquash=0; arkHintT=0;
     $('jojoJoke').classList.add('hide'); $('centerjoke').classList.remove('show'); $('quizbox').classList.add('hide');
     quizAnswered=false;
     setLevel(1);
