@@ -142,6 +142,11 @@
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.34,1.56,.64,1)}
   .jojo.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* En mode ARKANOID, la barre du joueur se trouve en bas de l'ecran, exactement
+     la ou Jojo s'affiche : sa bulle masquait donc la raquette au moment precis ou
+     le joueur doit la reperer. On remonte Jojo en haut du terrain pendant ce mode. */
+  body.arkmode .jojo{bottom:auto;top:calc(104px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-14px)}
+  body.arkmode .jojo.show{transform:translateX(-50%) translateY(0)}
   .jojo .avatar{width:46px;height:auto;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
   .jojo .bubble{text-align:left}
   .jojo .who{font-size:9px;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;font-weight:800;margin-bottom:2px}
@@ -456,6 +461,7 @@
     <div class="step"><div class="stepn">3</div><div class="stept">Ench&acirc;ine les r&eacute;ussites&nbsp;: &agrave; 6 de combo le <b>mode FEVER</b> s'allume et <b>double tes points</b>. &Agrave; 12, c'est <b>x3</b>&nbsp;!</div></div>
     <div class="step"><div class="stepn">4</div><div class="stept">Des <b>questions de culture G</b> ponctuent la partie (+10 pts, +1 vie)&nbsp;: fr&eacute;quentes au d&eacute;but, plus espac&eacute;es ensuite pour ne pas casser ton rythme.</div></div>
     <div class="step"><div class="stepn">5</div><div class="stept">&Agrave; <b>100</b>, tu d&eacute;bloques tous les <b>th&egrave;mes premium</b>. La partie continue ensuite sans limite&nbsp;: vise le top 20 mondial&nbsp;!</div></div>
+    <div class="step"><div class="stepn">6</div><div class="stept">Tous les <b>1000 points</b>, le jeu se transforme &mdash; il arrive m&ecirc;me que le cercle disparaisse compl&egrave;tement et qu'il faille <b>glisser le doigt</b> au lieu de taper. Jojo t'explique &agrave; chaque fois en une phrase, et les <b>3 premiers rat&eacute;s sont offerts</b>. &Agrave; toi de d&eacute;couvrir ce qui t'attend&nbsp;!</div></div>
   </div>
   <div class="ntitle">Bar&egrave;me des billes</div>
   <div class="ptrow"><span><i class="dot w"></i> Blanche</span><span class="pv">+2</span></div>
@@ -1560,16 +1566,204 @@ var PULSE = (function(){
      changent jamais : seule la lecture de l'image change.
      Pour ajouter une phase : une entree ici + son effet dans loop()/draw(). */
   var PHASES=[
-    {id:'eclipse', at:1000, name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
-     line:'L\'anneau se met à respirer... même rythme, autre regard \u{1F317}'}
+    {id:'arkanoid', at:1000, name:'\u{1F3D3} ARKANOID', sub:'glisse ton doigt',
+     line:'Glisse ton doigt pour déplacer la barre. La balle rebondit toute seule — ne la laisse pas passer ! \u{1F3D3}'},
+    {id:'gravite',  at:2000, name:'\u{1F30D} GRAVITÉ', sub:'les billes balancent',
+     line:'Retour au cercle — mais les billes accélèrent en bas, comme un pendule \u{1F30D}'},
+    {id:'eclipse',  at:3000, name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
+     line:'L\'anneau enfle et se contracte... garde ton timing, il n\'a pas change \u{1F317}'}
   ];
   var phaseId='', phaseIdx=-1;
   var graceHits=0;                           // taps pardonnes juste apres un changement
   var breathPhase=0, breathAmp=0;            // ECLIPSE : amplitude lissee (jamais de saut)
 
   function phaseIs(id){ return phaseId===id; }
-  /* amplitude visee de la respiration : monte doucement avec le score */
-  function eclipseAmp(){ return Math.min(0.10 + (score-1000)*0.00002, 0.17); }
+
+  /* GRAVITE : les billes accelerent en bas de l'anneau, ralentissent en haut.
+     sin(angle) > 0 en bas (y vers le bas en canvas). Facteur applique a l'identique
+     dans loop() ET dans la compensation de latence de tap(), sinon les touches
+     deviendraient injustes du cote rapide. */
+  function gravF(a){ return phaseIs('gravite') ? (1 + 0.55*Math.sin(a)) : 1; }
+  /* ECLIPSE : amplitude VOLONTAIREMENT forte. A +-0.10 sur un cycle de 5 s,
+     l'anneau bougeait de ~12 px : personne ne le voyait. A 0.22, le rayon varie
+     de plus de 50 % entre le minimum et le maximum, et le cycle dure ~2 s. */
+  function eclipseAmp(){ return Math.min(0.22 + (score-3000)*0.00002, 0.30); }
+
+  /* ================== MODE ARKANOID (phase 1000) ==================
+     Le cercle se deroule : la piste devient une raquette en bas de l'ecran et la
+     bille devient une balle qui rebondit entre les murs et le plafond.
+     LE GESTE NE CHANGE PAS — un tap, au bon moment. La raquette glisse toute
+     seule ; taper quand la balle arrive au-dessus d'elle la renvoie en haut.
+     Taper a cote, ou laisser la balle franchir la ligne du bas, coute une vie :
+     exactement la meme regle que dans le mode cercle.
+     Pas de briques : on garde des cercles, des points et des vies. */
+  var arkIn=0;                       // 0 = cercle, 1 = arkanoid (bascule visuelle)
+  var arkBall=null;                  // {x,y,vx,vy}
+  var arkPadX=0, arkSquash=0, arkTrail=[];
+  var arkTargetX=null;               // x vise par le doigt ; null = pas encore touche
+
+  var ARK_R=10, ARK_PH=13;           // rayon de la balle, demi-epaisseur de la barre
+  var ARK_ANG=1.05;                  // deviation maxi au bord de la barre (~60 deg)
+
+  function arkTop(){ return Math.max(84, H*0.14); }
+  function arkPadY(){ return Math.min(H-165, H*0.88); }          // au-dessus du HUD du bas
+  function arkPadHalf(){ return Math.max(64-(score-1000)*0.003, 34); }
+  function arkBallSpeed(){ return Math.min(7.5+(score-1000)*0.0008, 12); }
+  /* Vitesse maxi de suivi du doigt. Assez elevee pour que la barre reponde tout de
+     suite, mais finie : sans plafond elle se teleporterait sous la balle et il n'y
+     aurait plus aucune anticipation a avoir. */
+  function arkPadSpeed(){ return arkBallSpeed()*2.2; }
+
+  function arkReset(keepPad){
+    if(!keepPad){ arkPadX=W/2; arkTargetX=null; }
+    var sp=arkBallSpeed();
+    /* depart en diagonale, avec le meme angle que les rebonds sur la barre */
+    var a0=(Math.random()<0.5?-1:1)*ARK_ANG*0.55;
+    arkBall={ x:W/2, y:arkTop()+70, vx:Math.sin(a0)*sp, vy:Math.cos(a0)*sp };
+    arkTrail=[]; arkSquash=0;
+  }
+
+  function arkStep(step){
+    var ph=arkPadHalf(), b=arkBall, top=arkTop(), padY=arkPadY();
+    /* LA BARRE SUIT LE DOIGT. Elle ne balaie plus toute seule : le joueur la dirige
+       gauche/droite, comme dans n'importe quel Arkanoid. Elle se dirige vers
+       arkTargetX sans depasser sa vitesse maxi, et reste ou elle est tant qu'aucun
+       doigt ne l'a touchee. Butees calees sur les murs dessines (8 px) et non sur
+       le bord de l'ecran, sinon la barre depasserait du terrain. */
+    if(arkTargetX!==null){
+      var vise=Math.max(8+ph, Math.min(W-8-ph, arkTargetX));
+      var ecart=vise-arkPadX, maxi=arkPadSpeed()*step;
+      arkPadX += Math.abs(ecart)<=maxi ? ecart : (ecart>0?maxi:-maxi);
+    }
+    if(arkPadX<8+ph) arkPadX=8+ph;
+    if(arkPadX>W-8-ph) arkPadX=W-8-ph;
+    if(arkSquash>0) arkSquash=Math.max(0, arkSquash-0.09*step);
+    if(!b) return;
+    b.x+=b.vx*step; b.y+=b.vy*step;
+    if(b.x<8+ARK_R){ b.x=8+ARK_R; b.vx=Math.abs(b.vx); }
+    if(b.x>W-8-ARK_R){ b.x=W-8-ARK_R; b.vx=-Math.abs(b.vx); }
+    if(b.y<top+ARK_R){ b.y=top+ARK_R; b.vy=Math.abs(b.vy); }
+    arkTrail.unshift({x:b.x,y:b.y}); if(arkTrail.length>12) arkTrail.length=12;
+
+    /* REBOND SUR LA BARRE — automatique, comme dans tout Arkanoid. Le joueur ne
+       tape pas pour renvoyer : il DEPLACE la barre au doigt (voir arkAim).
+       L'angle de renvoi depend de l'endroit touche : centre = renvoi vertical,
+       bord = deviation maximale. C'est la technique standard du genre, et c'est
+       elle qui donne au joueur la maitrise de la trajectoire suivante. */
+    if(b.vy>0 && b.y+ARK_R>=padY-ARK_PH && b.y-ARK_R<=padY+ARK_PH && Math.abs(b.x-arkPadX)<=ph+ARK_R){
+      arkBounce(b, (b.x-arkPadX)/ph, padY);
+      return;
+    }
+    /* la balle a franchi la ligne du bas : le joueur n'a pas su placer la barre */
+    if(b.y-ARK_R>padY+46){ die(Math.abs(b.x-arkPadX)<=ph+34); return; }
+  }
+
+  /* Renvoi de la balle par la barre + gain de points. */
+  function arkBounce(b, rel, padY){
+    if(rel>1) rel=1; if(rel<-1) rel=-1;
+    var sp=arkBallSpeed(), a=rel*ARK_ANG;
+    b.vx=Math.sin(a)*sp;
+    b.vy=-Math.cos(a)*sp;
+    b.y=padY-ARK_PH-ARK_R-1;          /* degage la barre pour ne pas re-collisionner */
+    arkSquash=1; stats.hits++; stats.taps++;
+    var perfect=Math.abs(rel)<0.30, prev=score;
+
+    var oldM=mult(), oldCombo=combo;
+    combo+=perfect?2:1;
+    if(combo>comboRun) comboRun=combo;
+    if(combo>=10 && Math.floor(combo/10)>Math.floor(oldCombo/10)){
+      burst(cx,cy,'#FFD166',18);
+      floatText(cx,cy-72,'COMBO '+(Math.floor(combo/10)*10)+' !','#FFD166',true);
+      haptic(25);
+    }
+    var feverM=mult(), mm=goldT>0?3:feverM;
+    if(goldT<=0 && feverM>oldM){
+      toast(feverName(feverM), feverM===3?'Triple points !':'Points doubles !');
+      sfxFever(); haptic([20,30,20,30,50]); doFlash(0.55,'255,209,102');
+    }
+    var total=(perfect?10:4)*mm;
+    score+=total; setScore();
+    burst(b.x,padY-10, perfect?'#FFD166':THEME.core, perfect?36:20);
+    shock(b.x,padY-10, perfect?'#FFD166':THEME.glow);
+    floatText(b.x,padY-34,'+'+total,(mm>1?'#FFD166':'#fff'),perfect);
+    doFlash(perfect?0.32:0.18, perfect?'255,209,102':'255,255,255');
+    haptic(perfect?30:14);
+    if(perfect){ sfxPerfect(); floatText(b.x,padY-62,'EN PLEIN CENTRE !','#FFD166',false); }
+    else sfxPoint();
+    speed=speedFor(score);
+    if(!checkPhase()) checkMilestone(prev);
+  }
+
+  /* Le doigt dirige la barre gauche/droite : c'est le controle d'origine du genre.
+     Poser le doigt n'importe ou sur l'ecran vise ce x, le glisser suit le doigt.
+     Aucun tap ne coute de vie ici : la seule sanction, c'est la balle qui passe. */
+  function arkAim(clientX){
+    if(!phaseIs('arkanoid')) return;
+    arkTargetX=clientX;
+  }
+
+  /* Ou la balle touchera la ligne de la barre, rebonds lateraux inclus.
+     Le repliement triangulaire evite de simuler les rebonds un par un. */
+  function arkPredict(b, padY){
+    if(b.vy<=0) return null;
+    var t=(padY-ARK_PH-ARK_R-b.y)/b.vy;
+    if(t<0) return null;
+    var lo=8+ARK_R, hi=W-8-ARK_R, span=hi-lo;
+    if(span<=0) return null;
+    var m=(((b.x+b.vx*t)-lo)%(2*span)+2*span)%(2*span);
+    return lo+(m>span ? 2*span-m : m);
+  }
+
+  function arkDraw(alpha){
+    if(!arkBall || alpha<=0.01) return;
+    var top=arkTop(), padY=arkPadY(), ph=arkPadHalf(), b=arkBall, i;
+    ctx.save(); ctx.globalAlpha=alpha;
+    /* cadre du terrain : murs lateraux + plafond */
+    ctx.strokeStyle='rgba(90,107,140,.30)'; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(8,padY+30); ctx.lineTo(8,top); ctx.lineTo(W-8,top); ctx.lineTo(W-8,padY+30);
+    ctx.stroke();
+    /* ligne de fond : la limite a ne pas laisser franchir */
+    ctx.strokeStyle='rgba(255,77,109,.30)'; ctx.setLineDash([7,7]);
+    ctx.beginPath(); ctx.moveTo(8,padY+46); ctx.lineTo(W-8,padY+46); ctx.stroke();
+    ctx.setLineDash([]);
+    /* POINT DE CHUTE PREVU (rebonds sur les murs compris). Sans lui, piloter la
+       barre avec une seule touche reviendrait a deviner : le joueur doit voir OU
+       amener la barre pour decider quand inverser. C'est ce repere qui rend le
+       mode comprehensible en une seconde. */
+    var land=arkPredict(b,padY);
+    if(land!==null){
+      var atteint=Math.abs(land-arkPadX)<=ph;
+      ctx.globalAlpha=alpha*(atteint?0.75:0.42);
+      ctx.strokeStyle=atteint?THEME.core:THEME.glow; ctx.lineWidth=3; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(land-13,padY-26); ctx.lineTo(land,padY-13);
+      ctx.lineTo(land+13,padY-26); ctx.stroke();          /* chevron vers le bas */
+      ctx.globalAlpha=alpha*0.18; ctx.lineWidth=2; ctx.setLineDash([4,6]);
+      ctx.beginPath(); ctx.moveTo(land,b.y+12); ctx.lineTo(land,padY-30); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    /* trainee de la balle */
+    for(i=1;i<arkTrail.length;i++){
+      var t=arkTrail[i];
+      ctx.globalAlpha=alpha*(1-i/arkTrail.length)*0.30; ctx.fillStyle='#ffffff';
+      ctx.beginPath(); ctx.arc(t.x,t.y,9*(1-i/arkTrail.length*0.6),0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=alpha;
+    var spb=ballSprite('#ffffff',10);
+    ctx.drawImage(spb.cv,b.x-spb.s,b.y-spb.s);
+    /* raquette : s'ecrase brievement a l'impact */
+    var hh=13-arkSquash*4, pw=ph*(1+arkSquash*0.10);
+    var gcol=(goldT>0||mult()>1)?'#FFD166':THEME.glow;
+    ctx.fillStyle=gcol; ctx.shadowColor=gcol; ctx.shadowBlur=18;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(arkPadX-pw,padY-hh,pw*2,hh*2,hh); else ctx.rect(arkPadX-pw,padY-hh,pw*2,hh*2);
+    ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillStyle=THEME.core;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(arkPadX-pw*0.9,padY-hh,pw*1.8,hh*0.62,hh*0.4); else ctx.rect(arkPadX-pw*0.9,padY-hh,pw*1.8,hh*0.62);
+    ctx.fill();
+    ctx.restore();
+  }
   /* facteur applique aux DEUX rayons : la geometrie reste proportionnelle.
      R() ne sert qu'au rendu et a la position des effets — la detection de
      touche est purement angulaire — donc respirer ne peut pas fausser un tap. */
@@ -1815,6 +2009,10 @@ var PULSE = (function(){
        6. retour lisse  -> la vitesse remonte progressivement (voir loop) */
   function startPhase(p){
     phaseId=p.id;
+    /* on prepare le terrain AVANT le fondu, et on redonne une zone propre quand
+       on revient au cercle : dans les deux cas le joueur retrouve une situation
+       jouable a la sortie du ralenti, jamais une geometrie heritee au hasard */
+    if(p.id==='arkanoid') arkReset(); else newTarget();
     freezeT=260;
     slowmoT=1400; timeScale=0.35;
     graceHits=3;
@@ -2065,14 +2263,21 @@ var PULSE = (function(){
     var nowT=performance.now();
     if(nowT-lastHitT<120) return;   /* anti double-tap : le rebond du doigt ne tue plus */
     stats.taps++;
+    /* En Arkanoid le tap ne sert a rien : c'est la POSITION du doigt qui joue,
+       et elle est lue par les ecouteurs de deplacement. Surtout ne pas appeler
+       die() ici, sinon poser le doigt pour deplacer la barre tuerait le joueur. */
+    if(phaseIs('arkanoid')) return;
     var z=zoneNow();
     /* tolerance de latence : on teste aussi la position ~2,5 frames en arriere */
     var gspN=speed*(goldT>0?0.55:1), REW=2.5;
     function dm(a,sp,ta){ return Math.min(Math.abs(aDiff(a,ta)), Math.abs(aDiff(a-sp*REW,ta))); }
-    var d1=dm(angle, gspN*dir, targetA);
-    var d2=ball2?dm(angle2, -gspN*dir*0.80, targetA):999;
-    var d3=ball3?dm(angle3, gspN*dir*1.5, targetA):999;
-    var dIn=innerRing?dm(angleIn, -gspN*dir*1.0, targetIn):999;
+    /* gravF : en phase GRAVITE la bille ne parcourt pas le meme angle par frame
+       selon ou elle se trouve. Le rembobinage doit utiliser la meme vitesse locale,
+       sinon la tolerance serait trop courte en bas et trop large en haut. */
+    var d1=dm(angle, gspN*dir*gravF(angle), targetA);
+    var d2=ball2?dm(angle2, -gspN*dir*0.80*gravF(angle2), targetA):999;
+    var d3=ball3?dm(angle3, gspN*dir*1.5*gravF(angle3), targetA):999;
+    var dIn=innerRing?dm(angleIn, -gspN*dir*1.0*gravF(angleIn), targetIn):999;
     var dOuter=Math.min(d1,d2,d3);
     var hitAngle = (d1<=d2 && d1<=d3)?angle : (d2<=d3?angle2:angle3);
     var outerHit = dOuter<=z;
@@ -2169,18 +2374,21 @@ var PULSE = (function(){
        On ne casse meme pas le combo — c'est le moment d'etre genereux. */
     if(graceHits>0){
       graceHits--;
-      var pg=ptOn(angle,R());
+      var pg = phaseIs('arkanoid') ? {x:cx,y:arkPadY()-70} : ptOn(angle,R());
       floatText(pg.x,pg.y-26,'RODAGE • '+graceHits+' restant'+(graceHits>1?'s':''),'#7CF5E2',false);
       doFlash(0.25,'124,245,226'); haptic(20); freezeT=90;
-      dir*=-1; newTarget(); dirCueT=500;
+      if(phaseIs('arkanoid')) arkReset(true);
+      else { dir*=-1; newTarget(); dirCueT=500; }
       return;
     }
     var lostCombo=combo;
     running=false; shake=16; combo=0; goldT=0;
-    if(near){ var pn=ptOn(angle,R()); floatText(pn.x,pn.y-26,'PRESQUE !','#FFD166',true); }
+    /* point d'impact : la balle en mode arkanoid, la bille sur l'anneau sinon */
+    var p = (phaseIs('arkanoid') && arkBall) ? {x:arkBall.x,y:Math.min(arkBall.y,arkPadY()+40)} : ptOn(angle,R());
+    if(near){ floatText(p.x,p.y-26,'PRESQUE !','#FFD166',true); }
     slowmoT=550; timeScale=0.28;
     haptic(120);
-    var p=ptOn(angle,R()); burst(p.x,p.y,'#FF4D6D',34);
+    burst(p.x,p.y,'#FF4D6D',34);
     doFlash(0.5,'255,77,109');
 
     if(lives>0){
@@ -2191,6 +2399,7 @@ var PULSE = (function(){
       updateFeatures();
       toast('-1 vie', near ? 'rat\u00e9 de justesse !' : (lives>0 ? (lives+' vie'+(lives>1?'s':'')+' restante'+(lives>1?'s':'')) : 'derni\u00e8re chance !'));
       if(lostCombo>=6){ floatText(cx,cy-40,'Combo '+lostCombo+' perdu','#FF9DB0',false); }
+      if(phaseIs('arkanoid')) arkReset(true);   /* nouvelle balle, raquette la ou elle est */
       dir=1; angle=-Math.PI/2;
       angle2=Math.PI; angle3=Math.PI/2; angleIn=0;
       trail1=[];trail2=[];trail3=[];trailIn=[];
@@ -2266,8 +2475,14 @@ var PULSE = (function(){
       ctx.globalAlpha=1;
     }
 
+    /* Arkanoid : la bascule se fait a mi-fondu (arkIn 0.5), pile dans le flash du
+       changement de phase — le joueur voit l'ecran changer, pas un cercle mourir.
+       La rotation d'anneau ne doit surtout PAS s'appliquer au terrain, sinon c'est
+       tout le plateau de jeu qui pencherait. */
+    var arkOn = (arkIn>=0.5);
+
     ctx.save(); ctx.translate(ox,oy);
-    if(ringSpin && running){ ctx.translate(cx,cy); ctx.rotate(spinAng); ctx.translate(-cx,-cy); }
+    if(ringSpin && running && !arkOn){ ctx.translate(cx,cy); ctx.rotate(spinAng); ctx.translate(-cx,-cy); }
 
     var r=R();
     var zn=zoneNow();
@@ -2289,7 +2504,7 @@ var PULSE = (function(){
     }
 
     /* --- anneau exterieur --- */
-    if(playing || running){
+    if((playing || running) && !arkOn){
       if(belge){
         /* double halo drapeau : jaune pulsant + rouge */
         var bp=0.12+0.06*Math.sin(performance.now()/240);
@@ -2309,11 +2524,12 @@ var PULSE = (function(){
         ctx.globalAlpha=1;
       }
     }
-    if(running){
+    if(running && !arkOn){
       var zw = 14*(1+zoneAnim*0.6), za = 0.92 - zoneAnim*0.3;
+      var zc = m>1?'#FFD166':THEME.glow;
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn,targetA+zn);
-      ctx.strokeStyle=m>1?'#FFD166':THEME.glow;ctx.globalAlpha=za;ctx.lineWidth=zw;ctx.lineCap='round';
-      ctx.shadowColor=m>1?'#FFD166':THEME.glow;ctx.shadowBlur=22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.strokeStyle=zc;ctx.globalAlpha=za;ctx.lineWidth=zw;ctx.lineCap='round';
+      ctx.shadowColor=zc;ctx.shadowBlur=22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn*0.35,targetA+zn*0.35);ctx.strokeStyle=THEME.core;ctx.lineWidth=zw;ctx.stroke();
 
       /* anneau interieur (des 70) */
@@ -2344,6 +2560,8 @@ var PULSE = (function(){
       if(ball3) drawBall(angle3,r,'#FF3B3B',9);
       if(innerRing) drawBall(angleIn,Rin(),'#FF9DD0',7);
     }
+    /* terrain arkanoid : apparait juste apres la bascule, en 100 ms */
+    if(arkOn && playing) arkDraw(Math.min(1,(arkIn-0.5)*4));
     ctx.restore();
 
     /* --- compteur combo / rush au centre de l'anneau --- */
@@ -2430,18 +2648,32 @@ var PULSE = (function(){
        rayon ne saute jamais — ni a l'arrivee, ni a la fin de la partie. */
     var wantAmp = (phaseIs('eclipse') && document.body.classList.contains('playing')) ? eclipseAmp() : 0;
     breathAmp += (wantAmp-breathAmp)*0.04*step;
-    if(breathAmp>0.0008 || wantAmp>0) breathPhase += 0.021*step;
+    /* cycle d'environ 2 s : a 0.021 il durait 5 s et se confondait avec un
+       simple flottement. A 0.052 on voit clairement l'anneau enfler et se serrer. */
+    if(breathAmp>0.0008 || wantAmp>0) breathPhase += 0.052*step;
+    /* Bascule cercle <-> arkanoid. Pilotee en temps REEL (dt) et non en temps de
+       jeu (step) : ainsi le changement d'image tombe pile pendant le flash et le
+       hit-stop du changement de phase, quel que soit le ralenti en cours. */
+    var wantArk = phaseIs('arkanoid') ? 1 : 0;
+    if(arkIn<wantArk) arkIn=Math.min(1, arkIn+dt*0.0025);
+    else if(arkIn>wantArk) arkIn=Math.max(0, arkIn-dt*0.004);
+    /* remonte Jojo en haut tant qu'on est en arkanoid (sinon sa bulle masque la barre) */
+    if(document.body.classList.contains('arkmode') !== (arkIn>=0.5)){
+      document.body.classList.toggle('arkmode', arkIn>=0.5);
+    }
 
     if(goldT>0 && running){ goldT-=dt; if(goldT<=0){ goldT=0; toast('Rush termin\u00e9',''); } }
     if(wizzShakeT>0){ wizzShakeT-=dt; }
     if(dirCueT>0){ dirCueT-=dt; }
-    if(running && freezeT<=0){
+    if(running && freezeT<=0 && phaseIs('arkanoid')){
+      arkStep(step);
+    } else if(running && freezeT<=0){
       var gsp=speed*(goldT>0?0.55:1);
-      angle+=gsp*dir*step;if(angle>Math.PI)angle-=Math.PI*2;if(angle<-Math.PI)angle+=Math.PI*2;
+      angle+=gsp*dir*step*gravF(angle);if(angle>Math.PI)angle-=Math.PI*2;if(angle<-Math.PI)angle+=Math.PI*2;
       pushTrail(trail1,angle,10);
-      if(ball2){ angle2-=gsp*dir*step*0.80; if(angle2>Math.PI)angle2-=Math.PI*2; if(angle2<-Math.PI)angle2+=Math.PI*2; pushTrail(trail2,angle2,9); }
-      if(ball3){ angle3+=gsp*dir*step*1.5; if(angle3>Math.PI)angle3-=Math.PI*2; if(angle3<-Math.PI)angle3+=Math.PI*2; pushTrail(trail3,angle3,10); }
-      if(innerRing){ angleIn-=gsp*dir*step*1.0; if(angleIn>Math.PI)angleIn-=Math.PI*2; if(angleIn<-Math.PI)angleIn+=Math.PI*2; pushTrail(trailIn,angleIn,8); }
+      if(ball2){ angle2-=gsp*dir*step*0.80*gravF(angle2); if(angle2>Math.PI)angle2-=Math.PI*2; if(angle2<-Math.PI)angle2+=Math.PI*2; pushTrail(trail2,angle2,9); }
+      if(ball3){ angle3+=gsp*dir*step*1.5*gravF(angle3); if(angle3>Math.PI)angle3-=Math.PI*2; if(angle3<-Math.PI)angle3+=Math.PI*2; pushTrail(trail3,angle3,10); }
+      if(innerRing){ angleIn-=gsp*dir*step*1.0*gravF(angleIn); if(angleIn>Math.PI)angleIn-=Math.PI*2; if(angleIn<-Math.PI)angleIn+=Math.PI*2; pushTrail(trailIn,angleIn,8); }
       if(zonePulse){ pulsePhase+=0.08*step; }
       if(ringSpin){ spinAng+=0.0032*step; if(spinAng>Math.PI*2)spinAng-=Math.PI*2; }
       if(zoneDrift){ targetA+=0.0022*step; if(targetA>Math.PI)targetA-=Math.PI*2; }
@@ -2452,8 +2684,27 @@ var PULSE = (function(){
   loop();
 
   /* ---------- entrees ---------- */
-  stage.addEventListener('touchstart',function(e){ if(running&&ready){e.preventDefault();tap();} },{passive:false});
-  stage.addEventListener('mousedown',function(e){ if(running&&ready) tap(); });
+  stage.addEventListener('touchstart',function(e){
+    if(!running||!ready) return;
+    e.preventDefault();
+    /* En Arkanoid, poser le doigt vise deja une position pour la barre. */
+    if(phaseIs('arkanoid')){ arkAim(e.touches[0].clientX); return; }
+    tap();
+  },{passive:false});
+  stage.addEventListener('mousedown',function(e){
+    if(!running||!ready) return;
+    if(phaseIs('arkanoid')){ arkAim(e.clientX); return; }
+    tap();
+  });
+  /* Deplacement de la barre : doigt glisse (mobile) ou souris (bureau).
+     Ces ecouteurs ne font rien hors de la phase Arkanoid — arkAim s'en assure. */
+  stage.addEventListener('touchmove',function(e){
+    if(!running||!phaseIs('arkanoid')) return;
+    e.preventDefault(); arkAim(e.touches[0].clientX);
+  },{passive:false});
+  stage.addEventListener('mousemove',function(e){
+    if(running) arkAim(e.clientX);
+  });
   window.addEventListener('keydown',function(e){
     if(e.code==='Space'){e.preventDefault();tap();}
     if(e.code==='KeyP'||e.code==='Escape'){ if(document.body.classList.contains('playing')&&running) doPause(); }
@@ -2783,6 +3034,7 @@ var PULSE = (function(){
     ball2=false; ball3=false; innerRing=false; zonePulse=false; ringSpin=false; zoneDrift=false;
     pulsePhase=0; spinAng=0; zoneAnim=0;
     phaseId=''; phaseIdx=-1; graceHits=0; breathPhase=0; breathAmp=0;
+    arkIn=0; arkBall=null; arkTrail=[]; arkSquash=0;
     $('jojoJoke').classList.add('hide'); $('centerjoke').classList.remove('show'); $('quizbox').classList.add('hide');
     quizAnswered=false;
     setLevel(1);
