@@ -105,7 +105,7 @@
     transform:translateX(-100%);animation:shimmer 2.6s infinite}
   @keyframes shimmer{60%,100%{transform:translateX(100%)}}
   @media (prefers-reduced-motion:reduce){.fill::after{animation:none}}
-  /* segment 100 -> 150 : la zone qui declenche ARKANOID */
+  /* segment 100 -> 150 : la zone qui declenche TENIFLIP */
   .trackwrap{position:relative}
   .seg2{position:absolute;left:50%;right:0;top:0;bottom:0;background:rgba(255,209,102,.16)}
   /* le trait : 3 couleurs empilees, impossible a confondre avec la jauge */
@@ -121,7 +121,7 @@
      chevauchaient. L'information a rejoint la barre d'objectif, en bas, qui
      est deja l'endroit ou l'on regarde ce qu'il reste a faire. */
 
-  /* En ARKANOID cette liste se superpose au plafond du terrain (le meme y) :
+  /* En TENIFLIP cette liste se superpose au plafond du terrain (le meme y) :
      on la retire, le terrain doit rester lisible. */
   body.playing.arkmode #rivals{display:none}
   #rivals{position:fixed;top:calc(118px + env(safe-area-inset-top));left:0;right:0;display:none;
@@ -173,11 +173,11 @@
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.34,1.56,.64,1)}
   .jojo.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  /* En mode ARKANOID, la barre du joueur se trouve en bas de l'ecran, exactement
+  /* En mode TENIFLIP, la barre du joueur se trouve en bas de l'ecran, exactement
      la ou Jojo s'affiche : sa bulle masquait donc la raquette au moment precis ou
      le joueur doit la reperer. On remonte Jojo en haut du terrain pendant ce mode. */
   body.arkmode .jojo{bottom:auto;top:calc(104px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-14px)}
-  /* Le bandeau s'affiche a 34 % de la hauteur : en ARKANOID c'est exactement la
+  /* Le bandeau s'affiche a 34 % de la hauteur : en TENIFLIP c'est exactement la
      rangee haute des champignons. On le remonte dans la bande libre entre le
      plafond du terrain et le premier cercle. */
   body.arkmode .toast{top:21%}
@@ -397,7 +397,7 @@
     <div class="track"><div class="seg2"></div><div class="fill" id="fill"></div></div>
     <div class="mark"></div>
   </div>
-  <div class="goallabels"><span class="lb1">100 pts</span><span class="lb2">50 &rarr; &#x1F3D3; Arkanoid</span></div>
+  <div class="goallabels"><span class="lb1">100 pts</span><span class="lb2">50 &rarr; &#x1F3D3; T&eacute;niflip</span></div>
 </div>
 
 <div class="levelchip" id="levelchip">Niveau 1</div>
@@ -509,7 +509,7 @@
     <div class="step"><div class="stepn">4</div><div class="stept">Des <b>questions de culture G</b> ponctuent la partie, en QCM ou en <b>vrai/faux</b>&nbsp;: bonne r&eacute;ponse <b>+10 pts et +1 vie</b>, mauvaise r&eacute;ponse <b>&minus;2 vies</b>. R&eacute;fl&eacute;chis avant de tapoter&nbsp;!</div></div>
     <div class="step"><div class="stepn">5</div><div class="stept">La <b>barre du bas</b> te dit toujours ce que tu vises. Elle va jusqu'&agrave; <b>150</b>, avec un <b>rep&egrave;re color&eacute; au milieu</b>&nbsp;: moiti&eacute; gauche = les 100 points qui d&eacute;bloquent tous les <b>th&egrave;mes premium</b>, moiti&eacute; droite = les 50 derniers avant ton premier bonus. Ensuite elle devient la jauge du <b>prochain objectif</b>.</div></div>
     <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, <b>500</b>, <b>700</b> et <b>1000</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4, x5). Aucun cadeau pendant&nbsp;: tes vies sont l&agrave; pour &ccedil;a.</div></div>
-    <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>ARKANOID</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>4 champignons roses</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper.</div></div>
+    <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>T&Eacute;NIFLIP</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>4 champignons roses</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper.</div></div>
     <div class="step"><div class="stepn">8</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme.</div></div>
     <div class="step"><div class="stepn">9</div><div class="stept">&#127767; <b>&Eacute;CLIPSE</b>&nbsp;: l'anneau <b>enfle et se contracte</b> sans arr&ecirc;t. Ton timing, lui, n'a pas chang&eacute;&nbsp;&mdash; c'est l'&oelig;il qu'il faut garder froid.</div></div>
     <div class="step"><div class="stepn">10</div><div class="stept">Apr&egrave;s 1000, les bonus <b>se m&eacute;ritent</b>. Les trois compteurs sont affich&eacute;s en bas de l'&eacute;cran, tu choisis lequel tu vises. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x6, x7, x8... <b>Perdre une vie remet les trois compteurs &agrave; z&eacute;ro.</b></div></div>
@@ -520,17 +520,17 @@
   <div class="ptrow"><span><i class="dot r"></i> Rouge (d&egrave;s 50)</span><span class="pv">+8</span></div>
   <div class="ptrow"><span>2 billes dans la zone</span><span class="pv">+6 &agrave; +20</span></div>
   <div class="ptrow"><span>Les trois d'un coup</span><span class="pv">+30</span></div>
-  <div class="ntitle">&#127955; Bar&egrave;me en ARKANOID</div>
+  <div class="ntitle">&#127955; Bar&egrave;me en T&Eacute;NIFLIP</div>
   <div class="ptrow"><span>Renvoi de la balle</span><span class="pv">+4</span></div>
   <div class="ptrow"><span>Renvoi en plein centre de la barre</span><span class="pv">+10</span></div>
   <div class="ptrow"><span><i class="dot p"></i> Champignon touch&eacute; (x4 sur le terrain)</span><span class="pv">+3</span></div>
   <div class="ptrow"><span>Balle laiss&eacute;e passer</span><span class="pv">-1 vie</span></div>
   <div class="ntitle">Les bonus de 15 secondes</div>
-  <div class="ptrow"><span>&#127955; ARKANOID &agrave; 150 pts</span><span class="pv">points x2</span></div>
-  <div class="ptrow"><span>&#127955; ARKANOID &agrave; 500 pts</span><span class="pv">points x3</span></div>
+  <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 150 pts</span><span class="pv">points x2</span></div>
+  <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 500 pts</span><span class="pv">points x3</span></div>
   <div class="ptrow"><span>&#127757; GRAVIT&Eacute; &agrave; 700 pts</span><span class="pv">points x4</span></div>
   <div class="ptrow"><span>&#127767; &Eacute;CLIPSE &agrave; 1000 pts</span><span class="pv">points x5</span></div>
-  <div class="ptrow"><span>Puis&nbsp;: combo de <b>30</b></span><span class="pv">&#127955; ARKANOID</span></div>
+  <div class="ptrow"><span>Puis&nbsp;: combo de <b>30</b></span><span class="pv">&#127955; T&Eacute;NIFLIP</span></div>
   <div class="ptrow"><span>Puis&nbsp;: <b>6</b> touches &agrave; 2 billes ou +</span><span class="pv">&#127757; GRAVIT&Eacute;</span></div>
   <div class="ptrow"><span>Puis&nbsp;: <b>10</b> touches en plein centre</span><span class="pv">&#127767; &Eacute;CLIPSE</span></div>
   <div class="ptrow"><span>Chaque bonus m&eacute;rit&eacute;</span><span class="pv">x6, x7, x8...</span></div>
@@ -627,8 +627,8 @@ var PULSE = (function(){
   function sfxLevel(){ beep(523,0.10,'triangle',0.5); setTimeout(function(){beep(784,0.14,'triangle',0.45);},90); }
 
   // ---- Musique retro originale, en plusieurs ambiances (libre de droits) ----
-  // Trois ambiances : la boucle d'origine hors bonus, un motif de flipper en
-  // ARKANOID, une danse slave pendant les deux autres delires. Le changement se
+  // Quatre ambiances : la boucle d'origine hors bonus, un motif de flipper en
+  // TENIFLIP, une danse slave en GRAVITE, une ritournelle de campagne en ECLIPSE. Le changement se
   // fait sur le premier temps du nouveau motif, sans coupure. 0 = silence.
   var MUSIC={
     /* La boucle d'origine de l'appli : c'est elle qui tourne tout le reste du
@@ -636,23 +636,33 @@ var PULSE = (function(){
     base:{ms:200, type:'triangle', n:[
       440,0,554,659, 587,0,494,440, 392,0,440,494, 523,0,494,440,
       440,0,554,659, 587,0,494,587, 659,0,587,523, 494,0,440,0]},
-    /* ARKANOID : staccato de flipper, court et rebondissant */
+    /* TENIFLIP : staccato de flipper, court et rebondissant */
     ark:{ms:150, type:'square', n:[
       880,0,660,0, 990,0,660,0, 880,0,1174,0, 990,0,660,0,
       784,0,587,0, 880,0,587,0, 1046,0,880,0, 784,0,587,0]},
-    /* GRAVITE et ECLIPSE : danse slave en mi mineur, croches serrees, le style
-       "jeu de briques russe". Arrangement original ecrit pour l'appli, dans
-       l'idiome de "Korobeiniki" (chant traditionnel russe, domaine public) et
-       non la transcription de la version d'un jeu existant. */
+    /* GRAVITE : danse slave en mi mineur, croches serrees, le style "jeu de
+       briques russe". Arrangement original ecrit pour l'appli, dans l'idiome de
+       "Korobeiniki" (chant traditionnel russe, domaine public) et non la
+       transcription de la version d'un jeu existant. */
     delire:{ms:148, type:'square', n:[
       440,659,587,523, 494,523,440,0,
       392,494,587,494, 440,0,330,0,
       523,659,784,659, 587,523,494,0,
-      440,523,659,587, 523,494,440,0]}
+      440,523,659,587, 523,494,440,0]},
+    /* ECLIPSE : ritournelle de campagne francaise, majeur naif, balancement de
+       musette, un peu pince-sans-rire — l'esprit d'une comedie rurale des
+       annees 80. Melodie originale : le theme de "La Soupe aux choux" est signe
+       Raymond Lefevre et protege, on en reprend le parfum, pas les notes. */
+    ecl:{ms:205, type:'triangle', n:[
+      523,0,659,587, 523,0,392,0,
+      440,0,523,494, 440,0,349,0,
+      392,0,494,587, 659,0,587,523,
+      494,523,587,494, 440,0,0,0]}
   };
   function musicBankNow(){
     if(seqKind==='arkanoid') return 'ark';
-    if(seqKind==='gravite' || seqKind==='eclipse') return 'delire';
+    if(seqKind==='gravite') return 'delire';
+    if(seqKind==='eclipse') return 'ecl';
     return 'base';
   }
   var melodyStep=0, melodyTimer=null, melodyBank='';
@@ -2071,7 +2081,7 @@ var PULSE = (function(){
   var currentJoke=null, jokePending=false;
 
   function jojo(cat,txt){
-    /* Pendant ARKANOID, la bulle de Jojo n'apporte rien et masque le terrain :
+    /* Pendant TENIFLIP, la bulle de Jojo n'apporte rien et masque le terrain :
        le joueur suit la balle, pas un texte. On se tait. */
     if(phaseIs('arkanoid')) return;
     var m = txt || pick(JOJO[cat]||['...']);
@@ -2138,13 +2148,13 @@ var PULSE = (function(){
   /* ---------- barre d'objectif et bonus de sequence ----------
      La barre va jusqu'a 150, avec un repere PILE AU MILIEU : moitie gauche =
      les 100 points de l'objectif historique (themes premium), moitie droite =
-     les 50 points qui declenchent le premier ARKANOID.
+     les 50 points qui declenchent le premier TENIFLIP.
      Ensuite les bonus arrivent par PALIERS DE SCORE (500, 700), puis ils se
-     MERITENT : un gros combo offre un ARKANOID, des touches multiples offrent
+     MERITENT : un gros combo offre un TENIFLIP, des touches multiples offrent
      une GRAVITE. Aucun bonus ne dure plus de 15 s : c'est une recompense
      courte, pas un changement de jeu. */
   var BARMAX=150;                    // graduation maxi de la barre du milieu
-  var ARK_AT=150;                    // 1er ARKANOID (fin de la barre)
+  var ARK_AT=150;                    // 1er TENIFLIP (fin de la barre)
   var SEQ_MS=15000;                  // duree de TOUS les bonus : 15 secondes
   var REST_MS=16000;                 // repos apres un bonus : rien ne peut retomber
 
@@ -2160,7 +2170,7 @@ var PULSE = (function(){
   /* Conditions de merite (apres les paliers programmes). Volontairement hautes :
      un bonus toutes les deux minutes reste un evenement, un bonus toutes les
      vingt secondes devient le jeu lui-meme. */
-  var MERIT_COMBO=30;                // combo a atteindre        -> ARKANOID
+  var MERIT_COMBO=30;                // combo a atteindre        -> TENIFLIP
   var MERIT_MULTI=6;                 // touches a 2 billes ou +  -> GRAVITE
   var MERIT_PERF=10;                 // touches en plein centre  -> ECLIPSE
   var meritOn=false, multiHits=0, perfHits=0, earned=0;
@@ -2196,7 +2206,7 @@ var PULSE = (function(){
      changent jamais : seule la lecture de l'image change.
      Pour ajouter une phase : une entree ici + son effet dans loop()/draw(). */
   var PHASES=[
-    {id:'arkanoid', name:'\u{1F3D3} ARKANOID', sub:'glisse ton doigt',
+    {id:'arkanoid', name:'\u{1F3D3} T\u00c9NIFLIP', sub:'glisse ton doigt',
      line:'15 secondes de rab ! Glisse ton doigt pour déplacer la barre, la balle rebondit toute seule \u{1F3D3}'},
     {id:'gravite',  name:'\u{1F30D} GRAVITÉ', sub:'les billes plongent',
      line:'Retour au cercle, mais les billes plongent vraiment en bas... et chaque point compte plusieurs fois pendant 15 s ! \u{1F30D}'},
@@ -2216,7 +2226,7 @@ var PULSE = (function(){
      deviendraient injustes du cote rapide. */
   function gravF(a){ return phaseIs('gravite') ? (1 + 0.95*Math.sin(a)) : 1; }
   /* Rythme de points courant : x10 pendant GRAVITE, x2 de plus a chaque cycle
-     complet. S'applique au cercle ET a l'Arkanoid, en plus du combo/fever. */
+     complet. S'applique au cercle ET a l'Teniflip, en plus du combo/fever. */
   function rateNow(){ return seqKind ? seqMult : 1; }
   /* ECLIPSE : amplitude VOLONTAIREMENT forte. A +-0.10 sur un cycle de 5 s,
      l'anneau bougeait de ~12 px : personne ne le voyait. A 0.22, le rayon varie
@@ -2226,7 +2236,7 @@ var PULSE = (function(){
      score (devenu enorme) mais le nombre de bonus deja traverses. */
   function eclipseAmp(){ return Math.min(0.22 + seqCount*0.012, 0.32); }
 
-  /* ================== MODE ARKANOID (phase 1000) ==================
+  /* ================== MODE TENIFLIP (phase 1000) ==================
      Le cercle se deroule : la piste devient une raquette en bas de l'ecran et la
      bille devient une balle qui rebondit entre les murs et le plafond.
      LE GESTE NE CHANGE PAS — un tap, au bon moment. La raquette glisse toute
@@ -2259,7 +2269,7 @@ var PULSE = (function(){
      le combo reste la recompense du geste (rattraper la balle), les
      champignons sont la recompense de la trajectoire. */
   var BUMP_R=27, BUMP_PTS=3;
-  /* Jojo se tait pendant ARKANOID : le rappel de la commande doit donc etre
+  /* Jojo se tait pendant TENIFLIP : le rappel de la commande doit donc etre
      ecrit sur le terrain lui-meme, sinon plus personne ne dit au joueur que
      la barre suit le doigt. Il s'efface tout seul en quelques secondes. */
   var arkHintT=0;
@@ -2351,7 +2361,7 @@ var PULSE = (function(){
   function arkStep(step){
     var ph=arkPadHalf(), b=arkBall, top=arkTop(), padY=arkPadY();
     /* LA BARRE SUIT LE DOIGT. Elle ne balaie plus toute seule : le joueur la dirige
-       gauche/droite, comme dans n'importe quel Arkanoid. Elle se dirige vers
+       gauche/droite, comme dans n'importe quel Teniflip. Elle se dirige vers
        arkTargetX sans depasser sa vitesse maxi, et reste ou elle est tant qu'aucun
        doigt ne l'a touchee. Butees calees sur les murs dessines (8 px) et non sur
        le bord de l'ecran, sinon la barre depasserait du terrain. */
@@ -2371,7 +2381,7 @@ var PULSE = (function(){
     arkTrail.unshift({x:b.x,y:b.y}); if(arkTrail.length>12) arkTrail.length=12;
     arkBumpStep(b, step);
 
-    /* REBOND SUR LA BARRE — automatique, comme dans tout Arkanoid. Le joueur ne
+    /* REBOND SUR LA BARRE — automatique, comme dans tout Teniflip. Le joueur ne
        tape pas pour renvoyer : il DEPLACE la barre au doigt (voir arkAim).
        L'angle de renvoi depend de l'endroit touche : centre = renvoi vertical,
        bord = deviation maximale. C'est la technique standard du genre, et c'est
@@ -2690,16 +2700,16 @@ var PULSE = (function(){
       /* echelle en DEUX MOITIES pour que le repere tombe pile au centre :
          0-100 occupe la moitie gauche, 100-150 la moitie droite. */
       pct = score<=GOAL ? (score/GOAL)*50 : 50 + Math.min((score-GOAL)/(BARMAX-GOAL),1)*50;
-      lbl = score<GOAL ? 'Objectif' : '\u{1F3D3} ARKANOID \u00e0 '+BARMAX;
+      lbl = score<GOAL ? 'Objectif' : '\u{1F3D3} T\u00c9NIFLIP \u00e0 '+BARMAX;
       val = Math.min(score,BARMAX)+' / '+BARMAX;
       hot = score>=GOAL;
     } else {
-      /* Passe le 1er ARKANOID, la barre ne mesure plus 150 points : elle devient
+      /* Passe le 1er TENIFLIP, la barre ne mesure plus 150 points : elle devient
          la jauge de ce qu'il reste a faire. */
       var g=$('goalbar'); if(g && !g.classList.contains('phase2')) g.classList.add('phase2');
       if(seqKind){
         pct = Math.max(0,Math.min(seqT/SEQ_MS,1))*100;
-        lbl = (seqKind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+seqMult;
+        lbl = (seqKind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} T\u00c9NIFLIP')+' \u00d7'+seqMult;
         val = Math.max(0,Math.ceil(seqT/1000))+' s';
         hot = true;
       } else if(restT>0){
@@ -2709,7 +2719,7 @@ var PULSE = (function(){
       } else if(scriptIdx<SCRIPTED.length){
         var sc=SCRIPTED[scriptIdx], from=SCRIPTED[scriptIdx-1].at;
         pct = Math.max(0,Math.min((score-from)/(sc.at-from),1))*100;
-        lbl = (sc.kind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+sc.mult;
+        lbl = (sc.kind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} T\u00c9NIFLIP')+' \u00d7'+sc.mult;
         val = score+' / '+sc.at;
       } else {
         /* les trois compteurs cote a cote : le joueur choisit ce qu'il vise */
@@ -2780,7 +2790,7 @@ var PULSE = (function(){
     saveUnlocked();
     toast('100 !', 'Th\u00e8mes premium d\u00e9bloqu\u00e9s !');
     setTimeout(function(){ jojo('infini'); }, 900);
-    /* la barre ne s'arrete plus a 100 : il reste 50 points avant l'ARKANOID */
+    /* la barre ne s'arrete plus a 100 : il reste 50 points avant l'TENIFLIP */
   }
   /* ---------- rituel de transition de phase ----------
      Toujours les memes 6 temps, pour que le changement soit lu comme une
@@ -2818,7 +2828,7 @@ var PULSE = (function(){
   /* ================= BONUS DE SEQUENCE (15 s) =================
      Trois paliers programmes (150, 500, 700) pour apprendre le rythme, puis
      les bonus se MERITENT :
-       - ARKANOID : monter un combo de 15 sans rater
+       - TENIFLIP : monter un combo de 15 sans rater
        - GRAVITE  : reussir 3 touches multiples (2 billes ou plus d'un coup)
      Chaque bonus merite vaut un point de multiplicateur de plus que le
      precedent (x5, x6, x7...). Apres chaque bonus, 8 s de repos pendant
@@ -2869,10 +2879,10 @@ var PULSE = (function(){
       }
       return false;
     }
-    /* 2) au merite : le combo ouvre l'ARKANOID, les touches multiples la GRAVITE */
+    /* 2) au merite : le combo ouvre l'TENIFLIP, les touches multiples la GRAVITE */
     if(meritOn){
       if(combo>=MERIT_COMBO){
-        earned++; toast('\u{1F3D3} ARKANOID !','m\u00e9rit\u00e9 \u2014 points \u00d7'+(5+earned));
+        earned++; toast('\u{1F3D3} T\u00c9NIFLIP !','m\u00e9rit\u00e9 \u2014 points \u00d7'+(5+earned));
         startSeq('arkanoid', 5+earned); return true;
       }
       if(multiHits>=MERIT_MULTI){
@@ -2907,7 +2917,7 @@ var PULSE = (function(){
     if(pl>=10 && Math.floor(prev/10)*10 < pl){
       var nv = pl/10 + 1;
       var freshTheme=unlockReached();
-      /* Pendant ARKANOID : aucune celebration. Le bandeau "Palier" tombait en
+      /* Pendant TENIFLIP : aucune celebration. Le bandeau "Palier" tombait en
          plein sur les champignons, et un QCM coupait le rebond en cours. */
       if(phaseIs('arkanoid')) return;
 
@@ -3006,41 +3016,87 @@ var PULSE = (function(){
 
   /* Historique persistant : une question posee ne revient pas avant l'epuisement
      de toute la banque ; et meme la, 70% restent exclues (rotation glissante). */
+  /* Certains contextes (navigation privee, page servie dans un cadre isole)
+     refusent localStorage : on se rabat alors sur sessionStorage, qui survit au
+     moins aux rechargements de l'onglet. */
+  var QSTORE=(function(){
+    try{ localStorage.setItem('pulse_t','1'); localStorage.removeItem('pulse_t'); return localStorage; }catch(e){}
+    try{ sessionStorage.setItem('pulse_t','1'); sessionStorage.removeItem('pulse_t'); return sessionStorage; }catch(e){}
+    return null;
+  })();
   var QSEEN_KEY='pulse_quiz_seen_v2';
-  var quizSeenList=[]; try{ quizSeenList=JSON.parse(localStorage.getItem(QSEEN_KEY)||'[]')||[]; }catch(e){ quizSeenList=[]; }
+  var quizSeenList=[]; try{ quizSeenList=JSON.parse((QSTORE&&QSTORE.getItem(QSEEN_KEY))||'[]')||[]; }catch(e){ quizSeenList=[]; }
   var quizSeen={}; for(var qsi=0;qsi<quizSeenList.length;qsi++) quizSeen[quizSeenList[qsi]]=1;
-  function saveQuizSeen(){ try{ localStorage.setItem(QSEEN_KEY, JSON.stringify(quizSeenList)); }catch(e){} }
-  var lastCats=[];   /* domaines des 2 dernieres questions posees */
+  function saveQuizSeen(){ try{ if(QSTORE) QSTORE.setItem(QSEEN_KEY, JSON.stringify(quizSeenList)); }catch(e){} }
+  var lastCats=[];   /* domaines des 3 dernieres questions posees */
 
-  function nextQuestion(){
-    var cand=[], i;
-    for(i=0;i<QUIZ.length;i++){ if(!quizSeen[QHASH[i]]) cand.push(i); }
-    if(cand.length===0){
-      /* banque epuisee : on ne relache que les 30% posees le plus anciennement */
-      var keep=Math.floor(QUIZ.length*0.7);
+  /* ---------- SAC DE TIRAGE ----------
+     Tirer au hasard parmi les questions non encore posees est parfait... tant
+     que l'historique survit. Des qu'il repart de zero (nouvelle installation,
+     navigation privee, stockage vide), le tirage redevient uniforme et les
+     memes questions retombent vite : mesure faite, 13,8 % de repetitions sur
+     320 tirages. D'ou ce sac.
+     1. Un ordre de parcours FIXE, melange une fois pour toutes avec une graine
+        constante : identique a chaque chargement, donc un curseur sauvegarde
+        garde son sens d'une session a l'autre.
+     2. Sans historique, le point de depart est tire d'un brassage de l'horloge
+        a la seconde. Un simple multiple de l'heure ne suffisait pas : la mesure
+        montrait que certains ecarts de temps (90 s par exemple) ramenaient deux
+        parties a deux cases l'une de l'autre. Le brassage supprime ces
+        coincidences. Cela dit, sans memoire, aucun tirage ne peut faire mieux
+        que le hasard : la vraie protection reste l'historique ci-dessous. */
+  function mulberry32(a){
+    return function(){
+      a|=0; a=(a+0x6D2B79F5)|0;
+      var t=Math.imul(a^(a>>>15), 1|a);
+      t=(t+Math.imul(t^(t>>>7), 61|t))^t;
+      return ((t^(t>>>14))>>>0)/4294967296;
+    };
+  }
+  var QBAG=(function(){
+    var r=mulberry32(20260722), b=[], i, j, t;
+    for(i=0;i<QUIZ.length;i++) b.push(i);
+    for(i=b.length-1;i>0;i--){ j=Math.floor(r()*(i+1)); t=b[i]; b[i]=b[j]; b[j]=t; }
+    return b;
+  })();
+  var QCUR_KEY='pulse_quiz_cur_v1', qCur=NaN;
+  try{ var qcv=QSTORE&&QSTORE.getItem(QCUR_KEY); if(qcv!==null&&qcv!==undefined) qCur=parseInt(qcv,10); }catch(e){}
+  if(!(qCur>=0)) qCur=Math.floor(mulberry32(Math.floor(Date.now()/1000))()*QUIZ.length);
+  function saveQCur(){ try{ if(QSTORE) QSTORE.setItem(QCUR_KEY, String(qCur)); }catch(e){} }
+
+  function nextQuestion(depth){
+    var n=QUIZ.length, i, idx;
+    var chosen=-1, chosenAt=-1, first=-1, firstAt=-1, look=0;
+    /* On avance dans le sac jusqu'a la premiere question jamais posee dont le
+       domaine differe des 3 dernieres. La recherche du domaine ne va pas au-dela
+       de 40 cases : sinon la rotation des themes finirait par commander l'ordre
+       du sac et recreerait des sequences previsibles. */
+    for(i=0;i<n;i++){
+      idx=QBAG[(qCur+i)%n];
+      if(quizSeen[QHASH[idx]]) continue;
+      if(first<0){ first=idx; firstAt=i; }
+      if(lastCats.indexOf(QCAT[idx])<0){ chosen=idx; chosenAt=i; break; }
+      if(++look>=40) break;
+    }
+    if(chosen<0 && first>=0){ chosen=first; chosenAt=firstAt; }
+    if(chosen<0){
+      /* banque entierement parcourue : on ne relache que les 30 % posees le plus
+         anciennement, et on repart d'un point du sac tire au hasard */
+      var keep=Math.floor(n*0.7);
       quizSeenList=quizSeenList.slice(-keep);
       quizSeen={}; for(i=0;i<quizSeenList.length;i++) quizSeen[quizSeenList[i]]=1;
       saveQuizSeen();
-      for(i=0;i<QUIZ.length;i++){ if(!quizSeen[QHASH[i]]) cand.push(i); }
-      if(cand.length===0){ cand.push(Math.floor(Math.random()*QUIZ.length)); }
+      qCur=Math.floor(Math.random()*n);
+      if((depth||0)>1){ chosen=Math.floor(Math.random()*n); chosenAt=0; }   /* garde-fou */
+      else return nextQuestion((depth||0)+1);
     }
-    /* rotation des domaines : on ecarte ceux des 2 dernieres questions.
-       Si plus rien ne reste, on retombe sur la liste complete (jamais de blocage). */
-    var rot=[];
-    for(i=0;i<cand.length;i++){
-      var c=QCAT[cand[i]], used=false;
-      for(var k=0;k<lastCats.length;k++){ if(lastCats[k]===c){ used=true; break; } }
-      if(!used) rot.push(cand[i]);
-    }
-    if(rot.length) cand=rot;
-
-    var pickI=cand[Math.floor(Math.random()*cand.length)];
-    lastCats.push(QCAT[pickI]); if(lastCats.length>2) lastCats.shift();
-    var hsh=QHASH[pickI];
+    qCur=(qCur+chosenAt+1)%n; saveQCur();
+    lastCats.push(QCAT[chosen]); if(lastCats.length>3) lastCats.shift();
+    var hsh=QHASH[chosen];
     if(!quizSeen[hsh]){ quizSeen[hsh]=1; quizSeenList.push(hsh); }
-    if(quizSeenList.length>2000) quizSeenList=quizSeenList.slice(-1500);
+    if(quizSeenList.length>3000) quizSeenList=quizSeenList.slice(-2200);
     saveQuizSeen();
-    return QUIZ[pickI];
+    return QUIZ[chosen];
   }
   var quizGolden=false, quizLock=false;
   function askQuiz(golden){
@@ -3145,7 +3201,7 @@ var PULSE = (function(){
     var nowT=performance.now();
     if(nowT-lastHitT<120) return;   /* anti double-tap : le rebond du doigt ne tue plus */
     stats.taps++;
-    /* En Arkanoid le tap ne sert a rien : c'est la POSITION du doigt qui joue,
+    /* En Teniflip le tap ne sert a rien : c'est la POSITION du doigt qui joue,
        et elle est lue par les ecouteurs de deplacement. Surtout ne pas appeler
        die() ici, sinon poser le doigt pour deplacer la barre tuerait le joueur. */
     if(phaseIs('arkanoid')) return;
@@ -3362,7 +3418,7 @@ var PULSE = (function(){
       ctx.globalAlpha=1;
     }
 
-    /* Arkanoid : la bascule se fait a mi-fondu (arkIn 0.5), pile dans le flash du
+    /* Teniflip : la bascule se fait a mi-fondu (arkIn 0.5), pile dans le flash du
        changement de phase — le joueur voit l'ecran changer, pas un cercle mourir.
        La rotation d'anneau ne doit surtout PAS s'appliquer au terrain, sinon c'est
        tout le plateau de jeu qui pencherait. */
@@ -3586,7 +3642,7 @@ var PULSE = (function(){
   stage.addEventListener('touchstart',function(e){
     if(!running||!ready) return;
     e.preventDefault();
-    /* En Arkanoid, poser le doigt vise deja une position pour la barre. */
+    /* En Teniflip, poser le doigt vise deja une position pour la barre. */
     if(phaseIs('arkanoid')){ arkAim(e.touches[0].clientX); return; }
     tap();
   },{passive:false});
@@ -3596,7 +3652,7 @@ var PULSE = (function(){
     tap();
   });
   /* Deplacement de la barre : doigt glisse (mobile) ou souris (bureau).
-     Ces ecouteurs ne font rien hors de la phase Arkanoid — arkAim s'en assure. */
+     Ces ecouteurs ne font rien hors de la phase Teniflip — arkAim s'en assure. */
   stage.addEventListener('touchmove',function(e){
     if(!running||!phaseIs('arkanoid')) return;
     e.preventDefault(); arkAim(e.touches[0].clientX);
