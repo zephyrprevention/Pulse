@@ -488,7 +488,6 @@
   <div class="melolab">M&eacute;lodie de fond</div>
   <div class="melorow" id="meloRow"></div>
   <button class="go" onclick="PULSE.resume()">Reprendre</button>
-  <button class="ghost" id="phaseTestBtn" style="display:none" onclick="PULSE.testPhase()">&#9193; Tester la phase suivante</button>
   <button class="ghost" onclick="PULSE.quit()">Quitter la partie</button>
 </div>
 
@@ -536,8 +535,8 @@
   <div class="ptrow"><span>Renvoi en plein centre de la barre</span><span class="pv">+10</span></div>
   <div class="ptrow"><span><i class="dot p"></i> Champignon rose touch&eacute; (x3 sur le terrain)</span><span class="pv">+3</span></div>
   <div class="ptrow"><span><i class="dot v"></i> Champignon <b>vert</b>&nbsp;: une touche</span><span class="pv">+1 &#9829;</span></div>
-  <div class="ptrow"><span>Le vert change de coin &agrave; chaque TENIFLIP, et paie en points si tes vies sont au maxi</span><span class="pv">&#127919;</span></div>
-  <div class="ptrow"><span>Tu d&eacute;marres &agrave; <b>6 vies</b> et tu peux monter jusqu'&agrave; <b>10</b></span><span class="pv">&#10084;&#65039;</span></div>
+  <div class="ptrow"><span>Le vert change de coin &agrave; chaque TENIFLIP&nbsp;: rep&egrave;re-le au halo qui pulse</span><span class="pv">&#127919;</span></div>
+  <div class="ptrow"><span>Tu d&eacute;marres &agrave; <b>6 vies</b>, sans aucun plafond ensuite</span><span class="pv">&#8734; &#10084;&#65039;</span></div>
   <div class="ptrow"><span>Balle laiss&eacute;e passer</span><span class="pv">-1 vie</span></div>
   <div class="ntitle">Les bonus de 15 secondes</div>
   <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 150 pts</span><span class="pv">points x2</span></div>
@@ -2433,11 +2432,10 @@ var PULSE = (function(){
   /* ---------- etat ---------- */
   var running=false, ready=false, score=0, angle=0, speed=0.020, dir=1, targetA=0, zone=0.4;
   var particles=[], floats=[], shocks=[], flash=0, flashRGB='255,255,255', shake=0, level=1;
-  /* Le vrai bug du champignon vert : la partie demarrait avec lives=MAXLIVES,
-     donc "lives<MAXLIVES" etait faux des le depart et le vert payait toujours
-     en points. Gagner une vie n'avait aucun sens tant que le depart valait le
-     plafond. On separe donc les deux : on commence a 6, on peut monter a 10. */
-  var lives=6, START_LIVES=6, MAXLIVES=10;
+  /* Pas de plafond de vies : on demarre a 6 et on monte sans limite. Le
+     compteur affiche 8 coeurs au maximum puis "+N", il encaisse donc n'importe
+     quel total sans deborder du bandeau. */
+  var lives=6, START_LIVES=6;
   var combo=0, comboRun=0, recordShown=false; // combo courant / meilleur combo / record battu ce run
   var stats={taps:0,hits:0};
   var freezeT=0, timeScale=1, slowmoT=0;    // hit-stop + ralenti de mort
@@ -2530,7 +2528,7 @@ var PULSE = (function(){
   var BUMP_R=27, BUMP_PTS=3;
   /* UN champignon sur les quatre donne une VIE, au contact, sans conditions.
      Mesure sur 2000 bonus de 15 s : une bille touche en moyenne 3 fois le meme
-     champignon, donc environ 3 vies par TENIFLIP — plafonnees a MAXLIVES. Le
+     champignon, donc environ 3 vies gagnees par TENIFLIP, sans plafond. Le
      TENIFLIP devient franchement la phase ou l'on refait ses reserves. */
   var lifeBump=0;
   /* Jojo se tait pendant TENIFLIP : le rappel de la commande doit donc etre
@@ -2563,7 +2561,7 @@ var PULSE = (function(){
   /* Points d'un champignon : memes multiplicateurs que le reste (fever, rush,
      bonus en cours), mais le combo n'y touche pas. */
   function arkBumpScore(bp){
-    if(bp.life && lives<MAXLIVES){ arkBumpLife(bp); return; }   /* au maxi : il paie en points */
+    if(bp.life){ arkBumpLife(bp); return; }
     var prev=score, m=(goldT>0?3:mult()), base=BUMP_PTS*m, g=base*rateNow();
     score+=g; dscore+=base; setScore();
     var col = bp.life ? '#4DFFB1' : '#FF4D9D';       /* vies au maxi : il paie en points */
@@ -2580,7 +2578,7 @@ var PULSE = (function(){
     burst(bp.x,bp.y,'#4DFFB1',34); shock(bp.x,bp.y,'#4DFFB1');
     floatText(bp.x,bp.y-BUMP_R-10,'+1 \u2665','#4DFFB1',true);
     doFlash(0.4,'77,255,177'); haptic([25,40,70]);
-    sfxLevel(); toast('\u2665 +1 VIE', lives>=MAXLIVES?'vies au maximum !':(lives+' vies'));
+    sfxLevel(); toast('\u2665 +1 VIE', lives+' vies');
   }
   /* Rebond sur les champignons. Deviation aleatoire volontaire : sans elle,
      une balle verticale pourrait rebondir indefiniment entre le plafond et le
@@ -2619,7 +2617,7 @@ var PULSE = (function(){
       ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.stroke();
       ctx.shadowBlur=0;
       /* halo permanent tant qu'il peut donner une vie : il doit se voir de loin */
-      if(bp.life && lives<MAXLIVES){
+      if(bp.life){
         ctx.globalAlpha=alpha*(0.30+0.22*Math.sin(performance.now()/260));
         ctx.strokeStyle=vif; ctx.lineWidth=3;
         ctx.beginPath(); ctx.arc(bp.x,bp.y,r+8,0,Math.PI*2); ctx.stroke();
@@ -2631,7 +2629,7 @@ var PULSE = (function(){
       ctx.fillStyle='#fff'; ctx.textAlign='center';
       if(bp.life){
         ctx.font='900 13px -apple-system,BlinkMacSystemFont,sans-serif';
-        ctx.fillText(lives<MAXLIVES?'\u2665':'MAX', bp.x, bp.y+5);
+        ctx.fillText('\u2665', bp.x, bp.y+5);
       } else {
         ctx.font='900 11px -apple-system,BlinkMacSystemFont,sans-serif';
         ctx.fillText('+'+BUMP_PTS, bp.x, bp.y+4);
@@ -3191,22 +3189,6 @@ var PULSE = (function(){
     }
     return false;
   }
-  /* ADMIN uniquement : saute au palier de la phase suivante, pour tester une
-     transition sans marquer 1000 points. Clavier (F) et doigt (ecran de pause)
-     passent tous les deux par ici. */
-  function jumpToNextPhase(){
-    if(!isAdmin) return false;
-    if(seqKind){ seqT=0; endSeq(); return true; }
-    restT=0;
-    if(scriptIdx<SCRIPTED.length){
-      score=Math.max(score,SCRIPTED[scriptIdx].at); setScore();
-      speed=speedFor(dscore); updateFeatures(); checkPhase();
-    } else {
-      earned++; startSeq(earned%2?'arkanoid':'gravite', 4+earned);
-    }
-    return true;
-  }
-
   function checkMilestone(prev){
     var pl = Math.floor(score/10)*10;
     if(pl>=10 && Math.floor(prev/10)*10 < pl){
@@ -3457,8 +3439,7 @@ var PULSE = (function(){
     var fb=$('quizFeed');
     if(chosen===correct){
       score+=10; setScore();
-      if(lives<MAXLIVES) lives++;
-      updateLives();
+      lives++; updateLives();
       unlockReached();
       if(score>=GOAL) reach100();
       updateFeatures();
@@ -3959,8 +3940,6 @@ var PULSE = (function(){
   window.addEventListener('keydown',function(e){
     if(e.code==='Space'){e.preventDefault();tap();}
     if(e.code==='KeyP'||e.code==='Escape'){ if(document.body.classList.contains('playing')&&running) doPause(); }
-    /* ADMIN uniquement : F pendant une partie = saut au prochain palier de phase. */
-    if(e.code==='KeyF' && document.body.classList.contains('playing') && running){ jumpToNextPhase(); }
   });
 
   /* ---------- multijoueur leger : presence en ligne + WIZZ ---------- */
@@ -4211,9 +4190,6 @@ var PULSE = (function(){
     running=false; stopMusic();
     buildMeloBtns();
     hideAll(); document.body.classList.add('playing');
-    /* bouton de test des phases : admin uniquement, et seulement s'il reste une phase */
-    var pb=$('phaseTestBtn');
-    if(pb) pb.style.display = (isAdmin && PHASES[phaseIdx+1]) ? 'block' : 'none';
     $('pauseScreen').classList.remove('hide');
   }
   function doResume(){
@@ -4351,17 +4327,6 @@ var PULSE = (function(){
     quit:function(){ doQuit(); },
     home:function(){ stopMusic(); showStart(); },
     cleanDupes:function(){ if(!isAdmin){ return; } cleanDupes(); },
-    /* On reprend la partie D'ABORD, puis on declenche la phase : la transition se
-       joue ainsi en conditions reelles (le ralenti n'est pas mange par le 3-2-1). */
-    testPhase:function(){
-      if(!isAdmin || !PHASES[phaseIdx+1]) return;
-      $('pauseScreen').classList.add('hide');
-      countdown(function(){
-        running=true; ready=true;
-        if(soundOn) startMusic();
-        jumpToNextPhase();
-      });
-    },
     adminPrompt:function(){
       var code=prompt('Code admin :');
       if(code===null) return;
