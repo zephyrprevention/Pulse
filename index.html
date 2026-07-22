@@ -330,6 +330,7 @@
   .dot.y{background:#FFD166;color:#FFD166}
   .dot.r{background:#FF3B3B;color:#FF3B3B}
   .dot.p{background:#FF4D9D;color:#FF4D9D}
+  .dot.v{background:#4DFFB1;color:#4DFFB1}
   .ptrow{display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:9px 13px;border-radius:var(--r-sm);background:var(--glass);border:1px solid var(--glass-b);
     margin-bottom:8px;font-size:14px;color:var(--ink);width:100%;max-width:340px}
@@ -519,7 +520,7 @@
     <div class="step"><div class="stepn">4</div><div class="stept">Des <b>questions de culture G</b> ponctuent la partie, en QCM ou en <b>vrai/faux</b>&nbsp;: bonne r&eacute;ponse <b>+10 pts et +1 vie</b>, mauvaise r&eacute;ponse <b>&minus;2 vies</b>. R&eacute;fl&eacute;chis avant de tapoter&nbsp;!</div></div>
     <div class="step"><div class="stepn">5</div><div class="stept">La <b>barre du bas</b> te dit toujours ce que tu vises. Elle va jusqu'&agrave; <b>150</b>, avec un <b>rep&egrave;re color&eacute; au milieu</b>&nbsp;: moiti&eacute; gauche = les 100 points qui d&eacute;bloquent tous les <b>th&egrave;mes premium</b>, moiti&eacute; droite = les 50 derniers avant ton premier bonus. Ensuite elle devient la jauge du <b>prochain objectif</b>.</div></div>
     <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, <b>500</b>, <b>700</b> et <b>1000</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4, x5). Aucun cadeau pendant&nbsp;: tes vies sont l&agrave; pour &ccedil;a.</div></div>
-    <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>T&Eacute;NIFLIP</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>4 champignons roses</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper.</div></div>
+    <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>T&Eacute;NIFLIP</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>champignons</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper &mdash; sauf le <b>vert</b>, qui se remplit en 3 touches et te rend une <b>vie</b>.</div></div>
     <div class="step"><div class="stepn">8</div><div class="stept">&#127767; <b>&Eacute;CLIPSE</b>&nbsp;: l'anneau <b>enfle et se contracte</b> sans arr&ecirc;t. Ton timing, lui, n'a pas chang&eacute;&nbsp;&mdash; c'est l'&oelig;il qu'il faut garder froid.</div></div>
     <div class="step"><div class="stepn">9</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme &mdash; et un tour complet va m&ecirc;me un peu <b>plus vite</b> que d'habitude.</div></div>
     <div class="step"><div class="stepn">10</div><div class="stept">Apr&egrave;s 1000, les bonus <b>se m&eacute;ritent</b>. Les trois compteurs sont affich&eacute;s en bas de l'&eacute;cran, tu choisis lequel tu vises. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x6, x7, x8... <b>Perdre une vie remet les trois compteurs &agrave; z&eacute;ro.</b></div></div>
@@ -533,7 +534,9 @@
   <div class="ntitle">&#127955; Bar&egrave;me en T&Eacute;NIFLIP</div>
   <div class="ptrow"><span>Renvoi de la balle</span><span class="pv">+4</span></div>
   <div class="ptrow"><span>Renvoi en plein centre de la barre</span><span class="pv">+10</span></div>
-  <div class="ptrow"><span><i class="dot p"></i> Champignon touch&eacute; (x4 sur le terrain)</span><span class="pv">+3</span></div>
+  <div class="ptrow"><span><i class="dot p"></i> Champignon rose touch&eacute; (x3 sur le terrain)</span><span class="pv">+3</span></div>
+  <div class="ptrow"><span><i class="dot v"></i> Champignon <b>vert</b>&nbsp;: 3 touches le remplissent</span><span class="pv">+1 &#9829;</span></div>
+  <div class="ptrow"><span>Le vert change de coin &agrave; chaque TENIFLIP, et paie en points si tes vies sont au maxi</span><span class="pv">&#127919;</span></div>
   <div class="ptrow"><span>Balle laiss&eacute;e passer</span><span class="pv">-1 vie</span></div>
   <div class="ntitle">Les bonus de 15 secondes</div>
   <div class="ptrow"><span>&#127955; T&Eacute;NIFLIP &agrave; 150 pts</span><span class="pv">points x2</span></div>
@@ -546,6 +549,12 @@
   <div class="ptrow"><span>Chaque bonus m&eacute;rit&eacute;</span><span class="pv">x6, x7, x8...</span></div>
   <div class="ptrow"><span>Le multiplicateur du bonus se <b>cumule</b> avec le Fever</span><span class="pv">&#128293;</span></div>
   <div class="ptrow"><span>Apr&egrave;s chaque bonus, 16 s de repos</span><span class="pv">&#9208;</span></div>
+  <div class="ntitle">&#128266; Le son</div>
+  <div class="ptrow"><span>Bouton en bas &agrave; droite, 1&#8239;appui</span><span class="pv">&#128265; effets seuls</span></div>
+  <div class="ptrow"><span>2&#8239;appuis</span><span class="pv">&#128263; silence</span></div>
+  <div class="ptrow"><span>3&#8239;appuis</span><span class="pv">&#128266; tout</span></div>
+  <div class="ptrow"><span>Le son des touches te dit si le tap est pass&eacute;&nbsp;: tu peux couper la musique et le garder</span><span class="pv">&#127911;</span></div>
+  <div class="ptrow"><span>Choix de la m&eacute;lodie de fond dans le menu <b>Pause</b></span><span class="pv">&#127925;</span></div>
   <div class="ntitle">Combo Fever</div>
   <div class="ptrow"><span>&#128293; Combo 6+</span><span class="pv">points x2</span></div>
   <div class="ptrow"><span>&#9889; Combo 12+</span><span class="pv">points x3</span></div>
@@ -607,8 +616,13 @@ var PULSE = (function(){
 
 
   /* ================= AUDIO (Web Audio API, 100% genere, aucun fichier) ================= */
-  var AC=null, musicGain=null, sfxGain=null, soundOn=true;
+  /* Deux reglages distincts : soundOn coupe TOUT, musicOn ne coupe que la
+     melodie de fond. Les bruitages des touches, eux, font partie du jeu :
+     ils disent si le tap est passe. On doit pouvoir garder les uns sans
+     l'autre. La chaine audio est deja separee (musicGain / sfxGain). */
+  var AC=null, musicGain=null, sfxGain=null, soundOn=true, musicOn=true;
   try{ soundOn = (localStorage.getItem('pulse_sound')||'1')==='1'; }catch(e){}
+  try{ musicOn = (localStorage.getItem('pulse_music')||'1')==='1'; }catch(e){}
   function initAudio(){
     if(AC) return;
     try{
@@ -703,17 +717,19 @@ var PULSE = (function(){
   }
   function setMelody(k){
     if(!meloExists(k)) return;
+    if(k==='aucune'){ setMusicOn(false); return; }   /* meme reglage que le bouton */
     meloPick=k;
     try{ localStorage.setItem('pulse_melo',k); }catch(e){}
     melodyBank='';                     /* force la bascule des le prochain temps */
-    updateMeloBtns();
-    if(soundOn && AC && k!=='aucune'){ var b=MUSIC[k]; playNote(b.n[0]||440, b.type); }
+    setMusicOn(true);
+    if(soundOn && AC){ var b=MUSIC[k]; playNote(b.n[0]||440, b.type); }
   }
   function updateMeloBtns(){
     var box=$('meloRow'); if(!box) return;
+    var actif = musicOn ? meloPick : 'aucune';
     for(var i=0;i<box.children.length;i++){
       var el=box.children[i];
-      if(el.getAttribute('data-m')===meloPick) el.classList.add('on');
+      if(el.getAttribute('data-m')===actif) el.classList.add('on');
       else el.classList.remove('on');
     }
   }
@@ -744,7 +760,7 @@ var PULSE = (function(){
   /* setTimeout et non setInterval : le tempo et l'ambiance peuvent changer
      entre deux notes, sans couper la musique. */
   function startMusic(){
-    if(!soundOn||!AC||melodyTimer) return;
+    if(!soundOn||!musicOn||!AC||melodyTimer) return;
     function tick(){
       var id=musicBankNow(), bank=MUSIC[id]||MUSIC.neon;
       if(id!==melodyBank){ melodyBank=id; melodyStep=0; }   /* on repart sur le 1er temps */
@@ -756,15 +772,44 @@ var PULSE = (function(){
     melodyTimer=setTimeout(tick, 10);
   }
   function stopMusic(){ if(melodyTimer){ clearTimeout(melodyTimer); melodyTimer=null; } }
-  function toggleSound(){
-    soundOn=!soundOn;
+  function saveSoundPrefs(){
     try{ localStorage.setItem('pulse_sound', soundOn?'1':'0'); }catch(e){}
-    updateSoundBtn();
-    if(soundOn){ initAudio(); if(AC&&AC.state==='suspended')AC.resume(); }
-    else { stopMusic(); }
+    try{ localStorage.setItem('pulse_music', musicOn?'1':'0'); }catch(e){}
+  }
+  function musicResume(){
+    if(!soundOn||!musicOn) return;
+    initAudio(); if(AC&&AC.state==='suspended') AC.resume();
+    if(running && document.body.classList.contains('playing')) startMusic();
+  }
+  /* Le bouton fait maintenant le tour de trois etats :
+     tout -> effets seuls (musique coupee) -> silence complet -> tout.
+     Un bandeau nomme l'etat a chaque pression : trois icones de haut-parleur
+     se ressemblent trop pour se passer de mots. */
+  function toggleSound(){
+    if(soundOn && musicOn){
+      musicOn=false; stopMusic();
+      toast('\u{1F509} Musique coup\u00e9e','le son des touches reste');
+    } else if(soundOn && !musicOn){
+      soundOn=false; stopMusic();
+      toast('\u{1F507} Silence','plus aucun son');
+    } else {
+      soundOn=true; musicOn=true;
+      toast('\u{1F50A} Son complet','musique et effets');
+      saveSoundPrefs(); musicResume();
+    }
+    saveSoundPrefs(); updateSoundBtn(); updateMeloBtns();
+  }
+  function setMusicOn(v){
+    musicOn=!!v;
+    if(!musicOn) stopMusic();
+    else { soundOn=true; musicResume(); }
+    saveSoundPrefs(); updateSoundBtn(); updateMeloBtns();
   }
   function updateSoundBtn(){
-    var b=$('soundBtn'); if(b) b.textContent = soundOn ? '\u{1F50A}' : '\u{1F507}';
+    var b=$('soundBtn'); if(!b) return;
+    if(!soundOn){ b.textContent='\u{1F507}'; b.title='Silence complet'; }
+    else if(!musicOn){ b.textContent='\u{1F509}'; b.title='Effets seuls, musique coupee'; }
+    else { b.textContent='\u{1F50A}'; b.title='Musique et effets'; }
   }
   /* ===================================================================================== */
 
@@ -2478,6 +2523,16 @@ var PULSE = (function(){
      le combo reste la recompense du geste (rattraper la balle), les
      champignons sont la recompense de la trajectoire. */
   var BUMP_R=27, BUMP_PTS=3;
+  /* UN champignon sur les quatre donne des VIES au lieu des points. Il ne les
+     lache pas au contact : il se CHARGE. Sans ca le calcul etait vite fait —
+     une bille touche environ 3 fois le meme champignon en 15 s, ce qui aurait
+     rendu une vie toutes les cinq secondes et vide la difficulte de son sens.
+     Dose par simulation (2000 bonus de 15 s) : une bille touche en moyenne 2,97
+     fois LE MEME champignon. A 4 touches, seuls 35 % des TENIFLIP donnaient une
+     vie — trop avare. A 3 touches : 58 % en donnent au moins une, soit 0,66 vie
+     par bonus en moyenne. Souvent, mais jamais acquis. */
+  var LIFE_HITS=3;
+  var lifeBump=0, lifeCharge=0;
   /* Jojo se tait pendant TENIFLIP : le rappel de la commande doit donc etre
      ecrit sur le terrain lui-meme, sinon plus personne ne dit au joueur que
      la barre suit le doigt. Il s'efface tout seul en quelques secondes. */
@@ -2503,18 +2558,37 @@ var PULSE = (function(){
       {x:mx-dx, y:my+dy, hit:0, cool:0},
       {x:mx+dx, y:my+dy, hit:0, cool:0}
     ];
+    for(var bi=0;bi<arkBumps.length;bi++) arkBumps[bi].life=(bi===lifeBump);
   }
   /* Points d'un champignon : memes multiplicateurs que le reste (fever, rush,
      bonus en cours), mais le combo n'y touche pas. */
   function arkBumpScore(bp){
+    if(bp.life && lives<MAXLIVES){ arkBumpLife(bp); return; }
     var prev=score, m=(goldT>0?3:mult()), base=BUMP_PTS*m, g=base*rateNow();
     score+=g; dscore+=base; setScore();
-    burst(bp.x,bp.y,'#FF4D9D',16); shock(bp.x,bp.y,'#FF4D9D');
-    floatText(bp.x,bp.y-BUMP_R-8,'+'+g,'#FF4D9D',false);
-    doFlash(0.14,'255,77,157'); haptic(10);
+    var col = bp.life ? '#4DFFB1' : '#FF4D9D';       /* vies au maxi : il paie en points */
+    burst(bp.x,bp.y,col,16); shock(bp.x,bp.y,col);
+    floatText(bp.x,bp.y-BUMP_R-8,'+'+g,col,false);
+    doFlash(0.14, bp.life?'77,255,177':'255,77,157'); haptic(10);
     beep(660,0.05,'square',0.22);
     speed=speedFor(dscore);
     checkMilestone(prev);
+  }
+  /* Champignon a vies : il se remplit, puis lache une vie et repart a zero. */
+  function arkBumpLife(bp){
+    lifeCharge++;
+    if(lifeCharge<LIFE_HITS){
+      burst(bp.x,bp.y,'#4DFFB1',12);
+      floatText(bp.x,bp.y-BUMP_R-8, lifeCharge+'/'+LIFE_HITS, '#4DFFB1', false);
+      haptic(10); beep(520+lifeCharge*90,0.05,'triangle',0.25);
+      return;
+    }
+    lifeCharge=0;
+    lives++; updateLives();
+    burst(bp.x,bp.y,'#4DFFB1',34); shock(bp.x,bp.y,'#4DFFB1');
+    floatText(bp.x,bp.y-BUMP_R-10,'+1 \u2665','#4DFFB1',true);
+    doFlash(0.4,'77,255,177'); haptic([25,40,70]);
+    sfxLevel(); toast('\u2665 +1 VIE','champignon vert rempli !');
   }
   /* Rebond sur les champignons. Deviation aleatoire volontaire : sans elle,
      une balle verticale pourrait rebondir indefiniment entre le plafond et le
@@ -2540,19 +2614,36 @@ var PULSE = (function(){
   function arkDrawBumps(alpha){
     for(var i=0;i<arkBumps.length;i++){
       var bp=arkBumps[i], h=bp.hit, r=BUMP_R*(1+h*0.16);
-      ctx.globalAlpha=alpha*(0.9);
-      ctx.fillStyle='rgba(255,77,157,'+(0.10+h*0.55)+')';
+      /* le champignon a vies est vert : la couleur doit se lire au premier
+         coup d'oeil, on ne va pas demander au joueur de deviner lequel paie
+         en vies pendant que la balle file */
+      var vif = bp.life ? '#4DFFB1' : '#FF4D9D';
+      var rgb = bp.life ? '77,255,177' : '255,77,157';
+      ctx.globalAlpha=alpha*0.9;
+      ctx.fillStyle='rgba('+rgb+','+(0.10+h*0.55)+')';
       ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.fill();
-      ctx.strokeStyle=h>0.02?'#fff':'#FF4D9D'; ctx.lineWidth=2+h*2.5;
-      ctx.shadowColor='#FF4D9D'; ctx.shadowBlur=10+h*22;
+      ctx.strokeStyle=h>0.02?'#fff':vif; ctx.lineWidth=2+h*2.5;
+      ctx.shadowColor=vif; ctx.shadowBlur=10+h*22;
       ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.stroke();
       ctx.shadowBlur=0;
+      /* jauge de remplissage : un arc qui se ferme a chaque touche */
+      if(bp.life && lifeCharge>0 && lives<MAXLIVES){
+        ctx.strokeStyle=vif; ctx.lineWidth=4; ctx.lineCap='round';
+        ctx.beginPath();
+        ctx.arc(bp.x,bp.y,r+7,-Math.PI/2,-Math.PI/2+Math.PI*2*(lifeCharge/LIFE_HITS));
+        ctx.stroke(); ctx.lineCap='butt';
+      }
       ctx.beginPath(); ctx.arc(bp.x,bp.y,r*0.42,0,Math.PI*2);
-      ctx.fillStyle='rgba(255,77,157,'+(0.30+h*0.6)+')'; ctx.fill();
+      ctx.fillStyle='rgba('+rgb+','+(0.30+h*0.6)+')'; ctx.fill();
       ctx.globalAlpha=alpha*(0.55+h*0.45);
       ctx.fillStyle='#fff'; ctx.textAlign='center';
-      ctx.font='900 11px -apple-system,BlinkMacSystemFont,sans-serif';
-      ctx.fillText('+'+BUMP_PTS, bp.x, bp.y+4);
+      if(bp.life){
+        ctx.font='900 13px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.fillText(lives<MAXLIVES?'\u2665':'MAX', bp.x, bp.y+5);
+      } else {
+        ctx.font='900 11px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.fillText('+'+BUMP_PTS, bp.x, bp.y+4);
+      }
     }
     ctx.globalAlpha=alpha;
   }
@@ -3045,6 +3136,9 @@ var PULSE = (function(){
   function startSeq(kind, mult){
     seqKind=kind; seqT=SEQ_MS; seqMult=mult; restT=0; seqCount++;
     arkHintT = (kind==='arkanoid') ? 4200 : 0;
+    /* nouveau champignon vert a chaque TENIFLIP, et jauge remise a zero :
+       le joueur doit le chercher, ce n'est jamais le meme coin */
+    if(kind==='arkanoid'){ lifeBump=Math.floor(Math.random()*4); lifeCharge=0; arkBuildBumps(); }
     var base=phaseById(kind);
     startPhase({ id:base.id,
                  name:base.name+' \u00d7'+mult,
