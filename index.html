@@ -101,14 +101,15 @@
   @media (prefers-reduced-motion:reduce){.fill::after{animation:none}}
   /* segment 100 -> 150 : la zone qui declenche ARKANOID */
   .trackwrap{position:relative}
-  .seg2{position:absolute;left:66.667%;right:0;top:0;bottom:0;background:rgba(255,209,102,.16)}
+  .seg2{position:absolute;left:50%;right:0;top:0;bottom:0;background:rgba(255,209,102,.16)}
   /* le trait : 3 couleurs empilees, impossible a confondre avec la jauge */
-  .mark{position:absolute;left:66.667%;top:-5px;bottom:-5px;width:3px;margin-left:-1.5px;border-radius:3px;
+  .mark{position:absolute;left:50%;top:-6px;bottom:-6px;width:4px;margin-left:-2px;border-radius:3px;
     background:linear-gradient(180deg,#5CE1E6 0%,#5CE1E6 33%,#FFD166 33%,#FFD166 66%,#FF4D9D 66%,#FF4D9D 100%);
     box-shadow:0 0 9px rgba(255,209,102,.95);z-index:2}
   .goallabels{display:flex;margin-top:5px;font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
-  .goallabels .lb1{width:66.667%;text-align:right;padding-right:6px;color:var(--dim)}
+  .goallabels .lb1{width:50%;text-align:right;padding-right:7px;color:var(--dim)}
   .goallabels .lb2{flex:1;text-align:right;color:var(--gold)}
+  .goalbar.phase2 .mark,.goalbar.phase2 .seg2,.goalbar.phase2 .goallabels{display:none}
   /* pastille de sequence (compte a rebours ARKANOID / GRAVITE) */
   .seqchip{position:fixed;top:calc(76px + env(safe-area-inset-top));left:16px;z-index:6;pointer-events:none;
     font-size:11px;font-weight:900;letter-spacing:1px;color:var(--gold);
@@ -1549,7 +1550,7 @@ var PULSE = (function(){
     W=window.innerWidth; H=window.innerHeight;
     cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px';
     ctx.setTransform(DPR,0,0,DPR,0,0); cx=W/2; cy=H/2;
-    buildStars();
+    buildStars(); arkBuildBumps();
   }
   window.addEventListener('resize',resize);
 
@@ -1564,25 +1565,39 @@ var PULSE = (function(){
     if(chg) saveUnlocked();
   })();
   var GOAL=100;
-  /* ---------- barre d'objectif et cycle de sequences ----------
-     La barre va desormais jusqu'a 150 : les 100 premiers points restent
-     l'objectif historique (themes premium), les 50 suivants sont le sas qui
-     bascule le jeu en ARKANOID. Passe 150, le jeu ne suit plus le score mais
-     une horloge : ARKANOID 1 min, puis GRAVITE 20 s a points x10, puis on
-     recommence avec un rythme de points double a chaque cycle. */
+  /* ---------- barre d'objectif et bonus de sequence ----------
+     La barre va jusqu'a 150, avec un repere PILE AU MILIEU : moitie gauche =
+     les 100 points de l'objectif historique (themes premium), moitie droite =
+     les 50 points qui declenchent le premier ARKANOID.
+     Ensuite les bonus arrivent par PALIERS DE SCORE (500, 700), puis ils se
+     MERITENT : un gros combo offre un ARKANOID, des touches multiples offrent
+     une GRAVITE. Aucun bonus ne dure plus de 15 s : c'est une recompense
+     courte, pas un changement de jeu. */
   var BARMAX=150;                    // graduation maxi de la barre du milieu
-  var ARK_AT=150;                    // score qui declenche le premier ARKANOID
-  var CYCLE_ARK_MS=60000;            // 1 minute d'ARKANOID
-  var CYCLE_GRAV_MS=20000;           // 20 secondes de GRAVITE renforcee
-  var GRAV_MULT=10;                  // points x10 pendant la sequence GRAVITE
-  var cycleNo=0;                     // 0 = pas encore entre dans le cycle
-  var cyclePhaseT=0;                 // temps restant dans la sequence en cours (ms)
-  var cycleMult=1;                   // rythme de points, x2 a chaque cycle complet
+  var ARK_AT=150;                    // 1er ARKANOID (fin de la barre)
+  var SEQ_MS=15000;                  // duree de TOUS les bonus : 15 secondes
+  var REST_MS=8000;                  // repos apres un bonus : rien ne peut retomber
+
+  /* Bonus programmes, dans l'ordre. Passe le dernier, on bascule au merite. */
+  var SCRIPTED=[
+    {at:ARK_AT, kind:'arkanoid', mult:2},
+    {at:500,    kind:'arkanoid', mult:3},
+    {at:700,    kind:'gravite',  mult:4}
+  ];
+  var scriptIdx=0;
+
+  /* Conditions de merite (apres les paliers programmes) */
+  var MERIT_COMBO=15;                // combo a atteindre -> ARKANOID
+  var MERIT_MULTI=3;                 // touches a 2 billes ou + -> GRAVITE
+  var meritOn=false, multiHits=0, earned=0;
+
+  var seqKind='', seqT=0, seqMult=1; // bonus en cours ('' = jeu normal)
+  var seqCount=0, restT=0;           // bonus joues / temps de repos restant
   var lastMilestone=0;               // dernier score fete (les paliers suivent le rythme)
-  /* Score de DIFFICULTE : le score affiche est gonfle par le x10 et le x2 par
-     cycle, il ne peut plus regler la vitesse ni la taille des zones. dscore
-     compte les memes reussites, mais au tarif de base : la courbe de difficulte
-     reste celle d'origine. Avant 150 points, dscore == score. */
+  /* Score de DIFFICULTE : le score affiche est gonfle par les bonus, il ne peut
+     plus regler la vitesse ni la taille des zones. dscore compte les memes
+     reussites, mais au tarif de base : la courbe de difficulte reste celle
+     d'origine. Hors bonus, dscore == score. */
   var dscore=0;
 
   /* ---------- etat ---------- */
@@ -1607,11 +1622,11 @@ var PULSE = (function(){
      changent jamais : seule la lecture de l'image change.
      Pour ajouter une phase : une entree ici + son effet dans loop()/draw(). */
   var PHASES=[
-    {id:'arkanoid', at:ARK_AT, name:'\u{1F3D3} ARKANOID', sub:'1 min \u2014 glisse ton doigt',
-     line:'Glisse ton doigt pour déplacer la barre. La balle rebondit toute seule — ne la laisse pas passer ! \u{1F3D3}'},
-    {id:'gravite',  at:null, name:'\u{1F30D} GRAVITÉ \u00d710', sub:'20 s \u2014 points \u00d710',
-     line:'Retour au cercle, mais les billes plongent vraiment en bas... et tout compte \u00d710 pendant 20 s ! \u{1F30D}'},
-    {id:'eclipse',  at:null, name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
+    {id:'arkanoid', name:'\u{1F3D3} ARKANOID', sub:'glisse ton doigt',
+     line:'15 secondes de rab ! Glisse ton doigt pour déplacer la barre, la balle rebondit toute seule \u{1F3D3}'},
+    {id:'gravite',  name:'\u{1F30D} GRAVITÉ', sub:'les billes plongent',
+     line:'Retour au cercle, mais les billes plongent vraiment en bas... et chaque point compte plusieurs fois pendant 15 s ! \u{1F30D}'},
+    {id:'eclipse',  name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
      line:'L\'anneau enfle et se contracte... garde ton timing, il n\'a pas change \u{1F317}'}
   ];
   function phaseById(id){ for(var i=0;i<PHASES.length;i++){ if(PHASES[i].id===id) return PHASES[i]; } return null; }
@@ -1628,7 +1643,7 @@ var PULSE = (function(){
   function gravF(a){ return phaseIs('gravite') ? (1 + 0.95*Math.sin(a)) : 1; }
   /* Rythme de points courant : x10 pendant GRAVITE, x2 de plus a chaque cycle
      complet. S'applique au cercle ET a l'Arkanoid, en plus du combo/fever. */
-  function rateNow(){ return cycleMult * (phaseIs('gravite') ? GRAV_MULT : 1); }
+  function rateNow(){ return seqKind ? seqMult : 1; }
   /* ECLIPSE : amplitude VOLONTAIREMENT forte. A +-0.10 sur un cycle de 5 s,
      l'anneau bougeait de ~12 px : personne ne le voyait. A 0.22, le rayon varie
      de plus de 50 % entre le minimum et le maximum, et le cycle dure ~2 s. */
@@ -1654,12 +1669,88 @@ var PULSE = (function(){
   function arkPadY(){ return Math.min(H-165, H*0.88); }          // au-dessus du HUD du bas
   /* La difficulte suit desormais le NUMERO DE CYCLE et non le score : le score
      explose (x10, puis x2 par cycle), il ne peut plus servir d'echelle. */
-  function arkPadHalf(){ return Math.max(64-(cycleNo>1?(cycleNo-1)*6:0), 34); }
-  function arkBallSpeed(){ return Math.min(7.5+(cycleNo>1?(cycleNo-1)*0.9:0), 12); }
+  function arkPadHalf(){ return Math.max(64-seqCount*5, 34); }
+  function arkBallSpeed(){ return Math.min(7.5+seqCount*0.7, 12); }
   /* Vitesse maxi de suivi du doigt. Assez elevee pour que la barre reponde tout de
      suite, mais finie : sans plafond elle se teleporterait sous la balle et il n'y
      aurait plus aucune anticipation a avoir. */
   function arkPadSpeed(){ return arkBallSpeed()*2.2; }
+
+  /* ---------- CHAMPIGNONS (facon flipper) ----------
+     4 cercles fixes dans le terrain. La balle rebondit dessus comme sur un
+     pare-chocs et rapporte des points, mais ils ne touchent PAS au combo :
+     le combo reste la recompense du geste (rattraper la balle), les
+     champignons sont la recompense de la trajectoire. */
+  var BUMP_R=27, BUMP_PTS=3;
+  var arkBumps=[];
+  function arkBuildBumps(){
+    var top=arkTop(), padY=arkPadY();
+    /* bande utile : on laisse respirer le haut (zone d'apparition de la balle)
+       et le bas (approche de la raquette), sinon les champignons masqueraient
+       la lecture de la descente. */
+    var yTop=top+130, yBot=padY-100;
+    if(yBot-yTop<60){ arkBumps=[]; return; }          /* ecran trop court */
+    var my=(yTop+yBot)/2, dy=Math.min((yBot-yTop)/2, 86);
+    var mx=W/2, dx=Math.min(W*0.24, 110);
+    arkBumps=[
+      {x:mx,    y:my-dy, hit:0, cool:0},
+      {x:mx-dx, y:my,    hit:0, cool:0},
+      {x:mx+dx, y:my,    hit:0, cool:0},
+      {x:mx,    y:my+dy, hit:0, cool:0}
+    ];
+  }
+  /* Points d'un champignon : memes multiplicateurs que le reste (fever, rush,
+     bonus en cours), mais le combo n'y touche pas. */
+  function arkBumpScore(bp){
+    var prev=score, m=(goldT>0?3:mult()), base=BUMP_PTS*m, g=base*rateNow();
+    score+=g; dscore+=base; setScore();
+    burst(bp.x,bp.y,'#FF4D9D',16); shock(bp.x,bp.y,'#FF4D9D');
+    floatText(bp.x,bp.y-BUMP_R-8,'+'+g,'#FF4D9D',false);
+    doFlash(0.14,'255,77,157'); haptic(10);
+    beep(660,0.05,'square',0.22);
+    speed=speedFor(dscore);
+    checkMilestone(prev);
+  }
+  /* Rebond sur les champignons. Deviation aleatoire volontaire : sans elle,
+     une balle verticale pourrait rebondir indefiniment entre le plafond et le
+     champignon du haut sans jamais redescendre. */
+  function arkBumpStep(b, step){
+    for(var i=0;i<arkBumps.length;i++){
+      var bp=arkBumps[i];
+      if(bp.hit>0) bp.hit=Math.max(0, bp.hit-0.07*step);
+      if(bp.cool>0){ bp.cool-=step; continue; }
+      var dx=b.x-bp.x, dy=b.y-bp.y, rr=BUMP_R+ARK_R, d2=dx*dx+dy*dy;
+      if(d2>=rr*rr) continue;
+      var d=Math.sqrt(d2), nx, ny;
+      if(d<0.001){ nx=0; ny=-1; } else { nx=dx/d; ny=dy/d; }
+      b.x=bp.x+nx*rr; b.y=bp.y+ny*rr;
+      var dot=b.vx*nx+b.vy*ny;
+      b.vx-=2*dot*nx; b.vy-=2*dot*ny;
+      var a=Math.atan2(b.vy,b.vx)+(Math.random()-0.5)*0.30, sp=arkBallSpeed();
+      b.vx=Math.cos(a)*sp; b.vy=Math.sin(a)*sp;
+      bp.hit=1; bp.cool=7;
+      arkBumpScore(bp);
+    }
+  }
+  function arkDrawBumps(alpha){
+    for(var i=0;i<arkBumps.length;i++){
+      var bp=arkBumps[i], h=bp.hit, r=BUMP_R*(1+h*0.16);
+      ctx.globalAlpha=alpha*(0.9);
+      ctx.fillStyle='rgba(255,77,157,'+(0.10+h*0.55)+')';
+      ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle=h>0.02?'#fff':'#FF4D9D'; ctx.lineWidth=2+h*2.5;
+      ctx.shadowColor='#FF4D9D'; ctx.shadowBlur=10+h*22;
+      ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.stroke();
+      ctx.shadowBlur=0;
+      ctx.beginPath(); ctx.arc(bp.x,bp.y,r*0.42,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,77,157,'+(0.30+h*0.6)+')'; ctx.fill();
+      ctx.globalAlpha=alpha*(0.55+h*0.45);
+      ctx.fillStyle='#fff'; ctx.textAlign='center';
+      ctx.font='900 11px -apple-system,BlinkMacSystemFont,sans-serif';
+      ctx.fillText('+'+BUMP_PTS, bp.x, bp.y+4);
+    }
+    ctx.globalAlpha=alpha;
+  }
 
   function arkReset(keepPad){
     if(!keepPad){ arkPadX=W/2; arkTargetX=null; }
@@ -1668,6 +1759,7 @@ var PULSE = (function(){
     var a0=(Math.random()<0.5?-1:1)*ARK_ANG*0.55;
     arkBall={ x:W/2, y:arkTop()+70, vx:Math.sin(a0)*sp, vy:Math.cos(a0)*sp };
     arkTrail=[]; arkSquash=0;
+    arkBuildBumps();
   }
 
   function arkStep(step){
@@ -1691,6 +1783,7 @@ var PULSE = (function(){
     if(b.x>W-8-ARK_R){ b.x=W-8-ARK_R; b.vx=-Math.abs(b.vx); }
     if(b.y<top+ARK_R){ b.y=top+ARK_R; b.vy=Math.abs(b.vy); }
     arkTrail.unshift({x:b.x,y:b.y}); if(arkTrail.length>12) arkTrail.length=12;
+    arkBumpStep(b, step);
 
     /* REBOND SUR LA BARRE — automatique, comme dans tout Arkanoid. Le joueur ne
        tape pas pour renvoyer : il DEPLACE la barre au doigt (voir arkAim).
@@ -1790,6 +1883,7 @@ var PULSE = (function(){
       ctx.beginPath(); ctx.moveTo(land,b.y+12); ctx.lineTo(land,padY-30); ctx.stroke();
       ctx.setLineDash([]);
     }
+    arkDrawBumps(alpha);
     /* trainee de la balle */
     for(i=1;i<arkTrail.length;i++){
       var t=arkTrail[i];
@@ -1977,7 +2071,7 @@ var PULSE = (function(){
   function setScore(){
     var el=$('score'); el.textContent=score;
     el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-    if(score<=BARMAX) updateGoal();
+    updateGoal();
     wizzCreditMilestones();
     updateWizzBtn();
     if(!recordShown && best>0 && score>best && document.body.classList.contains('playing')){
@@ -1987,10 +2081,33 @@ var PULSE = (function(){
     }
   }
   function updateGoal(){
-    if(cycleNo>0 || score>BARMAX) return;
-    var pct=Math.min(score/BARMAX,1)*100;
-    $('fill').style.width=pct+'%';
-    $('goalTxt').textContent=Math.min(score,BARMAX)+' / '+BARMAX;
+    if(scriptIdx===0){
+      if(score>BARMAX) return;
+      /* echelle en DEUX MOITIES pour que le repere tombe pile au centre :
+         0-100 occupe la moitie gauche, 100-150 la moitie droite. */
+      var pct = score<=GOAL ? (score/GOAL)*50 : 50 + Math.min((score-GOAL)/(BARMAX-GOAL),1)*50;
+      $('fill').style.width=pct+'%';
+      $('goalTxt').textContent=Math.min(score,BARMAX)+' / '+BARMAX;
+      return;
+    }
+    /* Passe le 1er ARKANOID, la barre ne mesure plus 150 points : elle devient
+       la jauge de ce qu'il reste a faire — prochain palier, temps de bonus
+       restant, ou avancee vers le prochain bonus merite. */
+    var g=$('goalbar'); if(g && !g.classList.contains('phase2')) g.classList.add('phase2');
+    if(seqKind){
+      $('fill').style.width=Math.max(0,Math.min(seqT/SEQ_MS,1))*100+'%';
+      $('goalTxt').textContent='BONUS \u00d7'+seqMult;
+      return;
+    }
+    if(scriptIdx<SCRIPTED.length){
+      var sc=SCRIPTED[scriptIdx], from=SCRIPTED[scriptIdx-1].at;
+      $('fill').style.width=Math.max(0,Math.min((score-from)/(sc.at-from),1))*100+'%';
+      $('goalTxt').textContent=score+' / '+sc.at;
+      return;
+    }
+    var best2=Math.max(Math.min(combo/MERIT_COMBO,1), Math.min(multiHits/MERIT_MULTI,1));
+    $('fill').style.width=best2*100+'%';
+    $('goalTxt').textContent='\u00c0 M\u00c9RITER';
   }
   function setLevel(n){
     level=n; $('levelchip').textContent='Niveau '+n; $('levelchip').classList.add('show');
@@ -2069,51 +2186,94 @@ var PULSE = (function(){
     setTimeout(function(){ jojo('level', p.line); }, 1150);
     setLevelAuto();
   }
-  /* Le niveau ne peut plus suivre le score (qui explose) : dans le cycle il
-     compte les sequences traversees. */
+  /* Le niveau ne peut plus suivre le score (gonfle par les bonus) : pendant un
+     bonus il compte les sequences traversees. */
   function setLevelAuto(){
-    if(cycleNo>0) setLevel(16 + (cycleNo-1)*2 + (phaseIs('gravite')?1:0));
+    if(seqCount>0) setLevel(16+seqCount);
     else setLevel(Math.floor(score/10)+1);
   }
 
-  /* ---------- cycle ARKANOID (1 min) -> GRAVITE x10 (20 s) -> on recommence ----------
-     A la fin de chaque paire de sequences, le rythme de points double. */
-  function startCycle(kind){
-    cyclePhaseT = (kind==='arkanoid') ? CYCLE_ARK_MS : CYCLE_GRAV_MS;
-    startPhase(phaseById(kind));
-    seqTxt='';
-    updateSeqChip();
+  /* ================= BONUS DE SEQUENCE (15 s) =================
+     Trois paliers programmes (150, 500, 700) pour apprendre le rythme, puis
+     les bonus se MERITENT :
+       - ARKANOID : monter un combo de 15 sans rater
+       - GRAVITE  : reussir 3 touches multiples (2 billes ou plus d'un coup)
+     Chaque bonus merite vaut un point de multiplicateur de plus que le
+     precedent (x5, x6, x7...). Apres chaque bonus, 8 s de repos pendant
+     lesquelles rien ne peut retomber : la recompense reste un evenement. */
+  function startSeq(kind, mult){
+    seqKind=kind; seqT=SEQ_MS; seqMult=mult; restT=0; seqCount++;
+    var base=phaseById(kind);
+    startPhase({ id:base.id,
+                 name:base.name+' \u00d7'+mult,
+                 sub:'15 s \u2014 points \u00d7'+mult,
+                 line:base.line });
+    seqTxt=''; updateSeqChip();
   }
-  function enterCycle(){
-    cycleNo=1; cycleMult=1; phaseIdx=0;
-    $('fill').style.width='100%';
-    $('goalTxt').textContent='\u{1F3D3} ARKANOID';
-    $('seqchip').classList.add('show');
-    startCycle('arkanoid');
+  function endSeq(){
+    seqKind=''; seqT=0; seqMult=1; restT=REST_MS;
+    phaseId='';
+    combo=0; multiHits=0;             /* les compteurs de merite repartent a zero */
+    newTarget(); arkTargetX=null;
+    freezeT=200; slowmoT=1000; timeScale=0.4; graceHits=3;
+    doFlash(0.35,'255,255,255'); sfxLevel();
+    if(!meritOn && scriptIdx>=SCRIPTED.length){
+      meritOn=true;
+      toast('\u{1F3C5} \u00c0 TOI DE JOUER', 'les bonus se m\u00e9ritent maintenant');
+      setTimeout(function(){ jojo('level','Fini les cadeaux ! Un combo de '+MERIT_COMBO+' t\'offre un ARKANOID, '+MERIT_MULTI+' touches multiples t\'offrent la GRAVIT\u00c9 \u{1F3C5}'); }, 900);
+    } else {
+      toast('Bonus termin\u00e9', meritOn ? 'gagne le prochain !' : '');
+    }
+    setLevelAuto(); updateSeqChip();
   }
-  function nextCycleStep(){
-    if(phaseIs('arkanoid')){ startCycle('gravite'); return; }
-    /* fin des DEUX sequences : le rythme de points est double */
-    cycleMult*=2; cycleNo++;
-    startCycle('arkanoid');
-    setTimeout(function(){ toast('RYTHME \u00d7'+cycleMult, 'Cycle '+cycleNo+' \u2014 tous les points doubl\u00e9s !'); }, 1500);
-  }
+
+  /* Pastille : soit le decompte du bonus en cours, soit ce qu'il reste a faire
+     pour declencher le prochain. Le joueur doit toujours savoir ou il vise. */
   var seqTxt='';
   function updateSeqChip(){
     var el=$('seqchip'); if(!el) return;
-    if(cycleNo<=0){ if(seqTxt!==''){ seqTxt=''; el.classList.remove('show'); } return; }
-    var s=Math.max(0,Math.ceil(cyclePhaseT/1000));
-    var t=(phaseIs('gravite') ? '\u{1F30D} GRAVIT\u00c9 \u00d7'+(GRAV_MULT*cycleMult) : '\u{1F3D3} ARKANOID \u00d7'+cycleMult)+' \u00b7 '+s+'s';
-    if(t!==seqTxt){ seqTxt=t; el.textContent=t; el.classList.add('show'); }
+    if(!document.body.classList.contains('playing')){ seqTxt=''; el.classList.remove('show'); return; }
+    var t;
+    if(seqKind){
+      t=(seqKind==='gravite'?'\u{1F30D} GRAVIT\u00c9':'\u{1F3D3} ARKANOID')+' \u00d7'+seqMult+' \u00b7 '+Math.max(0,Math.ceil(seqT/1000))+'s';
+    } else if(restT>0){
+      t='\u23F8 repos \u00b7 '+Math.ceil(restT/1000)+'s';
+    } else if(scriptIdx<SCRIPTED.length){
+      var sc=SCRIPTED[scriptIdx];
+      t=(sc.kind==='gravite'?'\u{1F30D}':'\u{1F3D3}')+' \u00d7'+sc.mult+' \u00e0 '+sc.at+' pts';
+    } else {
+      t='\u{1F3D3} '+Math.min(combo,MERIT_COMBO)+'/'+MERIT_COMBO+' combo \u00b7 \u{1F30D} '+Math.min(multiHits,MERIT_MULTI)+'/'+MERIT_MULTI+' multi';
+    }
+    if(t!==seqTxt){ seqTxt=t; el.textContent=t; el.classList.add('show'); updateGoal(); }
   }
+
   /* Ne depend pas de l'ancien score : un palier franchi via un bonus de QCM
      (+10 pts hors tap) declenche quand meme la phase au tap suivant.
      Renvoie true si une phase vient de demarrer -> elle remplace alors la
      celebration de palier habituelle, pour n'avoir qu'un seul message a l'ecran. */
   function checkPhase(){
-    /* une seule bascule pilotee par le score : 150 points -> on entre dans le
-       cycle. Ensuite c'est l'horloge qui commande (voir loop). */
-    if(cycleNo===0 && score>=ARK_AT){ enterCycle(); return true; }
+    if(seqKind || restT>0) return false;
+    /* 1) paliers programmes : 150, 500, 700 */
+    if(scriptIdx<SCRIPTED.length){
+      var sc=SCRIPTED[scriptIdx];
+      if(score>=sc.at){
+        scriptIdx++;
+        startSeq(sc.kind, sc.mult);
+        return true;
+      }
+      return false;
+    }
+    /* 2) au merite : le combo ouvre l'ARKANOID, les touches multiples la GRAVITE */
+    if(meritOn){
+      if(combo>=MERIT_COMBO){
+        earned++; toast('\u{1F3D3} COMBO '+MERIT_COMBO+' !','ARKANOID m\u00e9rit\u00e9 \u2014 points \u00d7'+(4+earned));
+        startSeq('arkanoid', 4+earned); return true;
+      }
+      if(multiHits>=MERIT_MULTI){
+        earned++; toast('\u{1F30D} '+MERIT_MULTI+' TOUCHES MULTIPLES !','GRAVIT\u00c9 m\u00e9rit\u00e9e \u2014 points \u00d7'+(4+earned));
+        startSeq('gravite', 4+earned); return true;
+      }
+    }
     return false;
   }
   /* ADMIN uniquement : saute au palier de la phase suivante, pour tester une
@@ -2121,11 +2281,13 @@ var PULSE = (function(){
      passent tous les deux par ici. */
   function jumpToNextPhase(){
     if(!isAdmin) return false;
-    if(cycleNo===0){
-      score=Math.max(score,ARK_AT); setScore();
+    if(seqKind){ seqT=0; endSeq(); return true; }
+    restT=0;
+    if(scriptIdx<SCRIPTED.length){
+      score=Math.max(score,SCRIPTED[scriptIdx].at); setScore();
       speed=speedFor(dscore); updateFeatures(); checkPhase();
     } else {
-      cyclePhaseT=0; nextCycleStep();
+      earned++; startSeq(earned%2?'arkanoid':'gravite', 4+earned);
     }
     return true;
   }
@@ -2144,7 +2306,7 @@ var PULSE = (function(){
       var major;
       if(pl<=GOAL){ major = true; }
       else { major = (score-lastMilestone) >= 50*rateNow(); if(major) lastMilestone=score; }
-      if(!major){ if(cycleNo===0) setLevelAuto(); return; }
+      if(!major){ if(seqCount===0) setLevelAuto(); return; }
 
       fireworks(); sfxLevel(); haptic([30,40,60]);
 
@@ -2422,6 +2584,9 @@ var PULSE = (function(){
       shock(pa.x,pa.y,fxColor);
       floatText(pa.x,pa.y,'+'+total,(m>1?'#FFD166':'#fff'), m>1||multi>=2||hitR);
 
+      /* MERITE : une touche a 2 billes ou plus rapproche de la GRAVITE.
+         Ne compte que hors bonus, sinon un bonus en declencherait un autre. */
+      if(multi>=2 && !seqKind && meritOn){ multiHits++; }
       if(multi>=2){
         if(hitW){var q=ptOn(angle,R());burst(q.x,q.y,'#fff',18);}
         if(hitY){var q2=ptOn(angle2,R());burst(q2.x,q2.y,'#FFD166',18);}
@@ -2474,7 +2639,7 @@ var PULSE = (function(){
       return;
     }
     var lostCombo=combo;
-    running=false; shake=16; combo=0; goldT=0;
+    running=false; shake=16; combo=0; goldT=0; multiHits=0;
     /* point d'impact : la balle en mode arkanoid, la bille sur l'anneau sinon */
     var p = (phaseIs('arkanoid') && arkBall) ? {x:arkBall.x,y:Math.min(arkBall.y,arkPadY()+40)} : ptOn(angle,R());
     if(near){ floatText(p.x,p.y-26,'PRESQUE !','#FFD166',true); }
@@ -2758,9 +2923,13 @@ var PULSE = (function(){
     if(goldT>0 && running){ goldT-=dt; if(goldT<=0){ goldT=0; toast('Rush termin\u00e9',''); } }
     /* horloge des sequences : elle tourne en temps reel, mais s'arrete pendant
        le hit-stop, les QCM et les pauses (running=false) */
-    if(running && cycleNo>0 && freezeT<=0){
-      cyclePhaseT-=dt;
-      if(cyclePhaseT<=0){ cyclePhaseT=0; nextCycleStep(); }
+    if(running && freezeT<=0){
+      if(seqKind){
+        seqT-=dt;
+        if(seqT<=0){ seqT=0; endSeq(); }
+      } else if(restT>0){
+        restT-=dt; if(restT<0) restT=0;
+      }
       updateSeqChip();
     }
     if(wizzShakeT>0){ wizzShakeT-=dt; }
@@ -3119,9 +3288,10 @@ var PULSE = (function(){
     updateSoundBtn();
     document.body.classList.add('playing');
     lives=MAXLIVES; updateLives();
-    $('goalbar').classList.add('show');
+    $('goalbar').classList.add('show'); $('goalbar').classList.remove('phase2');
     $('goalTxt').textContent='0 / '+BARMAX;
-    cycleNo=0; cyclePhaseT=0; cycleMult=1; lastMilestone=0; seqTxt='';
+    scriptIdx=0; seqKind=''; seqT=0; seqMult=1; seqCount=0; restT=0;
+    meritOn=false; multiHits=0; earned=0; lastMilestone=0; seqTxt='';
     $('seqchip').classList.remove('show');
     score=0;dscore=0;$('score').textContent=0;speed=speedFor(0);dir=1;angle=-Math.PI/2;
     particles=[];floats=[];frites=[];flash=0;shake=0;passed100=false;
