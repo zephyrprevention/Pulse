@@ -452,7 +452,7 @@
   <button class="ghost" onclick="PULSE.howto()">Comment jouer</button>
   <button class="ghost" onclick="PULSE.board()">Classement</button>
   <button class="ghost" onclick="PULSE.themes()">Th&egrave;mes</button>
-  <div class="buildtag" id="buildTag">version 2026-07-23 · b15</div>
+  <div class="buildtag" id="buildTag">version 2026-07-23 · b16</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -526,7 +526,7 @@
     <div class="step"><div class="stepn">6</div><div class="stept">&Agrave; <b>150</b>, <b>500</b>, <b>700</b> et <b>1000</b> points, tu gagnes un <b>bonus de 15&nbsp;secondes</b> qui multiplie tous tes points (x2, x3, x4, x5). Aucun cadeau pendant&nbsp;: tes vies sont l&agrave; pour &ccedil;a.</div></div>
     <div class="step"><div class="stepn">7</div><div class="stept">&#127955; <b>T&Eacute;NIFLIP</b>&nbsp;: le cercle se d&eacute;roule en raquette. <b>Glisse ton doigt</b> pour la d&eacute;placer, la balle rebondit toute seule. Les <b>champignons</b> rapportent <b>+3</b> &agrave; chaque contact, comme au flipper &mdash; sauf le <b>vert</b>&nbsp;: chaque contact te rend une <b>vie</b>. Vise-le.</div></div>
     <div class="step"><div class="stepn">8</div><div class="stept">&#127767; <b>&Eacute;CLIPSE</b>&nbsp;: l'anneau <b>enfle et se contracte</b> sans arr&ecirc;t. Ton timing, lui, n'a pas chang&eacute;&nbsp;&mdash; c'est l'&oelig;il qu'il faut garder froid.</div></div>
-    <div class="step"><div class="stepn">9</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: on reste sur le cercle, mais les billes <b>plongent en bas</b> et ralentissent en haut. M&ecirc;me geste, autre rythme &mdash; et un tour complet va m&ecirc;me un peu <b>plus vite</b> que d'habitude.</div></div>
+    <div class="step"><div class="stepn">9</div><div class="stept">&#127757; <b>GRAVIT&Eacute;</b>&nbsp;: l'anneau <b>grandit</b> et il ne reste qu'<b>une seule bille</b>, l&acirc;ch&eacute;e du haut. Elle tombe d'un c&ocirc;t&eacute; ou de l'autre et <b>balance comme un pendule</b>&nbsp;: lente en haut, lanc&eacute;e en bas. La zone, elle, <b>glisse dans le sens de la bille</b> &mdash; c'est en bas, quand la bille va le plus vite, qu'elle la rattrape. Vise ce moment-l&agrave;.</div></div>
     <div class="step"><div class="stepn">10</div><div class="stept">Apr&egrave;s 1000, les bonus <b>se m&eacute;ritent</b>. Les trois compteurs sont affich&eacute;s en bas de l'&eacute;cran, tu choisis lequel tu vises. Chaque bonus m&eacute;rit&eacute; vaut un multiplicateur de plus&nbsp;: x6, x7, x8... <b>Perdre une vie remet les trois compteurs &agrave; z&eacute;ro.</b></div></div>
   </div>
   <div class="ntitle">Bar&egrave;me des billes</div>
@@ -572,7 +572,7 @@
   <div class="ptrow"><span>Effet sur les joueurs en ligne</span><span class="pv">&eacute;cran secou&eacute; !</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-23 · b15</div>
+  <div class="buildtag">version 2026-07-23 · b16</div>
 </div>
 
 <script>
@@ -2503,8 +2503,8 @@ var PULSE = (function(){
   var PHASES=[
     {id:'arkanoid', name:'\u{1F3D3} T\u00c9NIFLIP', sub:'glisse ton doigt',
      line:'15 secondes de rab ! Glisse ton doigt pour déplacer la barre, la balle rebondit toute seule \u{1F3D3}'},
-    {id:'gravite',  name:'\u{1F30D} GRAVITÉ', sub:'les billes plongent',
-     line:'Retour au cercle, mais les billes plongent vraiment en bas... et chaque point compte plusieurs fois pendant 15 s ! \u{1F30D}'},
+    {id:'gravite',  name:'\u{1F30D} GRAVITÉ', sub:'une bille, un pendule',
+     line:'Grand anneau, UNE bille l\u00e2ch\u00e9e du haut. Elle balance... et la zone fuit dans son sens : elle ne la rattrape qu\'en bas ! \u{1F30D}'},
     {id:'eclipse',  name:'\u{1F317} ÉCLIPSE', sub:'l\'anneau respire',
      line:'L\'anneau enfle et se contracte... garde ton timing, il n\'a pas change \u{1F317}'}
   ];
@@ -2526,9 +2526,36 @@ var PULSE = (function(){
      On garde donc un plongeon tres lisible (4 fois plus rapide en bas qu'en
      haut) mais on remonte K pour que le tour soit 5 % PLUS RAPIDE que la
      normale : le bonus devient enfin payant. */
-  var GRAV_A=0.62;
-  var GRAV_K=1.05/Math.sqrt(1-GRAV_A*GRAV_A);   /* ~1.34 */
-  function gravF(a){ return phaseIs('gravite') ? GRAV_K*(1+GRAV_A*Math.sin(a)) : 1; }
+  /* ---------- GRAVITE : un vrai pendule ----------
+     Plus de billes qui tournent en rond plus ou moins vite : UNE bille, lachee
+     du haut d'un anneau agrandi, qui tombe d'un cote et balance. Et la zone a
+     toucher glisse dans le sens de la bille : il faut que la bille la rattrape,
+     ce qui n'arrive qu'en bas, la ou elle va le plus vite.
+
+     Physique : y pointe vers le bas, donc le bas de l'anneau est a +PI/2 et le
+     haut a -PI/2. La composante tangentielle de la pesanteur vaut cos(angle),
+     d'ou a'' = GRAV_ACC * cos(angle). L'acceleration est exprimee en rad/s2 et
+     NON en pixels : le balancement est ainsi identique sur tous les ecrans.
+     Reglages issus de la simulation (bonus de 15 s) : ~10 passages dans la
+     zone, aller-retour de 3,1 s, pointe a 400 deg/s en bas. */
+  var GRAV_ACC=13;            /* rad/s2 : nervosite de la chute */
+  var GRAV_START=0.52;        /* ~30 deg sous le haut : le depart n'est pas en equilibre */
+  var GRAV_ZONE=0.34;         /* demi-largeur de la zone, en rad */
+  var GRAV_R=0.385;           /* rayon de l'anneau agrandi (part de min(W,H)) */
+  var GRAV_SMIN=Math.sin(-Math.PI/2+GRAV_START);  /* sinus du point de rebroussement */
+  /* La zone suit la bille, mais a un quart de son deplacement seulement : elle
+     part du meme cote, plus lentement, et la bille finit par la rattraper en
+     bas. Ecrire za = ZC + 0.25*(angle - bas) plutot que d'integrer une derive
+     evite le piege dans lequel je suis tombe d'abord : si la zone repart en
+     sens inverse exactement en meme temps que la bille, les deux mouvements se
+     synchronisent et il existe des reglages ou elles ne se croisent JAMAIS.
+     Ici l'ecart relatif vaut 0,75 x (angle - bas) + (bas - ZC) : il s'annule
+     forcement a chaque passage, quel que soit ZC dans la plage autorisee. */
+  var GRAV_FOLLOW=0.25;
+  var GRAV_ZC_MAX=1.2;        /* deplacement maxi du centre de zone apres une touche */
+  var gravV=0;                /* vitesse angulaire courante de la bille */
+  var gravZC=Math.PI/2;       /* centre de l'oscillation de la zone */
+  function gravF(a){ return 1; }   /* conserve : plus aucune phase ne l'utilise */
   /* Rythme de points courant : x10 pendant GRAVITE, x2 de plus a chaque cycle
      complet. S'applique au cercle ET a l'Teniflip, en plus du combo/fever. */
   function rateNow(){ return seqKind ? seqMult : 1; }
@@ -2856,7 +2883,7 @@ var PULSE = (function(){
      touche est purement angulaire — donc respirer ne peut pas fausser un tap. */
   function breathScale(){ return 1 + Math.sin(breathPhase)*breathAmp; }
 
-  function R(){return Math.min(W,H)*0.30*breathScale();}
+  function R(){return Math.min(W,H)*(phaseIs('gravite')?GRAV_R:0.30)*breathScale();}
   function Rin(){return Math.min(W,H)*0.185*breathScale();}
   function aDiff(a,b){var d=(a-b)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return d;}
   function ptOn(a,r){return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};}
@@ -2914,9 +2941,13 @@ var PULSE = (function(){
     ball3     = (score>=50);
     zoneDrift = (score>=60);
     innerRing = (score>=70);
+    /* En GRAVITE : UNE bille et rien d'autre. Trois billes sur un pendule
+       donneraient trois trajectoires superposees illisibles, et l'anneau
+       interieur n'a plus de sens quand l'exterieur balance. */
+    if(phaseIs('gravite')){ ball2=false; ball3=false; innerRing=false; zoneDrift=false; }
   }
   function zoneNow(){
-    var z=zone;
+    var z = phaseIs('gravite') ? GRAV_ZONE : zone;
     if(zonePulse){ z = zone * (0.82 + 0.18*Math.sin(pulsePhase)); }
     if(goldT>0){ z = Math.min(z*1.6, 0.62); }   /* RUSH OR : zones elargies */
     return z;
@@ -2936,6 +2967,16 @@ var PULSE = (function(){
     return Math.max(0.34 - (s-GOAL)*0.0005, 0.16);
   }
   function newTarget(){
+    /* En GRAVITE, une zone tiree au hasard tomberait souvent dans le haut de
+       l'anneau, la ou la bille ne monte jamais : injouable. On la pose sur le
+       chemin du RETOUR, du cote d'ou la bille arrive. */
+    if(phaseIs('gravite')){
+      gravZC = Math.PI/2 + (Math.random()*2-1)*GRAV_ZC_MAX;
+      targetA = gravZC + GRAV_FOLLOW*aDiff(angle, Math.PI/2);
+      if(targetA>Math.PI)targetA-=Math.PI*2; if(targetA<-Math.PI)targetA+=Math.PI*2;
+      zone=zoneFor(dscore); zoneAnim=1;
+      return;
+    }
     var t;do{t=Math.random()*Math.PI*2;}while(Math.abs(aDiff(t,angle))<0.9);
     targetA=t; zone=zoneFor(dscore); zoneAnim=1;
     if(innerRing){ targetIn=Math.random()*Math.PI*2; }
@@ -3176,6 +3217,17 @@ var PULSE = (function(){
     /* nouveau champignon vert a chaque TENIFLIP, et jauge remise a zero :
        le joueur doit le chercher, ce n'est jamais le meme coin */
     if(kind==='arkanoid'){ lifeBump=Math.floor(Math.random()*4); arkBuildBumps(); }
+    /* GRAVITE : la bille est posee en haut de l'anneau, legerement decalee d'un
+       cote tire au hasard — a l'aplomb exact elle serait en equilibre et ne
+       tomberait jamais. Elle part sans vitesse : c'est la pesanteur qui lance. */
+    if(kind==='gravite'){
+      angle = -Math.PI/2 + (Math.random()<0.5 ? GRAV_START : -GRAV_START);
+      gravV = 0;
+      gravZC = Math.PI/2;         /* zone centree sur le point bas, la ou la bille arrive */
+      targetA = gravZC + GRAV_FOLLOW*aDiff(angle, Math.PI/2);
+      zoneAnim = 1;
+      trail1.length=0;
+    }
     var base=phaseById(kind);
     startPhase({ id:base.id,
                  name:base.name+' \u00d7'+mult,
@@ -3184,8 +3236,12 @@ var PULSE = (function(){
     updateGoal();
   }
   function endSeq(){
+    var etaitGrav = phaseIs('gravite');
     seqKind=''; seqT=0; seqMult=1; restT=REST_MS;
     phaseId='';
+    /* on quitte le pendule : la bille reprend sa course reguliere, dans le sens
+       ou elle allait — sinon elle repartirait a contresens sous le doigt */
+    if(etaitGrav){ dir = (gravV>=0?1:-1); gravV=0; updateFeatures(); }
     combo=0; multiHits=0; perfHits=0; /* les compteurs de merite repartent a zero */
     newTarget(); arkTargetX=null;
     freezeT=200; slowmoT=1000; timeScale=0.4; graceHits=0;
@@ -3536,7 +3592,12 @@ var PULSE = (function(){
     /* gravF : en phase GRAVITE la bille ne parcourt pas le meme angle par frame
        selon ou elle se trouve. Le rembobinage doit utiliser la meme vitesse locale,
        sinon la tolerance serait trop courte en bas et trop large en haut. */
-    var d1=dm(angle, gspN*dir*gravF(angle), targetA);
+    /* En GRAVITE la bille n'a pas de vitesse constante : le rembobinage doit
+       utiliser sa vitesse INSTANTANEE, sinon la tolerance serait absurde en
+       haut (bille presque a l'arret) et trop courte en bas. */
+    var d1 = phaseIs('gravite')
+           ? dm(angle, gravV/60, targetA)
+           : dm(angle, gspN*dir*gravF(angle), targetA);
     var d2=ball2?dm(angle2, -gspN*dir*0.80*gravF(angle2), targetA):999;
     var d3=ball3?dm(angle3, gspN*dir*1.5*gravF(angle3), targetA):999;
     var dIn=innerRing?dm(angleIn, -gspN*dir*1.0*gravF(angleIn), targetIn):999;
@@ -3645,6 +3706,7 @@ var PULSE = (function(){
       floatText(pg.x,pg.y-26,'RODAGE • '+graceHits+' restant'+(graceHits>1?'s':''),'#7CF5E2',false);
       doFlash(0.25,'124,245,226'); haptic(20); freezeT=90;
       if(phaseIs('arkanoid')) arkReset(true);
+      else if(phaseIs('gravite')) newTarget();
       else { dir*=-1; newTarget(); dirCueT=500; }
       return;
     }
@@ -3670,7 +3732,12 @@ var PULSE = (function(){
       dir=1; angle=-Math.PI/2;
       angle2=Math.PI; angle3=Math.PI/2; angleIn=0;
       trail1=[];trail2=[];trail3=[];trailIn=[];
-      newTarget();
+      /* en GRAVITE, angle=-PI/2 c'est le point d'equilibre du haut : la bille y
+         resterait immobile. On la relache du meme cote que precedemment. */
+      if(phaseIs('gravite')){
+        angle = -Math.PI/2 + (gravV>=0 ? GRAV_START : -GRAV_START);
+        gravV = 0; gravZC = Math.PI/2; zoneAnim=1;
+      } else newTarget();
       running=false; ready=false;
       setTimeout(function(){
         running=true;
@@ -3792,12 +3859,24 @@ var PULSE = (function(){
       }
     }
     if(running && !arkOn){
-      var zw = 14*(1+zoneAnim*0.6), za = 0.92 - zoneAnim*0.3;
+      var gravOn = phaseIs('gravite');
+      var zw = (gravOn?20:14)*(1+zoneAnim*0.6), za = 0.92 - zoneAnim*0.3;
       var zc = m>1?'#FFD166':THEME.glow;
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn,targetA+zn);
       ctx.strokeStyle=zc;ctx.globalAlpha=za;ctx.lineWidth=zw;ctx.lineCap='round';
       ctx.shadowColor=zc;ctx.shadowBlur=22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn*0.35,targetA+zn*0.35);ctx.strokeStyle=THEME.core;ctx.lineWidth=zw;ctx.stroke();
+
+      /* GRAVITE : la zone glisse. On montre de quel cote elle part, sinon on
+         croit a un bug d'affichage la premiere fois qu'on la voit bouger. */
+      if(gravOn && Math.abs(gravV)>0.05){
+        var sgn = gravV>0?1:-1, tip = targetA + sgn*(zn+0.16);
+        var pT = ptOn(tip, r), pA = ptOn(tip - sgn*0.14, r*0.90), pB = ptOn(tip - sgn*0.14, r*1.10);
+        ctx.globalAlpha=0.55+0.25*Math.sin(performance.now()/160);
+        ctx.fillStyle=zc; ctx.beginPath();
+        ctx.moveTo(pT.x,pT.y); ctx.lineTo(pA.x,pA.y); ctx.lineTo(pB.x,pB.y); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha=1;
+      }
 
       /* anneau interieur (des 70) */
       if(innerRing){
@@ -3946,6 +4025,29 @@ var PULSE = (function(){
     if(dirCueT>0){ dirCueT-=dt; }
     if(running && freezeT<=0 && phaseIs('arkanoid')){
       arkStep(step);
+    } else if(running && freezeT<=0 && phaseIs('gravite')){
+      /* pendule : integration en secondes reelles, pas en frames, pour que le
+         balancement soit le meme sur un ecran 60 Hz et sur un 120 Hz */
+      /* Euler semi-implicite : integrateur symplectique, l'energie oscille mais
+         ne derive pas. Verifie sur 3 minutes : periode constante a 3,08 s.
+         Seule correction, une borne de POSITION au point de rebroussement.
+         Surtout pas de recalage de la vitesse sur l'energie : en imposant le
+         module tout en gardant l'ancien signe, il empeche le demi-tour et la
+         bille se fige en haut de sa course — vu a l'essai. */
+      var sec=step/60, ral=(goldT>0?0.72:1);
+      gravV += GRAV_ACC*Math.cos(angle)*sec*ral;
+      angle += gravV*sec*ral;
+      if(Math.sin(angle) < GRAV_SMIN){
+        angle = -Math.PI/2 + (Math.cos(angle)>=0 ? GRAV_START : -GRAV_START);
+        gravV = 0;
+      }
+      if(angle>Math.PI)angle-=Math.PI*2; if(angle<-Math.PI)angle+=Math.PI*2;
+      pushTrail(trail1,angle,10);
+      targetA = gravZC + GRAV_FOLLOW*aDiff(angle, Math.PI/2);
+      if(targetA>Math.PI)targetA-=Math.PI*2; if(targetA<-Math.PI)targetA+=Math.PI*2;
+      if(zonePulse){ pulsePhase+=0.08*step; }
+      if(ringSpin){ spinAng+=0.0032*step; if(spinAng>Math.PI*2)spinAng-=Math.PI*2; }
+      if(zoneAnim>0){ zoneAnim=Math.max(0,zoneAnim-0.06*step); }
     } else if(running && freezeT<=0){
       var gsp=speed*(goldT>0?0.55:1);
       angle+=gsp*dir*step*gravF(angle);if(angle>Math.PI)angle-=Math.PI*2;if(angle<-Math.PI)angle+=Math.PI*2;
