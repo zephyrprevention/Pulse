@@ -352,6 +352,10 @@
   .quizhead b{color:#fff}
   .quizq{font-size:23px;font-weight:800;color:#fff;line-height:1.35;margin-bottom:22px}
   /* choix de la melodie, dans l'ecran Pause */
+  /* Numero de version bien visible : sans lui, impossible de savoir si le
+     telephone joue la derniere version ou celle que le service worker garde
+     en cache. Il change a chaque livraison. */
+  .buildtag{margin-top:14px;font-size:10px;letter-spacing:1.5px;color:var(--dim);opacity:.65;font-weight:700}
   .melolab{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:800;margin:14px 0 8px}
   .melorow{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
   .melobtn{font-size:13px;font-weight:800;padding:9px 15px;border-radius:100px;cursor:pointer;
@@ -448,6 +452,7 @@
   <button class="ghost" onclick="PULSE.howto()">Comment jouer</button>
   <button class="ghost" onclick="PULSE.board()">Classement</button>
   <button class="ghost" onclick="PULSE.themes()">Th&egrave;mes</button>
+  <div class="buildtag" id="buildTag">version 2026-07-22 · b14</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -567,6 +572,7 @@
   <div class="ptrow"><span>Effet sur les joueurs en ligne</span><span class="pv">&eacute;cran secou&eacute; !</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
+  <div class="buildtag">version 2026-07-22 · b14</div>
 </div>
 
 <script>
@@ -4397,6 +4403,14 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(function(reg){
       reg.update();
     }).catch(function(){});
+    // et on redemande une verification a chaque retour dans l'appli : une PWA
+    // installee reste ouverte des jours, sans ca elle ne voit jamais la mise a jour
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState !== 'visible') return;
+      navigator.serviceWorker.getRegistrations().then(function(rs){
+        for(var i=0;i<rs.length;i++) rs[i].update();
+      }).catch(function(){});
+    });
   });
   // recharge UNIQUEMENT si un ancien SW controlait deja la page (= vraie mise a jour)
   var refreshed = false;
