@@ -1,0 +1,35 @@
+{
+  "name": "PULSE — Réflexes & Culture",
+  "short_name": "PULSE",
+  "description": "Tape vite, réponds juste. Un jeu d'arcade qui mêle réflexes et culture générale, directement dans le navigateur.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/Pulse/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06070F",
+  "theme_color": "#06070F",
+  "categories": ["games", "education", "entertainment"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
