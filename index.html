@@ -778,6 +778,32 @@
   .duelres.win{background:rgba(0,200,83,.16);border-color:rgba(0,200,83,.5);color:#8CE99A}
   .duelres.lose{background:rgba(255,77,109,.14);border-color:rgba(255,77,109,.45);color:#FFA8B8}
   .duelres b{font-size:19px}
+  /* --- defi Paye ta biere --- */
+  .bierepot{max-width:340px;margin:0 auto 12px;padding:11px 15px;border-radius:var(--r-md);
+    background:rgba(255,209,102,.10);border:1px solid rgba(255,209,102,.32);
+    font-size:12.5px;font-weight:800;color:#FFE3A3;line-height:1.4}
+  .bierepot b{color:#fff}
+  .bieregros{font-size:62px;line-height:1;margin-bottom:6px;
+    animation:bierepop .7s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes bierepop{from{transform:scale(.3) rotate(-18deg);opacity:0}to{transform:none;opacity:1}}
+  .bieretxt{max-width:340px;margin:14px auto 0;font-size:16px;font-weight:800;
+    line-height:1.5;color:var(--ink)}
+  .bieretxt b{color:var(--gold);font-size:22px}
+  .bieretxt .qui{color:var(--glow)}
+  .bierergl{max-width:320px;margin:12px auto 22px;font-size:11.5px;font-weight:600;
+    color:var(--dim);line-height:1.45}
+  .btn-biere{display:block;width:100%;max-width:320px;margin:10px auto 0;
+    background:linear-gradient(135deg,#FFB020,#FFD166);color:#3A2600;border:none;
+    border-radius:var(--r-md);padding:15px 22px;font-size:16px;font-weight:900;
+    letter-spacing:.4px;cursor:pointer;box-shadow:0 6px 20px rgba(255,176,32,.36);
+    transition:transform .12s ease}
+  .btn-biere:active{transform:scale(.95)}
+  .btn-biere.off{background:rgba(255,255,255,.07);color:var(--dim);
+    box-shadow:none;border:1px solid var(--glass-b)}
+  .biereres{margin:10px auto 0;padding:13px 18px;border-radius:var(--r-md);max-width:340px;
+    font-size:15px;font-weight:800;line-height:1.4;border:1px solid rgba(255,209,102,.45);
+    background:rgba(255,209,102,.13);color:#FFE3A3}
+  .biereres b{font-size:19px;color:#fff}
   .btn-defi{display:block;width:100%;max-width:320px;margin:12px auto 0;
     background:linear-gradient(135deg,#FF4D6D,#FF8A00);color:#fff;border:none;
     border-radius:var(--r-md);padding:15px 22px;font-size:16px;font-weight:900;
@@ -852,7 +878,7 @@
   <div class="iring"></div>
   <div class="iwrap">
     <div class="ih"><span class="c1">LA MAIN</span><span class="c2">ET LA T&Ecirc;TE</span></div>
-    <div class="isub">Tape vite. R&eacute;ponds juste.<br><b>Aucun des deux ne suffit.</b></div>
+    <div class="isub">Aiguise tes r&eacute;flexes, enrichis ta culture,<br><b>trouve ton &eacute;quilibre entre les deux.</b></div>
     <div class="icols">
       <div class="ic k1"><div class="ie">&#9889;</div>
         <div><div class="iy">R&Eacute;FLEXE</div>
@@ -944,7 +970,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b34</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b35</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -953,6 +979,7 @@
   <div class="score-final" id="finalScore">0</div>
   <div class="newbest" id="newbest"></div>
   <div class="duelres" id="duelRes"></div>
+  <div class="biereres" id="biereRes"></div>
   <div class="statgrid">
     <div class="stat"><div class="sv" id="statAcc">0%</div><div class="sl">Pr&eacute;cision</div></div>
     <div class="stat"><div class="sv" id="statCombo">0</div><div class="sl">Max combo</div></div>
@@ -970,6 +997,7 @@
   <div class="nextgoal" id="nextGoal"></div>
   <div class="prog-mini" id="progMini"></div>
   <button class="btn-defi" id="btnDefi" onclick="PULSE.defi()">&#9876;&#65039; D&eacute;fier un ami</button>
+  <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#127866; Paye ta bi&egrave;re &middot; joueur en ligne</button>
   <button class="go" onclick="PULSE.play()">Rejouer</button>
   <button class="ghost" id="overMissBtn" onclick="PULSE.missions()">&#9989; Missions du jour</button>
   <button class="ghost" onclick="PULSE.board()">Classement</button>
@@ -1044,6 +1072,23 @@
   <div class="board" id="wizzList"><div class="board-loading">Recherche...</div></div>
   <button class="go" id="wizzAllBtn" onclick="PULSE.wizzAll()" style="display:none">&#9889; Secouer tout le monde</button>
   <button class="ghost" onclick="PULSE.wizzCancel()">Annuler</button>
+</div>
+
+<div class="overlay hide" id="biereScreen" style="z-index:27">
+  <div class="title" style="font-size:34px">&#127866; Paye ta bi&egrave;re</div>
+  <div class="tag">choisis ton adversaire</div>
+  <div class="bierepot" id="bierePot"></div>
+  <div class="board" id="biereList"><div class="board-loading">Recherche des joueurs...</div></div>
+  <button class="ghost" onclick="PULSE.biereCancel()">Annuler</button>
+</div>
+
+<div class="overlay hide" id="biereRecu" style="z-index:28">
+  <div class="bieregros">&#127866;</div>
+  <div class="title" style="font-size:32px">Un d&eacute;fi&nbsp;!</div>
+  <div class="bieretxt" id="biereTxt"></div>
+  <div class="bierergl">M&ecirc;me graine, m&ecirc;me partie&nbsp;: m&ecirc;mes zones, m&ecirc;mes bonus, m&ecirc;me ordre.</div>
+  <button class="go" onclick="PULSE.biereAccepter()">Relever le d&eacute;fi</button>
+  <button class="ghost" onclick="PULSE.biereRefuser()">Une autre fois</button>
 </div>
 
 <div class="overlay hide" id="pauseScreen">
@@ -1169,7 +1214,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b34</div>
+  <div class="buildtag">version 2026-07-25 · b35</div>
 </div>
 
 <script>
@@ -4866,7 +4911,7 @@ var PULSE = (function(){
        L'ecran de pause est teste ici : depuis la pause, retour = quitter la
        partie, pas la reprendre. */
     var ecrans=['boardScreen','howtoScreen','missionScreen','modeScreen','shopScreen',
-                'pauseScreen','wizzPicker','over','win','rankUp'];
+                'pauseScreen','wizzPicker','over','win','rankUp','biereScreen','biereRecu'];
     for(var i=0;i<ecrans.length;i++){
       var e=$(ecrans[i]);
       if(e && !e.classList.contains('hide')){ stopMusic(); showStart(); return; }
@@ -4903,7 +4948,7 @@ var PULSE = (function(){
     introHide();                      /* elle ne flotte au-dessus d'aucun ecran */
     document.body.classList.remove('playing');
     var a=['pseudo','start','over','win','boardScreen','howtoScreen','pauseScreen','wizzPicker',
-           'missionScreen','modeScreen','shopScreen','rankUp'];
+           'missionScreen','modeScreen','shopScreen','rankUp','biereScreen','biereRecu'];
     for(var i=0;i<a.length;i++){ var e=$(a[i]); if(e) e.classList.add('hide'); }
   }
 
@@ -6307,6 +6352,36 @@ var PULSE = (function(){
       duelActif=false;              /* le verdict ne s'affiche qu'une fois */
     }
 
+    /* Verdict du defi \u00ab Paye ta bi\u00e8re \u00bb. Il remplace celui du duel :
+       les deux portent sur la meme partie, l'afficher deux fois n'apprendrait
+       rien de plus au joueur. */
+    var br=$('biereRes');
+    if(br){
+      if(biereActif && biereScore>0){
+        if(dr){ dr.innerHTML=''; dr.style.display='none'; }
+        var ec=score-biereScore, adv=biereDe||'ton adversaire';
+        if(ec>=0){
+          br.innerHTML='\uD83C\uDF7A <b>'+adv+' te doit une bi\u00e8re !</b><br>'
+            +score+' contre '+biereScore+' \u2014 +'+ec+' d\'avance';
+          setTimeout(function(){ try{ fireworks(); sfxRank(); }catch(e){} }, 400);
+        } else {
+          br.innerHTML='\uD83C\uDF7B <b>C\'est ta tourn\u00e9e.</b><br>'
+            +score+' contre '+biereScore+' \u2014 il te manquait '+(-ec)+' points';
+        }
+        br.style.display='';
+        /* On previent celui qui a lance le defi. */
+        if(biereDeId){
+          try{
+            fetch(BIERE_URL+'/'+biereDeId+'.json',{method:'PUT',body:JSON.stringify({
+              rep:1, name:pseudo, score:score, cible:biereScore, t:Date.now()
+            })}).catch(function(){});
+          }catch(e){}
+          biereDeId='';
+        }
+      } else { br.innerHTML=''; br.style.display='none'; }
+      biereActif=false;
+    }
+
     countUp($('finalScore'), score);
     $('statAcc').textContent = stats.taps>0 ? Math.round(stats.hits/stats.taps*100)+'%' : '\u2014';
     $('statCombo').textContent = comboRun;
@@ -6719,6 +6794,156 @@ var PULSE = (function(){
   /* ---------- multijoueur leger : presence en ligne + WIZZ ---------- */
   var LIVE_URL=DB+'/pulse_live', WIZZ_URL=DB+'/pulse_wizz';
 
+  /* ================= DEFI « PAYE TA BIÈRE » =================
+     Le duel par lien marche entre gens qui se parlent deja. Celui-ci se lance
+     a quelqu'un qui joue EN CE MOMENT : on voit qui est en ligne, on le
+     designe, il recoit le defi dans la seconde.
+
+     L'enjeu n'est pas dans le jeu, il est entre les deux joueurs — une biere,
+     un cafe, ce qu'ils veulent. PULSE ne fait qu'arbitrer : meme graine, donc
+     exactement la meme partie, et un verdict que personne ne peut contester.
+
+     Un defi porte : qui l'envoie, son score, et la graine de sa partie. Il
+     expire au bout de dix minutes — un defi d'hier soir n'a plus de sens, et
+     sans peremption la boite du joueur se remplirait de vieux defis. */
+  var BIERE_URL=DB+'/pulse_biere';
+  var BIERE_VIE=600000;                /* 10 minutes */
+  var biereActif=false;                /* la partie en cours est-elle un defi recu ? */
+  var biereDe='', biereScore=0;        /* adversaire et score a battre */
+  var biereDeId='';                    /* pour lui renvoyer le resultat */
+  var biereEnAttente=null;             /* defi recu, pas encore accepte */
+  /* Anti-doublon volontairement minimal : on ne retient que l'horodatage du
+     dernier defi traite, en memoire, et on ne compare qu'a l'identique.
+     Un garde du type "ignorer tout ce qui est plus ancien" aurait paru plus sur
+     mais rejetait en silence les defis d'un joueur dont l'horloge retarde de
+     quelques minutes. C'est la suppression du noeud apres lecture qui empeche
+     vraiment de traiter deux fois le meme defi ; ceci ne couvre que la course
+     entre deux sondages rapproches. */
+  var biereTimer=null, biereVu=0;
+
+  function biereOuvrirPicker(){
+    if(score<=0){ toast('\uD83C\uDF7A Pas encore','fais d\'abord un score \u00e0 d\u00e9fendre'); return; }
+    navEnter();
+    hideAll();
+    $('biereScreen').classList.remove('hide');
+    var pot=$('bierePot');
+    if(pot) pot.innerHTML='Tu mets en jeu <b>'+score+' points</b>. Celui qui perd paie la tourn\u00e9e \uD83C\uDF7B';
+    var list=$('biereList');
+    list.innerHTML='<div class="board-loading">Recherche des joueurs...</div>';
+    fetchLive(function(arr){
+      if(!arr.length){
+        list.innerHTML='<div class="board-empty">Personne en ligne pour l\'instant.<br>'
+          +'Utilise plut\u00f4t \u2694\uFE0F D\u00e9fier un ami pour envoyer un lien.</div>';
+        return;
+      }
+      /* Ceux qui jouent d'abord : ils repondront tout de suite. */
+      arr.sort(function(a,b){
+        if(a.st!==b.st) return a.st==='game'?-1:1;
+        return b.score-a.score;
+      });
+      list.innerHTML='';
+      arr.slice(0,30).forEach(function(o){
+        var d=document.createElement('div');
+        d.className='row pick';
+        d.innerHTML='<div class="rk">\uD83C\uDF7A</div><div class="nm">'+escapeHtml(o.name)+'</div>'
+          +'<div class="st">'+(o.st==='game'?('\uD83C\uDFAE en jeu \u00b7 '+o.score):'\uD83C\uDFE0 au menu')+'</div>';
+        d.onclick=function(){ biereEnvoyer(o); };
+        list.appendChild(d);
+      });
+    });
+  }
+  function biereFermerPicker(){
+    var e=$('biereScreen'); if(e) e.classList.add('hide');
+    showStart();
+  }
+
+  function biereMontrerRecu(){
+    var d=biereEnAttente; if(!d) return;
+    navEnter();
+    hideAll();
+    var t=$('biereTxt');
+    if(t) t.innerHTML='<span class="qui">'+escapeHtml(d.name||'Quelqu\'un')+'</span> te d\u00e9fie \u00e0 <b>'
+      +d.score+'</b> points.<br>Le perdant paie la bi\u00e8re \uD83C\uDF7B';
+    $('biereRecu').classList.remove('hide');
+    try{ sfxRank(); }catch(e){}
+    haptic([50,80,50,80,120]);
+  }
+  function biereAccepter(){
+    var d=biereEnAttente; if(!d){ showStart(); return; }
+    biereEnAttente=null;
+    $('biereRecu').classList.add('hide');
+    /* On rejoue SA partie : meme graine, donc meme suite de zones et de bonus. */
+    duelPending = d.seed||0;
+    duelTarget  = d.score||0;
+    duelFrom    = d.name||'';
+    biereDe     = d.name||'';
+    biereScore  = d.score||0;
+    biereDeId   = d.from||'';
+    biereActif  = true;
+    if(d.mode && modeById(d.mode) && modeById(d.mode).id===d.mode && !modeById(d.mode).hidden){
+      gameMode=d.mode;
+    }
+    startGame();
+  }
+  function biereRefuser(){
+    biereEnAttente=null;
+    biereActif=false;
+    $('biereRecu').classList.add('hide');
+    showStart();
+  }
+
+  function biereEnvoyer(cible){
+    if(!pseudo || !duelSeed || score<=0) return;
+    var corps=JSON.stringify({
+      from:myId, name:pseudo, score:score, seed:duelSeed,
+      mode:gameMode, t:Date.now()
+    });
+    try{
+      fetch(BIERE_URL+'/'+cible.id+'.json',{method:'PUT',body:corps}).catch(function(){});
+    }catch(e){}
+    toast('\uD83C\uDF7A D\u00e9fi envoy\u00e9 \u00e0 '+cible.name, score+' points \u00e0 battre');
+    haptic([40,60,40]);
+    biereFermerPicker();
+  }
+
+  /* Reception : le meme rythme que les WIZZ, pour ne pas ajouter d'horloge. */
+  function biereVerifier(){
+    if(!pseudo) return;
+    try{
+      fetch(BIERE_URL+'/'+myId+'.json').then(function(r){return r.json();}).then(function(d){
+        if(!d || !d.t || d.t===biereVu) return;
+        if(Date.now()-d.t > BIERE_VIE){    /* perime : on nettoie sans rien montrer */
+          fetch(BIERE_URL+'/'+myId+'.json',{method:'DELETE'}).catch(function(){});
+          return;
+        }
+        biereVu=d.t;
+        fetch(BIERE_URL+'/'+myId+'.json',{method:'DELETE'}).catch(function(){});
+
+        /* Une reponse, pas un defi : l'adversaire a joue, on annonce le verdict.
+           Sans ce retour, celui qui lance le defi ne saurait jamais s'il a
+           gagne — et c'est lui qui attend le plus. */
+        if(d.rep){
+          var gagne=(d.cible||0) >= (d.score||0);
+          setTimeout(function(){
+            if(gagne) toast('\uD83C\uDF7A '+(d.name||'Ton adversaire')+' te doit une bi\u00e8re !',
+                            'il a fait '+(d.score||0)+' contre tes '+(d.cible||0));
+            else       toast('\uD83C\uDF7B C\'est ta tourn\u00e9e',
+                            (d.name||'Ton adversaire')+' a fait '+(d.score||0)+' contre tes '+(d.cible||0));
+            try{ sfxRank(); }catch(e){}
+          }, 700);
+          return;
+        }
+
+        biereEnAttente=d;
+        /* Jamais en pleine partie : on garde le defi sous le coude et on le
+           presente au retour au menu. Couper une partie en cours pour annoncer
+           un defi, c'est faire perdre le joueur avant meme qu'il accepte. */
+        if(!document.body.classList.contains('playing')) biereMontrerRecu();
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+
   /* ================= PARRAINAGE =================
      Le bouton "Defier un ami" partage un lien qui porte le pseudo du parrain
      (?p=JOJO57). Quand un NOUVEAU joueur arrive par ce lien, cree son pseudo,
@@ -7110,7 +7335,7 @@ var PULSE = (function(){
     pushPresence();
     liveSelfTest();
     liveTimer=setInterval(pushPresence, 8000);
-    wizzTimer=setInterval(checkWizz, 4000);
+    wizzTimer=setInterval(function(){ checkWizz(); biereVerifier(); }, 4000);
     rivalsTimer=setInterval(function(){
       if(document.body.classList.contains('playing')) fetchLive(updateRivals);
       else { var el=$('rivals'); if(el){ el.innerHTML=''; el.classList.remove('tappable'); } }
@@ -7252,6 +7477,9 @@ var PULSE = (function(){
     refreshChamp(); showInstallBtn(); refreshOnline();
     if(profDirty) saveProf();
     introShow();                      /* ne part qu'au premier passage */
+    /* Un defi arrive pendant une partie a ete mis de cote : on le presente
+       maintenant que le joueur est disponible. */
+    if(biereEnAttente) setTimeout(biereMontrerRecu, 700);
   }
 
   if(pseudo){
@@ -7701,6 +7929,10 @@ var PULSE = (function(){
       toast('🔧 Admin','+2000 💎, +20 ⚡ et +1500 XP');
       if(soundOn) startMusic();
     },
+    biere:function(){ biereOuvrirPicker(); },
+    biereCancel:function(){ biereFermerPicker(); },
+    biereAccepter:function(){ biereAccepter(); },
+    biereRefuser:function(){ biereRefuser(); },
     introOff:function(){ introHide(); },
     defi:function(){ lancerDefi(); },
     toggleSound:function(){ toggleSound(); },
