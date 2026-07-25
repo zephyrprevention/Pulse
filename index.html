@@ -792,6 +792,15 @@
   .bieretxt .qui{color:var(--glow)}
   .bierergl{max-width:320px;margin:12px auto 22px;font-size:11.5px;font-weight:600;
     color:var(--dim);line-height:1.45}
+  /* Mention obligatoire (loi Evin, art. L3323-4 du Code de la sante publique).
+     Discrete mais lisible : une mention illisible ne vaut pas mieux qu'une
+     mention absente. La troisieme ligne rappelle que l'enjeu appartient aux
+     joueurs — PULSE ne fait qu'arbitrer, et rien n'oblige a parier de l'alcool. */
+  .bieremini{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,209,102,.22);
+    font-size:9.5px;line-height:1.4;font-weight:700;color:var(--dim);letter-spacing:.2px}
+  .bieremention{max-width:330px;margin:16px auto 0;font-size:10.5px;line-height:1.5;
+    font-weight:700;color:var(--dim);text-align:center}
+  .bieremention span{display:block;margin-top:5px;color:var(--glow);opacity:.75}
   .btn-biere{display:block;width:100%;max-width:320px;margin:10px auto 0;
     background:linear-gradient(135deg,#FFB020,#FFD166);color:#3A2600;border:none;
     border-radius:var(--r-md);padding:15px 22px;font-size:16px;font-weight:900;
@@ -970,7 +979,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b35</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b36</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1079,6 +1088,7 @@
   <div class="tag">choisis ton adversaire</div>
   <div class="bierepot" id="bierePot"></div>
   <div class="board" id="biereList"><div class="board-loading">Recherche des joueurs...</div></div>
+  <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
   <button class="ghost" onclick="PULSE.biereCancel()">Annuler</button>
 </div>
 
@@ -1088,6 +1098,7 @@
   <div class="bieretxt" id="biereTxt"></div>
   <div class="bierergl">M&ecirc;me graine, m&ecirc;me partie&nbsp;: m&ecirc;mes zones, m&ecirc;mes bonus, m&ecirc;me ordre.</div>
   <button class="go" onclick="PULSE.biereAccepter()">Relever le d&eacute;fi</button>
+  <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
   <button class="ghost" onclick="PULSE.biereRefuser()">Une autre fois</button>
 </div>
 
@@ -1214,7 +1225,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b35</div>
+  <div class="buildtag">version 2026-07-25 · b36</div>
 </div>
 
 <script>
@@ -6360,13 +6371,17 @@ var PULSE = (function(){
       if(biereActif && biereScore>0){
         if(dr){ dr.innerHTML=''; dr.style.display='none'; }
         var ec=score-biereScore, adv=biereDe||'ton adversaire';
+        /* La mention accompagne le verdict : c'est le moment ou l'enjeu est
+           annonce, donc celui ou elle doit etre sous les yeux. */
+        var legal='<div class="bieremini">L\'abus d\'alcool est dangereux pour la sant\u00e9, '
+          +'\u00e0 consommer avec mod\u00e9ration \u00b7 interdit aux mineurs</div>';
         if(ec>=0){
           br.innerHTML='\uD83C\uDF7A <b>'+adv+' te doit une bi\u00e8re !</b><br>'
-            +score+' contre '+biereScore+' \u2014 +'+ec+' d\'avance';
+            +score+' contre '+biereScore+' \u2014 +'+ec+' d\'avance'+legal;
           setTimeout(function(){ try{ fireworks(); sfxRank(); }catch(e){} }, 400);
         } else {
           br.innerHTML='\uD83C\uDF7B <b>C\'est ta tourn\u00e9e.</b><br>'
-            +score+' contre '+biereScore+' \u2014 il te manquait '+(-ec)+' points';
+            +score+' contre '+biereScore+' \u2014 il te manquait '+(-ec)+' points'+legal;
         }
         br.style.display='';
         /* On previent celui qui a lance le defi. */
