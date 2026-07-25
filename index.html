@@ -566,15 +566,22 @@
   .celpv canvas{position:static}
 
   /* --- selecteur de mode sur l'accueil --- */
-  .modepick{display:flex;align-items:center;gap:10px;width:100%;max-width:340px;margin:0 auto 14px;
-    background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r-md);padding:10px 14px;
+  /* Cette carte etait indiscernable des encarts d'information voisins (score a
+     battre, alerte de sauvegarde) : meme fond, meme bordure. Rien n'indiquait
+     qu'on pouvait appuyer dessus pour changer de mode. Elle porte desormais son
+     intitule, une bordure teintee et un chevron visible. */
+  .modepick{display:flex;align-items:center;gap:11px;width:100%;max-width:340px;margin:0 auto 14px;
+    background:linear-gradient(180deg,rgba(124,245,226,.10),rgba(124,245,226,.03));
+    border:1px solid rgba(124,245,226,.34);border-radius:var(--r-md);padding:11px 14px;
     cursor:pointer;transition:transform .12s,border-color .2s}
-  .modepick:active{transform:scale(.97)}
-  .modepick .pi{font-size:24px}
+  .modepick:active{transform:scale(.97);border-color:rgba(124,245,226,.6)}
+  .modepick .pi{font-size:25px}
   .modepick .pm{flex:1;text-align:left}
-  .modepick .pn{font-size:15px;font-weight:900;color:#fff}
+  .modepick .pl{font-size:9.5px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--glow);opacity:.95;margin-bottom:2px}
+  .modepick .pn{font-size:15.5px;font-weight:900;color:#fff}
   .modepick .ps{font-size:10.5px;color:var(--dim);font-weight:700;letter-spacing:.5px}
-  .modepick .pa{font-size:16px;color:var(--dim)}
+  .modepick .pa{font-size:19px;color:var(--glow);opacity:.85}
 
   /* --- sequence de recompense de fin de partie --- */
   .reward{width:100%;max-width:340px;margin:0 auto 6px;display:flex;flex-direction:column;gap:7px}
@@ -809,7 +816,11 @@
 
   <div class="modepick" onclick="PULSE.modes()">
     <div class="pi" id="mpIcon">&#127919;</div>
-    <div class="pm"><div class="pn" id="mpName">Classique</div><div class="ps" id="mpSub">la partie compl&egrave;te</div></div>
+    <div class="pm">
+      <div class="pl">Mode de jeu &middot; appuie pour changer</div>
+      <div class="pn" id="mpName">Classique</div>
+      <div class="ps" id="mpSub">la partie compl&egrave;te</div>
+    </div>
     <div class="pa">&#9662;</div>
   </div>
 
@@ -831,7 +842,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b29</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b30</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -890,7 +901,7 @@
 
 <div class="overlay hide" id="modeScreen">
   <div class="title" style="font-size:38px">Modes <span>de jeu</span></div>
-  <div class="tag">un moteur, cinq fa&ccedil;ons d'y jouer</div>
+  <div class="tag">la partie compl&egrave;te, ou une seule phase sans fin</div>
   <div class="mlist" id="modeList"></div>
   <button class="ghost backrow" onclick="PULSE.home()">Retour</button>
 </div>
@@ -1056,7 +1067,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b29</div>
+  <div class="buildtag">version 2026-07-25 · b30</div>
 </div>
 
 <script>
@@ -7088,11 +7099,13 @@ var PULSE = (function(){
     if(PROF.mDay!==dayKey()) rollMissions();
     rollDaily();
     refreshSkins();
-    /* On ne revient jamais au menu "en mode Defi du jour" : le selecteur doit
-       toujours montrer le mode d'une partie libre, sinon appuyer sur Jouer
-       relancerait le defi sans que le joueur l'ait demande. */
-    /* Un mode disparu (ancienne version) ne doit pas bloquer le menu. */
-    if(!modeById(gameMode) || modeById(gameMode).id!==gameMode){ gameMode='classic'; try{localStorage.setItem('pulse_mode','classic');}catch(e){} }
+    /* On ne revient jamais au menu "en mode Defi du jour" : il ne figure pas
+       dans le selecteur (c'est une destination, pas un mode), donc l'y afficher
+       donnerait un mode impossible a retrouver dans la liste — et appuyer sur
+       Jouer relancerait le defi sans que le joueur l'ait demande.
+       Meme traitement pour un mode disparu d'une ancienne version. */
+    var mOk = modeById(gameMode) && modeById(gameMode).id===gameMode && !modeById(gameMode).hidden;
+    if(!mOk){ gameMode='classic'; try{localStorage.setItem('pulse_mode','classic');}catch(e){} }
     hideAll(); $('start').classList.remove('hide');
     renderMeta();
     /* Deux alertes possibles, et la panne de nuage l'emporte : un joueur qui a
