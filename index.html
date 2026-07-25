@@ -796,6 +796,13 @@
      Discrete mais lisible : une mention illisible ne vaut pas mieux qu'une
      mention absente. La troisieme ligne rappelle que l'enjeu appartient aux
      joueurs — PULSE ne fait qu'arbitrer, et rien n'oblige a parier de l'alcool. */
+  .bvscores{display:flex;gap:10px;justify-content:center;margin:18px auto 4px;max-width:340px}
+  .bvscores .bs{flex:1;padding:13px 10px;border-radius:var(--r-md);
+    background:var(--glass);border:1px solid var(--glass-b)}
+  .bvscores .bs.win{background:rgba(0,200,83,.15);border-color:rgba(0,200,83,.45)}
+  .bvscores .bs .bn{font-size:10.5px;font-weight:900;letter-spacing:.6px;
+    text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+  .bvscores .bs .bp{font-size:25px;font-weight:900;color:#fff;letter-spacing:-.5px}
   .bieremini{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,209,102,.22);
     font-size:9.5px;line-height:1.4;font-weight:700;color:var(--dim);letter-spacing:.2px}
   .bieremention{max-width:330px;margin:16px auto 0;font-size:10.5px;line-height:1.5;
@@ -979,7 +986,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b36</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b37</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1100,6 +1107,17 @@
   <button class="go" onclick="PULSE.biereAccepter()">Relever le d&eacute;fi</button>
   <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
   <button class="ghost" onclick="PULSE.biereRefuser()">Une autre fois</button>
+</div>
+
+<div class="overlay hide" id="biereVerdict" style="z-index:29">
+  <div class="bieregros" id="bvIcone">&#127866;</div>
+  <div class="title" style="font-size:30px" id="bvTitre">R&eacute;sultat</div>
+  <div class="bieretxt" id="bvTxt"></div>
+  <div class="bvscores" id="bvScores"></div>
+  <div class="bieremention">L'alcool est interdit aux mineurs.<br>
+    L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br>
+    <span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <button class="go" onclick="PULSE.biereVerdictOk()" style="margin-top:20px">C'est not&eacute;</button>
 </div>
 
 <div class="overlay hide" id="pauseScreen">
@@ -1225,7 +1243,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b36</div>
+  <div class="buildtag">version 2026-07-25 · b37</div>
 </div>
 
 <script>
@@ -4922,7 +4940,7 @@ var PULSE = (function(){
        L'ecran de pause est teste ici : depuis la pause, retour = quitter la
        partie, pas la reprendre. */
     var ecrans=['boardScreen','howtoScreen','missionScreen','modeScreen','shopScreen',
-                'pauseScreen','wizzPicker','over','win','rankUp','biereScreen','biereRecu'];
+                'pauseScreen','wizzPicker','over','win','rankUp','biereScreen','biereRecu','biereVerdict'];
     for(var i=0;i<ecrans.length;i++){
       var e=$(ecrans[i]);
       if(e && !e.classList.contains('hide')){ stopMusic(); showStart(); return; }
@@ -4959,7 +4977,7 @@ var PULSE = (function(){
     introHide();                      /* elle ne flotte au-dessus d'aucun ecran */
     document.body.classList.remove('playing');
     var a=['pseudo','start','over','win','boardScreen','howtoScreen','pauseScreen','wizzPicker',
-           'missionScreen','modeScreen','shopScreen','rankUp','biereScreen','biereRecu'];
+           'missionScreen','modeScreen','shopScreen','rankUp','biereScreen','biereRecu','biereVerdict'];
     for(var i=0;i<a.length;i++){ var e=$(a[i]); if(e) e.classList.add('hide'); }
   }
 
@@ -6827,6 +6845,7 @@ var PULSE = (function(){
   var biereDe='', biereScore=0;        /* adversaire et score a battre */
   var biereDeId='';                    /* pour lui renvoyer le resultat */
   var biereEnAttente=null;             /* defi recu, pas encore accepte */
+  var biereReponse=null;               /* verdict recu, pas encore montre */
   /* Anti-doublon volontairement minimal : on ne retient que l'horodatage du
      dernier defi traite, en memoire, et on ne compare qu'a l'identique.
      Un garde du type "ignorer tout ce qui est plus ancien" aurait paru plus sur
@@ -6869,6 +6888,32 @@ var PULSE = (function(){
   }
   function biereFermerPicker(){
     var e=$('biereScreen'); if(e) e.classList.add('hide');
+    showStart();
+  }
+
+  function biereMontrerVerdict(){
+    var d=biereReponse; if(!d) return;
+    biereReponse=null;
+    navEnter();
+    hideAll();
+    var mien=d.cible||0, sien=d.score||0, gagne=mien>=sien;
+    var adv=d.name||'Ton adversaire';
+    var ic=$('bvIcone'), ti=$('bvTitre'), tx=$('bvTxt'), sc=$('bvScores');
+    if(ic) ic.innerHTML = gagne ? '\uD83C\uDF7A' : '\uD83C\uDF7B';
+    if(ti) ti.textContent = gagne ? 'Tu gagnes !' : 'C\'est ta tourn\u00e9e';
+    if(tx) tx.innerHTML = gagne
+      ? ('<span class="qui">'+escapeHtml(adv)+'</span> a jou\u00e9 ta partie et n\'a pas fait mieux.')
+      : ('<span class="qui">'+escapeHtml(adv)+'</span> a jou\u00e9 ta partie et t\'a battu.');
+    if(sc) sc.innerHTML =
+        '<div class="bs'+(gagne?' win':'')+'"><div class="bn">Toi</div><div class="bp">'+mien+'</div></div>'
+      + '<div class="bs'+(gagne?'':' win')+'"><div class="bn">'+escapeHtml(adv)+'</div><div class="bp">'+sien+'</div></div>';
+    $('biereVerdict').classList.remove('hide');
+    try{ sfxRank(); }catch(e){}
+    if(gagne){ try{ fireworks(); }catch(e){} }
+    haptic(gagne?[50,70,50,70,140]:[90,60,90]);
+  }
+  function biereVerdictOk(){
+    $('biereVerdict').classList.add('hide');
     showStart();
   }
 
@@ -6938,14 +6983,11 @@ var PULSE = (function(){
            Sans ce retour, celui qui lance le defi ne saurait jamais s'il a
            gagne — et c'est lui qui attend le plus. */
         if(d.rep){
-          var gagne=(d.cible||0) >= (d.score||0);
-          setTimeout(function(){
-            if(gagne) toast('\uD83C\uDF7A '+(d.name||'Ton adversaire')+' te doit une bi\u00e8re !',
-                            'il a fait '+(d.score||0)+' contre tes '+(d.cible||0));
-            else       toast('\uD83C\uDF7B C\'est ta tourn\u00e9e',
-                            (d.name||'Ton adversaire')+' a fait '+(d.score||0)+' contre tes '+(d.cible||0));
-            try{ sfxRank(); }catch(e){}
-          }, 700);
+          /* Un toast s'effacait au bout d'1,6 s : trop court pour une nouvelle
+             qu'on a attendue, et qu'on rate si on regarde ailleurs. Le verdict
+             a donc son ecran, que le joueur ferme lui-meme. */
+          biereReponse=d;
+          if(!document.body.classList.contains('playing')) biereMontrerVerdict();
           return;
         }
 
@@ -7494,7 +7536,8 @@ var PULSE = (function(){
     introShow();                      /* ne part qu'au premier passage */
     /* Un defi arrive pendant une partie a ete mis de cote : on le presente
        maintenant que le joueur est disponible. */
-    if(biereEnAttente) setTimeout(biereMontrerRecu, 700);
+    if(biereReponse)   setTimeout(biereMontrerVerdict, 700);
+    else if(biereEnAttente) setTimeout(biereMontrerRecu, 700);
   }
 
   if(pseudo){
@@ -7945,6 +7988,7 @@ var PULSE = (function(){
       if(soundOn) startMusic();
     },
     biere:function(){ biereOuvrirPicker(); },
+    biereVerdictOk:function(){ biereVerdictOk(); },
     biereCancel:function(){ biereFermerPicker(); },
     biereAccepter:function(){ biereAccepter(); },
     biereRefuser:function(){ biereRefuser(); },
