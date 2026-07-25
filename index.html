@@ -831,7 +831,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b28</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b29</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1056,7 +1056,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b28</div>
+  <div class="buildtag">version 2026-07-25 · b29</div>
 </div>
 
 <script>
@@ -4749,18 +4749,36 @@ var PULSE = (function(){
     try{ history.back(); }catch(e){ navIgnore=false; }
   }
   function navRetour(){
-    /* 1. une partie tourne : on met en pause, on ne quitte pas */
-    if(document.body.classList.contains('playing') && running){
-      doPause(); navEnter(); return;
-    }
-    /* 2. un ecran est ouvert : retour a l'accueil */
+    /* 1. un ecran est ouvert : il prime, retour a l'accueil.
+       L'ecran de pause est teste ici : depuis la pause, retour = quitter la
+       partie, pas la reprendre. */
     var ecrans=['boardScreen','howtoScreen','missionScreen','modeScreen','shopScreen',
                 'pauseScreen','wizzPicker','over','win','rankUp'];
     for(var i=0;i<ecrans.length;i++){
       var e=$(ecrans[i]);
       if(e && !e.classList.contains('hide')){ stopMusic(); showStart(); return; }
     }
-    /* 3. deja a l'accueil : on ne retient pas le joueur. */
+
+    /* 2. une partie est en cours.
+       On ne teste SURTOUT PAS `running` ici. Ce drapeau retombe a false une
+       douzaine de fois par partie — decompte de depart, QCM, choix du WIZZ,
+       seconde chance, transitions de phase, animation de rate — et pendant ces
+       fenetres la partie est bel et bien en cours. Se fier a `running` faisait
+       tomber la fonction dans le cas 3 alors que l'entree d'historique venait
+       d'etre consommee : l'appui suivant sortait du site. C'etait exactement
+       le "de temps en temps ca quitte" ressenti par le joueur.
+
+       On se fie donc a la classe `playing`, et on rearme l'historique dans tous
+       les cas — meme quand la pause ne peut pas s'ouvrir a cet instant precis.
+       Au pire le joueur rappuie une seconde plus tard et la pause s'affiche ;
+       jamais il ne perd sa partie. */
+    if(document.body.classList.contains('playing')){
+      navEnter();
+      if(running) doPause();
+      return;
+    }
+
+    /* 3. accueil : plus rien a depiler, le navigateur sort. */
   }
   window.addEventListener('popstate', function(){
     if(navIgnore){ navIgnore=false; return; }   /* c'est nous qui avons appele back() */
