@@ -986,7 +986,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b37</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b38</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1243,7 +1243,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b37</div>
+  <div class="buildtag">version 2026-07-25 · b38</div>
 </div>
 
 <script>
@@ -1811,23 +1811,28 @@ var PULSE = (function(){
      - ceux a `rank` se gagnent au RANG, donc sur des dizaines de parties.
      Un theme sans `at` ne doit jamais tomber dans un test "at<=score" : c'est
      tout l'interet de la separation, et reach100() a ete corrige pour ca. */
+  /* Tous les themes sont libres. Ils ne changent rien au jeu : ni la vitesse,
+     ni les zones, ni le bareme. Les verrouiller derriere un score ou un rang
+     ne recompensait donc rien — ca privait surtout les nouveaux venus de
+     l'ambiance qui leur plaisait, au moment ou l'envie de rester se joue.
+     La progression reste marquee par les billes, les trainees et les titres,
+     qui eux se gagnent. */
   var THEMES=[
-    {id:'aqua',name:'Aqua',free:true,bg:'#131a35',glow:'#5CE1E6',core:'#FFD166'},
-    {id:'ember',name:'Ember',free:false,at:20,bg:'#2a0f14',glow:'#FF6B4D',core:'#FFD166'},
-    {id:'neon',name:'Neon',free:false,at:40,bg:'#1a0b2e',glow:'#B14DFF',core:'#4DFFB1'},
-    {id:'mint',name:'Mint',free:false,at:60,bg:'#0b2a1f',glow:'#4DFFB1',core:'#FFE14D'},
-    {id:'rose',name:'Rose',free:false,at:80,bg:'#2e0b1c',glow:'#FF4D9D',core:'#FFD166'},
-    {id:'gold',name:'Aurum',free:false,at:100,bg:'#241d05',glow:'#FFD166',core:'#FFF3C4'},
-    {id:'belgique',name:'Belgique',free:false,at:2000,bg:'#1a1400',glow:'#FDDA24',core:'#EF3340',frites:true},
-    /* --- themes de rang : la recompense longue --- */
-    {id:'minuit',  name:'Minuit',  free:false,rank:5, bg:'#05060d',glow:'#7C8CFF',core:'#C9D4FF'},
-    {id:'cerise',  name:'Cerise',  free:false,rank:9, bg:'#2b0616',glow:'#FF2E63',core:'#FFD166'},
-    {id:'vapeur',  name:'Vapeur',  free:false,rank:13,bg:'#1b0f2b',glow:'#FF6EC7',core:'#5CE1E6'},
-    {id:'emeraude',name:'Émeraude',free:false,rank:17,bg:'#04241c',glow:'#00E5A0',core:'#D9FFF2'},
-    {id:'cuivre',  name:'Cuivre',  free:false,rank:21,bg:'#241206',glow:'#FF9A3C',core:'#FFE3B0'},
-    {id:'givre',   name:'Givre',   free:false,rank:26,bg:'#0a1a24',glow:'#9FE8FF',core:'#FFFFFF'},
-    {id:'prisme',  name:'Prisme',  free:false,rank:33,bg:'#150a20',glow:'#B14DFF',core:'#FFD166',rainbow:true},
-    {id:'vide',    name:'Vide',    free:false,rank:40,bg:'#000000',glow:'#FFFFFF',core:'#FF4D6D'}
+    {id:'aqua',    name:'Aqua',     free:true, bg:'#131a35',glow:'#5CE1E6',core:'#FFD166'},
+    {id:'ember',   name:'Ember',    free:true, bg:'#2a0f14',glow:'#FF6B4D',core:'#FFD166'},
+    {id:'neon',    name:'Neon',     free:true, bg:'#1a0b2e',glow:'#B14DFF',core:'#4DFFB1'},
+    {id:'mint',    name:'Mint',     free:true, bg:'#0b2a1f',glow:'#4DFFB1',core:'#FFE14D'},
+    {id:'rose',    name:'Rose',     free:true, bg:'#2e0b1c',glow:'#FF4D9D',core:'#FFD166'},
+    {id:'gold',    name:'Aurum',    free:true, bg:'#241d05',glow:'#FFD166',core:'#FFF3C4'},
+    {id:'belgique',name:'Belgique', free:true, bg:'#1a1400',glow:'#FDDA24',core:'#EF3340',frites:true},
+    {id:'minuit',  name:'Minuit',   free:true, bg:'#05060d',glow:'#7C8CFF',core:'#C9D4FF'},
+    {id:'cerise',  name:'Cerise',   free:true, bg:'#2b0616',glow:'#FF2E63',core:'#FFD166'},
+    {id:'vapeur',  name:'Vapeur',   free:true, bg:'#1b0f2b',glow:'#FF6EC7',core:'#5CE1E6'},
+    {id:'emeraude',name:'Émeraude', free:true, bg:'#04241c',glow:'#00E5A0',core:'#D9FFF2'},
+    {id:'cuivre',  name:'Cuivre',   free:true, bg:'#241206',glow:'#FF9A3C',core:'#FFE3B0'},
+    {id:'givre',   name:'Givre',    free:true, bg:'#0a1a24',glow:'#9FE8FF',core:'#FFFFFF'},
+    {id:'prisme',  name:'Prisme',   free:true, bg:'#150a20',glow:'#B14DFF',core:'#FFD166'},
+    {id:'vide',    name:'Vide',     free:true, bg:'#000000',glow:'#FFFFFF',core:'#FF4D6D'}
   ];
 
   // deblocage par theme (liste d'ids), au lieu d'un simple booleen
@@ -1838,7 +1843,12 @@ var PULSE = (function(){
     // migration depuis l'ancien systeme
     if(localStorage.getItem('pulse_premium')==='1'){for(var m=0;m<THEMES.length;m++)unlockedSet[THEMES[m].id]=true;}
   }catch(e){}
-  function isUnlocked(t){ return t.free || !!unlockedSet[t.id] || (t.rank && PROF.rank>=t.rank); }
+  /* Tous les themes sont ouverts a tout le monde, sans palier ni rang. Un theme
+     ne change rien au jeu : le verrouiller ne recompensait personne, ca privait
+     seulement les nouveaux venus de l'ambiance qui leur plaisait. Les billes,
+     trainees et titres, eux, gardent leurs conditions : ce sont les marqueurs
+     de progression qui restent. */
+  function isUnlocked(t){ return true; }
   function allUnlocked(){ for(var i=0;i<THEMES.length;i++){if(!isUnlocked(THEMES[i]))return false;} return true; }
   function saveUnlocked(){ try{var a=[];for(var k in unlockedSet)if(unlockedSet[k])a.push(k);localStorage.setItem('pulse_unlocked',JSON.stringify(a));}catch(e){} }
 
@@ -2402,10 +2412,10 @@ var PULSE = (function(){
     missionBump(key, val, abs);
   }
 
-  var curTheme='aqua';
-  try{ curTheme = localStorage.getItem('pulse_theme')||'aqua'; }catch(e){}
+  var curTheme='minuit';
+  try{ curTheme = localStorage.getItem('pulse_theme')||'minuit'; }catch(e){}
   // securite : si le theme courant n'est pas debloque, revenir a aqua
-  (function(){var ok=false;for(var i=0;i<THEMES.length;i++){if(THEMES[i].id===curTheme&&isUnlocked(THEMES[i]))ok=true;}if(!ok)curTheme='aqua';})();
+  (function(){var ok=false;for(var i=0;i<THEMES.length;i++){if(THEMES[i].id===curTheme)ok=true;}if(!ok)curTheme='minuit';})();
 
   // --- Jojo : le pote encourageant ---
   var JOJO={
@@ -3865,6 +3875,54 @@ var PULSE = (function(){
     centerJokeTimer=setTimeout(function(){el.classList.remove('show');}, 3500);
   }
   var THEME;
+  /* ---------- ARC-EN-CIEL ----------
+     La teinte tourne avec le temps, pas avec la position : tout l'ecran reste
+     coherent a un instant donne, et l'ensemble derive lentement.
+
+     `decalage` sert a garder les billes distinctes entre elles. C'est
+     necessaire, pas decoratif : leur couleur porte le bareme (blanche 2 pts,
+     doree 4, rouge 8). Un arc-en-ciel applique tel quel les aurait rendues
+     identiques a certains instants, et le joueur aurait perdu l'information la
+     plus utile du jeu. Avec un tiers de tour d'ecart, deux billes ne se
+     confondent jamais. */
+  var arcEnCiel=true;
+  try{ var _a=localStorage.getItem('pulse_arc'); if(_a!==null) arcEnCiel=(_a==='1'); }catch(e){}
+
+  /* La teinte est ARRONDIE a 10 degres, et la couleur rendue en hexadecimal.
+     Les deux sont indispensables :
+       - les billes sont pre-dessinees dans un cache indexe par couleur. Une
+         teinte continue aurait fabrique un canvas neuf a chaque image, soit
+         soixante par seconde et par bille — la memoire et la fluidite y
+         passaient. Avec 36 teintes possibles, le cache se remplit une fois
+         puis se reutilise.
+       - hexA(), qui sert aux halos, ne sait lire que du #RRGGBB : une chaine
+         hsla() l'aurait fait retomber sur du blanc sans prevenir. */
+  var ARC_PAS=10;
+  function arcCol(decalage, lum){
+    var h=((performance.now()/26) + (decalage||0)) % 360;
+    if(h<0) h+=360;
+    h=Math.round(h/ARC_PAS)*ARC_PAS % 360;
+    return hslHex(h, 0.92, (lum||62)/100);
+  }
+  function hslHex(h,s,l){
+    h/=360;
+    var r,g,b;
+    if(s===0){ r=g=b=l; }
+    else{
+      var q = l<0.5 ? l*(1+s) : l+s-l*s, p = 2*l-q;
+      var f=function(t){
+        if(t<0)t+=1; if(t>1)t-=1;
+        if(t<1/6) return p+(q-p)*6*t;
+        if(t<1/2) return q;
+        if(t<2/3) return p+(q-p)*(2/3-t)*6;
+        return p;
+      };
+      r=f(h+1/3); g=f(h); b=f(h-1/3);
+    }
+    var x=function(v){ var n=Math.round(v*255).toString(16); return n.length<2?'0'+n:n; };
+    return '#'+x(r)+x(g)+x(b);
+  }
+
   function applyTheme(){
     var t=null; for(var i=0;i<THEMES.length;i++){if(THEMES[i].id===curTheme)t=THEMES[i];}
     if(!t)t=THEMES[0];
@@ -5560,16 +5618,11 @@ var PULSE = (function(){
   }
 
   /* ---------- paliers ---------- */
-  function unlockReached(){
-    var fresh=null;
-    for(var i=0;i<THEMES.length;i++){
-      if(!THEMES[i].free && THEMES[i].at<=score && !unlockedSet[THEMES[i].id]){
-        unlockedSet[THEMES[i].id]=true; fresh=THEMES[i];
-      }
-    }
-    if(fresh) saveUnlocked();
-    return fresh;
-  }
+  /* Plus aucun theme ne se debloque : ils sont tous ouverts des la premiere
+     partie. Annoncer un deblocage reviendrait a offrir au joueur quelque chose
+     qu'il possede deja. La fonction est conservee — le reste du moteur
+     l'appelle — mais elle ne renvoie plus rien. */
+  function unlockReached(){ return null; }
   function reach100(){
     if(passed100) return;
     passed100=true;
@@ -5781,7 +5834,7 @@ var PULSE = (function(){
       if(pl>=GOAL && !passed100){
         reach100(); setLevelAuto();
       } else if(freshTheme){
-        if(freshTheme.id==='belgique'){
+        if(false && freshTheme.id==='belgique'){
           friteRain(); setTimeout(friteRain,250); setTimeout(friteRain,500);
           toast('\u{1F1E7}\u{1F1EA} 2000 !', 'Th\u00e8me Belgique d\u00e9bloqu\u00e9 !');
           setTimeout(function(){ jojo('unlock', 'Une fois ! Le th\u00e8me Belgique est \u00e0 toi, avec la pluie de frites \u{1F35F} All\u00e9, choisis-le dans les Th\u00e8mes !'); }, 900);
@@ -6422,7 +6475,7 @@ var PULSE = (function(){
     var remain=GOAL-score;
     if(!isMode('classic')){ $('progMini').innerHTML = modeById(gameMode).icon+' Mode <b>'+modeById(gameMode).name+'</b>'; }
     else if(score>=GOAL){ $('progMini').innerHTML = 'Mode infini \u2014 score de <b>'+score+'</b> !'; }
-    else if(!unlockedSet['belgique'] && score>=100){
+    else if(false){
       var toBel=2000-score;
       $('progMini').innerHTML = toBel>0 ? 'Encore <b>'+toBel+'</b> pts pour le th\u00e8me Belgique \u{1F1E7}\u{1F1EA}\u{1F35F}' : 'Th\u00e8me Belgique atteint !';
     }
@@ -6511,7 +6564,9 @@ var PULSE = (function(){
         ctx.globalAlpha=1;
       }
       ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-      ctx.strokeStyle = m>1 ? 'rgba(255,209,102,.35)' : (belge?'rgba(253,218,36,.4)':'rgba(90,107,140,.28)');
+      ctx.strokeStyle = m>1 ? 'rgba(255,209,102,.35)'
+                     : (arcEnCiel ? hexA(arcCol(0,60),.45)
+                     : (belge?'rgba(253,218,36,.4)':'rgba(90,107,140,.28)'));
       ctx.lineWidth=3;ctx.stroke();
       /* AURA DE COMBO : l'anneau s'epaissit et s'allume progressivement, des la
          2e touche. C'est le retour le plus continu du jeu — avant, rien ne
@@ -6597,10 +6652,10 @@ var PULSE = (function(){
         ctx.globalAlpha=1;
       }
       /* trainees */
-      drawTrail(trail1,r,'#ffffff',3.5);
-      if(ball2) drawTrail(trail2,r,'#FFD166',3);
-      if(ball3) drawTrail(trail3,r,'#FF3B3B',3.5);
-      if(innerRing) drawTrail(trailIn,Rin(),'#FF4D9D',2.8);
+      drawTrail(trail1,r,arcEnCiel?arcCol(0,72):'#ffffff',3.5);
+      if(ball2) drawTrail(trail2,r,arcEnCiel?arcCol(120,62):'#FFD166',3);
+      if(ball3) drawTrail(trail3,r,arcEnCiel?arcCol(240,58):'#FF3B3B',3.5);
+      if(innerRing) drawTrail(trailIn,Rin(),arcEnCiel?arcCol(60,70):'#FF4D9D',2.8);
 
       /* billes (sprites). En NUIT chacune porte sa propre opacite : elle
          n'apparait qu'en approchant de la zone. Rien d'autre ne change — ni la
@@ -6609,10 +6664,10 @@ var PULSE = (function(){
          la bille des yeux, et doit se fier au rythme. */
       var nOn = phaseIs('nuit') || modNight;
       if(nOn) ctx.globalAlpha=nightAlpha(angle);
-      drawBall(angle,r,'#ffffff',9);
-      if(ball2){ if(nOn) ctx.globalAlpha=nightAlpha(angle2); drawBall(angle2,r,'#FFD166',8); }
-      if(ball3){ if(nOn) ctx.globalAlpha=nightAlpha(angle3); drawBall(angle3,r,'#FF3B3B',9); }
-      if(innerRing){ if(nOn) ctx.globalAlpha=nightAlpha(angleIn); drawBall(angleIn,Rin(),'#FF9DD0',7); }
+      drawBall(angle,r,arcEnCiel?arcCol(0,72):'#ffffff',9);
+      if(ball2){ if(nOn) ctx.globalAlpha=nightAlpha(angle2); drawBall(angle2,r,arcEnCiel?arcCol(120,62):'#FFD166',8); }
+      if(ball3){ if(nOn) ctx.globalAlpha=nightAlpha(angle3); drawBall(angle3,r,arcEnCiel?arcCol(240,58):'#FF3B3B',9); }
+      if(innerRing){ if(nOn) ctx.globalAlpha=nightAlpha(angleIn); drawBall(angleIn,Rin(),arcEnCiel?arcCol(60,70):'#FF9DD0',7); }
       ctx.globalAlpha=1;
     }
     /* terrain arkanoid : apparait juste apres la bascule, en 100 ms */
