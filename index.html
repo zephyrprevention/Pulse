@@ -986,7 +986,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b38</div>
+  <div class="buildtag" id="buildTag">version 2026-07-25 · b39</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1243,7 +1243,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b38</div>
+  <div class="buildtag">version 2026-07-25 · b39</div>
 </div>
 
 <script>
@@ -1874,7 +1874,7 @@ var PULSE = (function(){
     streak:0, bestStreak:0, lastDay:'', daysPlayed:0,
     mDay:'', missions:[],
     dDay:'', dBest:0, dMedal:0,
-    owned:{}, equip:{ball:'classic',trail:'classic',title:''},
+    owned:{}, equip:{ball:'anneau',trail:'classic',title:''}, migAnneau:1,
     bonus:{}, loadout:[],
     claimedRank:1, news:{}
   };
@@ -1887,7 +1887,16 @@ var PULSE = (function(){
       }
     }catch(e){}
     if(!PROF.owned) PROF.owned={};
-    if(!PROF.equip) PROF.equip={ball:'classic',trail:'classic',title:''};
+    if(!PROF.equip) PROF.equip={ball:'anneau',trail:'classic',title:''};
+    /* Bascule unique vers l'anneau. Les joueurs deja installes ont 'classic'
+       enregistre, mais ce n'etait pas un choix : c'etait l'ancien defaut, et
+       l'anneau leur etait alors verrouille. On les bascule donc une fois, sans
+       toucher a ceux qui ont reellement choisi une autre bille. Le drapeau
+       garantit qu'un joueur qui reprend 'Classique' apres coup le garde. */
+    if(!PROF.migAnneau){
+      PROF.migAnneau=1;
+      if(!PROF.equip.ball || PROF.equip.ball==='classic') PROF.equip.ball='anneau';
+    }
     if(!PROF.bestBy) PROF.bestBy={};
     if(!PROF.missions) PROF.missions=[];
     if(!PROF.news) PROF.news={};
@@ -1936,8 +1945,12 @@ var PULSE = (function(){
      l'equilibrage oblige a la doser, une recompense purement visuelle peut etre
      donnee genereusement — et c'est la generosite qui fait revenir. */
   var BALLSKINS=[
+    /* L'anneau passe en bille de base : creux, il laisse voir la zone qu'il
+       recouvre au moment de la touche, la ou la bille pleine la masquait juste
+       avant l'impact. C'est un gain de lisibilite, pas un ornement — il n'y
+       avait aucune raison de le reserver au rang 3. */
+    {id:'anneau',  name:'Anneau',    how:'de base',            cost:0},
     {id:'classic', name:'Classique', how:'de base',            cost:0},
-    {id:'anneau',  name:'Anneau',    how:'rang 3',   rank:3},
     {id:'pixel',   name:'Pixel',     how:'rang 7',   rank:7},
     {id:'oeil',    name:'Œil',       how:'rang 11',  rank:11},
     {id:'flamme',  name:'Flamme',    how:'rang 15',  rank:15},
@@ -1982,7 +1995,7 @@ var PULSE = (function(){
       for(var t=0;t<THEMES.length;t++) if(THEMES[t].id===id) return isUnlocked(THEMES[t]);
       return false;
     }
-    if(id==='' || id==='classic') return true;
+    if(id==='' || id==='classic' || id==='anneau') return true;
     var L=cosmoList(kind);
     for(var i=0;i<L.length;i++){
       if(L[i].id===id){
@@ -1995,8 +2008,9 @@ var PULSE = (function(){
   }
   function equipped(kind){
     if(kind==='theme') return curTheme;
-    var id=PROF.equip[kind]||(kind==='title'?'':'classic');
-    return cosmoOwned(kind,id) ? id : (kind==='title'?'':'classic');
+    var def = kind==='title' ? '' : (kind==='ball' ? 'anneau' : 'classic');
+    var id=PROF.equip[kind]||def;
+    return cosmoOwned(kind,id) ? id : def;
   }
   /* Phrase unique qui dit COMMENT obtenir un objet, quel que soit son type.
      Un cadenas muet ne donne envie de rien : chaque objet verrouille doit
@@ -4600,7 +4614,7 @@ var PULSE = (function(){
     if(h.length===4){ n=parseInt(h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2)+h.charAt(3)+h.charAt(3),16); }
     return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
   }
-  var skinBall='classic', skinTrail='classic';
+  var skinBall='anneau', skinTrail='classic';
   function refreshSkins(){ skinBall=equipped('ball'); skinTrail=equipped('trail'); }
   function drawBall(a,r,color,rad,noSkin){
     var p=ptOn(a,r), sp=ballSprite(color,rad, noSkin?'classic':skinBall);

@@ -1,5 +1,5 @@
 // Change SW_VERSION a chaque mise a jour importante (v1 -> v2 -> v3...)
-const SW_VERSION = 'pulse-v79';
+const SW_VERSION = 'pulse-v80';
 const ASSETS = ['./', './index.html', './manifest.json',
                 './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
