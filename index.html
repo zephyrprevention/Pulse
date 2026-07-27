@@ -545,10 +545,15 @@
   /* Message de la Collection : il remplace le "hint" muet d'avant. Il ne prend
      de la place que quand il a quelque chose a dire — une ligne vide en
      permanence apprend au joueur a ne plus regarder cet endroit. */
-  .shopmsg{width:100%;max-width:360px;margin-bottom:14px;padding:0;max-height:0;overflow:hidden;
+  /* Le bandeau s'ouvrait en animant max-height depuis 0, avec overflow:hidden.
+     Le texte etait donc rogne pendant toute l'animation, et restait coupe en
+     deux si elle se figeait a mi-course. On anime l'opacite : la hauteur est
+     libre des le depart, plus rien ne peut etre tronque. */
+  .shopmsg{width:100%;max-width:360px;margin-bottom:0;padding:0;height:0;overflow:hidden;
     border-radius:var(--r-sm);font-size:13px;font-weight:700;line-height:1.35;text-align:left;
-    transition:max-height .25s,padding .25s,margin .25s}
-  .shopmsg.on{padding:11px 14px;max-height:120px;background:var(--glass);border:1px solid var(--glass-b)}
+    opacity:0;transition:opacity .22s ease}
+  .shopmsg.on{height:auto;overflow:visible;opacity:1;margin-bottom:14px;
+    padding:11px 14px;background:var(--glass);border:1px solid var(--glass-b)}
   .shopmsg.ok{background:rgba(124,245,226,.1);border-color:rgba(124,245,226,.45);color:#7CF5E2}
   .shopmsg.err{background:rgba(255,77,109,.1);border-color:rgba(255,77,109,.45);color:#FF9DB0}
   .shopmsg.info{color:var(--ink2)}
@@ -986,7 +991,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-25 · b39</div>
+  <div class="buildtag" id="buildTag">version 2026-07-26 · b40</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1243,7 +1248,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-25 · b39</div>
+  <div class="buildtag">version 2026-07-26 · b40</div>
 </div>
 
 <script>
