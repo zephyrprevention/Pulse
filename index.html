@@ -991,7 +991,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-26 · b40</div>
+  <div class="buildtag" id="buildTag">version 2026-07-27 · b41</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1248,7 +1248,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-26 · b40</div>
+  <div class="buildtag">version 2026-07-27 · b41</div>
 </div>
 
 <script>
@@ -3916,6 +3916,23 @@ var PULSE = (function(){
          puis se reutilise.
        - hexA(), qui sert aux halos, ne sait lire que du #RRGGBB : une chaine
          hsla() l'aurait fait retomber sur du blanc sans prevenir. */
+  /* Une bille ne peut pas prendre n'importe quelle couleur : la sienne EST son
+     bareme. Blanche 2 points, doree 4, rouge 8. La premiere version faisait
+     defiler les trois sur tout le cercle chromatique en les gardant simplement
+     distinctes les unes des autres — ce qui manquait l'essentiel : on voyait
+     bien qu'elles differaient, mais plus laquelle valait 8.
+
+     Chaque bille oscille donc a l'interieur de SA famille : la rouge reste
+     rouge, la doree reste doree. Le scintillement est conserve, l'information
+     aussi. Seul l'anneau, qui ne code rien, garde l'arc-en-ciel complet. */
+  function arcBande(centre, amplitude, lum, sat){
+    var t=performance.now()/900;
+    var h=centre + Math.sin(t)*amplitude;
+    h=Math.round(h/6)*6;                        /* le cache reste borne */
+    h=((h%360)+360)%360;
+    return hslHex(h, (sat===undefined?0.85:sat), (lum||60)/100);
+  }
+
   var ARC_PAS=10;
   function arcCol(decalage, lum){
     var h=((performance.now()/26) + (decalage||0)) % 360;
@@ -6671,10 +6688,10 @@ var PULSE = (function(){
         ctx.globalAlpha=1;
       }
       /* trainees */
-      drawTrail(trail1,r,arcEnCiel?arcCol(0,72):'#ffffff',3.5);
-      if(ball2) drawTrail(trail2,r,arcEnCiel?arcCol(120,62):'#FFD166',3);
-      if(ball3) drawTrail(trail3,r,arcEnCiel?arcCol(240,58):'#FF3B3B',3.5);
-      if(innerRing) drawTrail(trailIn,Rin(),arcEnCiel?arcCol(60,70):'#FF4D9D',2.8);
+      drawTrail(trail1,r,arcEnCiel?arcBande(190,150,93,0.22):'#ffffff',3.5);
+      if(ball2) drawTrail(trail2,r,arcEnCiel?arcBande(45,17,64,0.95):'#FFD166',3);
+      if(ball3) drawTrail(trail3,r,arcEnCiel?arcBande(357,16,60,0.95):'#FF3B3B',3.5);
+      if(innerRing) drawTrail(trailIn,Rin(),arcEnCiel?arcBande(325,15,66,0.9):'#FF4D9D',2.8);
 
       /* billes (sprites). En NUIT chacune porte sa propre opacite : elle
          n'apparait qu'en approchant de la zone. Rien d'autre ne change — ni la
@@ -6683,10 +6700,10 @@ var PULSE = (function(){
          la bille des yeux, et doit se fier au rythme. */
       var nOn = phaseIs('nuit') || modNight;
       if(nOn) ctx.globalAlpha=nightAlpha(angle);
-      drawBall(angle,r,arcEnCiel?arcCol(0,72):'#ffffff',9);
-      if(ball2){ if(nOn) ctx.globalAlpha=nightAlpha(angle2); drawBall(angle2,r,arcEnCiel?arcCol(120,62):'#FFD166',8); }
-      if(ball3){ if(nOn) ctx.globalAlpha=nightAlpha(angle3); drawBall(angle3,r,arcEnCiel?arcCol(240,58):'#FF3B3B',9); }
-      if(innerRing){ if(nOn) ctx.globalAlpha=nightAlpha(angleIn); drawBall(angleIn,Rin(),arcEnCiel?arcCol(60,70):'#FF9DD0',7); }
+      drawBall(angle,r,arcEnCiel?arcBande(190,150,93,0.22):'#ffffff',9);
+      if(ball2){ if(nOn) ctx.globalAlpha=nightAlpha(angle2); drawBall(angle2,r,arcEnCiel?arcBande(45,17,64,0.95):'#FFD166',8); }
+      if(ball3){ if(nOn) ctx.globalAlpha=nightAlpha(angle3); drawBall(angle3,r,arcEnCiel?arcBande(357,16,60,0.95):'#FF3B3B',9); }
+      if(innerRing){ if(nOn) ctx.globalAlpha=nightAlpha(angleIn); drawBall(angleIn,Rin(),arcEnCiel?arcBande(325,15,72,0.9):'#FF9DD0',7); }
       ctx.globalAlpha=1;
     }
     /* terrain arkanoid : apparait juste apres la bascule, en 100 ms */
