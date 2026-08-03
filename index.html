@@ -777,7 +777,17 @@
     padding:0 4px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
   /* un bonus deja consomme reste visible mais eteint : le joueur voit ce qu'il
      avait, et donc ce qu'il pourrait racheter */
-  .bb.spent{opacity:.3;pointer-events:none}
+  /* Trois etats, trois lectures immediates :
+     - en charge : anneau partiel, bouton en retrait
+     - PRET      : liseré vert et halo, il appelle le pouce
+     - en cours  : liseré or, l'effet tourne */
+  .bb.spent{opacity:.55}
+  .bb.spent .bl{opacity:.8}
+  .bb.ready{border-color:rgba(124,245,226,.9);box-shadow:0 0 16px rgba(124,245,226,.4);opacity:1}
+  .bb.ready .bi{animation:bready 2.2s ease-in-out infinite}
+  .bb.ready .bl{color:#7CF5E2}
+  @keyframes bready{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+  @media (prefers-reduced-motion:reduce){.bb.ready .bi{animation:none}}
   .bb.spent .bq{background:var(--dim);color:#06121a}
   .bb.on{border-color:var(--gold);box-shadow:0 0 18px rgba(255,209,102,.45)}
   @keyframes bbpop{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
@@ -1109,7 +1119,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b55</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b57</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1150,7 +1160,8 @@
 
   <div class="explain">
     <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Ils sont <b>passifs</b> &mdash; <i>rien &agrave; d&eacute;clencher</i>. Ils s'affichent dans la <b>colonne de gauche</b>, et cette ligne <b>s'allume en disant ce qu'elle vient de faire</b> chaque fois que le module agit.</div></div>
-    <div class="ex"><div class="exi">&#128266;</div><div class="ext">Retiens juste les deux c&ocirc;t&eacute;s&nbsp;: <b>&agrave; gauche</b>, ce qui agit tout seul. <b>&Agrave; droite</b>, les <b>boutons ronds</b> &mdash; tes <b>bonus achet&eacute;s</b>. Eux, c'est toi qui les d&eacute;clenches, <i>au moment que tu choisis</i>. L'&eacute;tiquette &agrave; c&ocirc;t&eacute; dit ce qu'ils font et combien de temps &ccedil;a dure.</div></div>
+    <div class="ex"><div class="exi">&#128266;</div><div class="ext">Retiens juste les deux c&ocirc;t&eacute;s&nbsp;: <b>&agrave; gauche</b>, ce qui agit tout seul. <b>&Agrave; droite</b>, les <b>boutons ronds</b> &mdash; c'est toi qui les d&eacute;clenches.</div></div>
+    <div class="ex"><div class="exi">&#128267;</div><div class="ext">Les boutons de droite <b>se rechargent en jouant</b>&nbsp;: chaque point marqu&eacute; remplit leur anneau. Plein, le bouton <b>s'allume en vert</b> &mdash; tu t'en sers <i>gratuitement</i>, autant de fois que la partie te le permet. Rien &agrave; acheter, rien &agrave; pr&eacute;parer.</div></div>
     <div class="ex"><div class="exi">&#11088;</div><div class="ext">L'<b>XP</b> fait monter ton <b>rang</b>. Chaque rang d&eacute;bloque un th&egrave;me, une bille, une tra&icirc;n&eacute;e, un titre ou un <i>mode de jeu</i>. Tu en gagnes &agrave; <i>chaque partie</i>, m&ecirc;me rat&eacute;e.</div></div>
     <div class="ex"><div class="exi">&#128142;</div><div class="ext">Les <b>&eacute;clats &#128142;</b> (&agrave; ne pas confondre avec les WIZZ &#9889;) s'&eacute;changent contre des <b>bonus</b> que tu d&eacute;clenches en pleine partie&nbsp;: bouclier, ralenti, points &times;2, vies... <i>C'est ici qu'on en gagne le plus.</i></div></div>
   </div>
@@ -1377,7 +1388,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b55</div>
+  <div class="buildtag">version 2026-08-03 · b57</div>
 </div>
 
 <script>
@@ -2193,22 +2204,22 @@ var PULSE = (function(){
      Bareme : un bon run (dscore ~1500) rapporte ~7 WIZZ, donc une 2e chance ou
      trois boucliers. Assez pour que ce soit un choix, pas une formalite. */
   var BONUS=[
-    {id:'bouclier',n:'Bouclier',   ic:'🛡️',cost:120, wcost:2,
+    {id:'bouclier',n:'Bouclier',   ic:'🛡️',cost:120, wcost:2, fill:140,
      d:'Annule ton prochain raté. Une vie sauvée, au moment où tu le décides.',
      court:'annule 1 raté'},
-    {id:'ralenti', n:'Ralenti',    ic:'❄️',cost:100,
+    {id:'ralenti', n:'Ralenti',    ic:'❄️',cost:100, fill:170,
      d:'8 secondes au ralenti. De quoi reprendre la main quand ça s\'emballe.',
      court:'8 s de ralenti'},
-    {id:'zonexl',  n:'Zone XL',    ic:'🎯',cost:130,
+    {id:'zonexl',  n:'Zone XL',    ic:'🎯',cost:130, fill:200,
      d:'12 secondes de zones élargies. Le combo repart sans risque.',
      court:'zones XL 12 s'},
-    {id:'double',  n:'Points ×2',  ic:'⭐',cost:180,
+    {id:'double',  n:'Points ×2',  ic:'⭐',cost:180, fill:260,
      d:'15 secondes où tout compte double. À lancer pendant un gros combo.',
      court:'×2 pendant 15 s'},
-    {id:'vies',    n:'+2 vies',    ic:'💖',cost:150, wcost:3,
+    {id:'vies',    n:'+2 vies',    ic:'💖',cost:150, wcost:3, fill:340,
      d:'Deux cœurs tout de suite. Le filet de sécurité quand ça sent le sapin.',
      court:'+2 cœurs'},
-    {id:'revive',  n:'2e chance',  ic:'🔁',cost:300, wcost:5,
+    {id:'revive',  n:'2e chance',  ic:'🔁',cost:300, wcost:5, fill:700,
      d:'Reprends la partie après le game over, avec 3 vies. Le plus cher, et de loin le plus rentable sur un gros score.',
      court:'repart après la mort'}
   ];
@@ -6105,11 +6116,57 @@ var PULSE = (function(){
      Desormais : ce que tu possedes est dans la barre. Point. La vraie decision
      n'a pas disparu, elle a change de place — elle se prend maintenant EN
      partie, au moment de declencher, et dans le tirage de modules. */
-  function initRunBonus(){
-    runBonus=[]; shieldOn=0; dblT=0; xlT=0; reviveLeft=0;
+  /* ============ LES BONUS SE RECHARGENT EN JOUANT ============
+     Il fallait aller les racheter dans un menu entre deux parties. Une corvee
+     administrative posee au milieu d'un jeu d'arcade : on quitte l'action pour
+     faire des courses, et on revient. Personne n'a envie de ca.
+
+     Desormais chaque bouton a une JAUGE qui se remplit avec les points que tu
+     marques. Pleine, il s'allume : tu t'en sers, gratuitement, autant de fois
+     que la partie te le permet. Plus une seule course a faire.
+
+     La reserve achetee ne disparait pas pour autant, elle change de role : elle
+     sert quand la jauge n'est PAS pleine. C'est le depannage d'urgence, celui
+     qu'on paie parce qu'on n'a pas le temps d'attendre — et c'est un bien
+     meilleur usage de l'argent qu'un abonnement obligatoire. */
+  var bCharge={};                  /* id -> points accumules dans CETTE partie */
+  function bFull(id){
+    var d=bonusById(id);
+    return d ? (bCharge[id]||0) >= d.fill : false;
+  }
+  function bPct(id){
+    var d=bonusById(id); if(!d) return 0;
+    return Math.max(0, Math.min(1, (bCharge[id]||0)/d.fill));
+  }
+  /* Les points marques alimentent TOUTES les jauges en meme temps. Un seul
+     compteur a suivre du regard, et la recompense reste liee a la seule chose
+     que le joueur controle vraiment : bien jouer. */
+  function addCharge(n){
+    if(n<=0) return;
+    var chg=false;
     for(var i=0;i<BONUS.length;i++){
-      var q=bonusQty(BONUS[i].id);
-      if(q>0) runBonus.push({id:BONUS[i].id, left:q});
+      var id=BONUS[i].id, av=bFull(id);
+      bCharge[id]=(bCharge[id]||0)+n;
+      if(!av && bFull(id)){
+        chg=true;
+        floatText(cx,cy+120,BONUS[i].ic+' '+BONUS[i].n+' rechargé','#7CF5E2',true);
+        sfxSpecial(); haptic([15,30,15]);
+      }
+    }
+    renderBonusBar();
+    if(chg) toast('🔋 Bonus rechargé','appuie sur le bouton pour t\'en servir');
+  }
+
+  function initRunBonus(){
+    runBonus=[]; shieldOn=0; dblT=0; xlT=0; reviveLeft=0; bCharge={};
+    /* LES SIX BOUTONS SONT TOUJOURS AFFICHES, meme a zero exemplaire.
+       Avant, la barre etait vide tant qu'on n'avait rien achete : un joueur
+       pouvait donc faire vingt parties sans jamais soupconner qu'un bouclier
+       ou un ralenti existaient. Un systeme invisible n'est pas un systeme
+       discret, c'est un systeme absent. Le bouton grise dit ce qu'il ferait et
+       comment l'obtenir — c'est lui, la publicite du jeu. */
+    for(var i=0;i<BONUS.length;i++){
+      runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
     }
     renderBonusBar();
   }
@@ -6120,14 +6177,20 @@ var PULSE = (function(){
       var b=runBonus[i], d=bonusById(b.id);
       if(!d) continue;
       var actif = (b.id==='double'&&dblT>0)||(b.id==='zonexl'&&xlT>0)||(b.id==='bouclier'&&shieldOn>0);
-      h+='<div class="bb'+(b.left<=0?' spent':'')+(actif?' on':'')+'" id="bb_'+b.id+'"'
+      var pret  = bFull(b.id), pct=Math.round(bPct(b.id)*100);
+      /* Un anneau qui se remplit autour du bouton : le joueur voit la recharge
+         AVANCER pendant qu'il joue. C'est ce qui transforme une reserve en
+         recompense — on attend quelque chose au lieu d'aller le chercher. */
+      var ring = pret ? '' : 'background:conic-gradient(rgba(124,245,226,.85) '+pct+'%,rgba(255,255,255,.07) 0);';
+      h+='<div class="bb'+(pret?' ready':(b.left>0?'':' spent'))+(actif?' on':'')+'" id="bb_'+b.id+'"'
+       + ' style="'+ring+'"'
        + ' onclick="PULSE.useBonus(\''+b.id+'\')" title="'+d.n+'">'
        + '<span class="bi">'+d.ic+'</span>'
-       + '<span class="bq">'+b.left+'</span>'
-       + '<span class="bl">'+(actif?'en cours':d.court)+'</span></div>';
+       + (b.left>0?'<span class="bq">'+b.left+'</span>':'')
+       + '<span class="bl">'+(actif?'en cours':(pret?d.court:pct+' % — '+d.court))+'</span></div>';
     }
     el.innerHTML=h;
-    el.classList.toggle('dense', runBonus.length>4);
+    el.classList.toggle('dense', runBonus.length>4);   /* six boutons : toujours vrai */
   }
   /* Consommation. Renvoie false si rien ne s'est passe — et dans ce cas on le
      DIT, parce qu'un bouton qui ne repond pas se lit comme un bouton casse. */
@@ -6136,10 +6199,19 @@ var PULSE = (function(){
     var slot=null;
     for(var i=0;i<runBonus.length;i++) if(runBonus[i].id===id) slot=runBonus[i];
     if(!slot) return;
-    if(slot.left<=0){ toast('Épuisé','Rachète-le dans la Collection'); haptic(30); return; }
-
     var d=bonusById(id);
-    slot.left--; bonusAdd(id,-1); saveProf();
+    /* Ordre volontaire : la jauge PASSE AVANT la reserve. Consommer un objet
+       paye alors qu'un usage gratuit etait disponible serait un vol. */
+    if(bFull(id)){
+      bCharge[id]=0;
+    } else if(slot.left>0){
+      slot.left--; bonusAdd(id,-1); saveProf();
+      toast('📦 '+d.n, 'pris dans ta réserve · jauge à '+Math.round(bPct(id)*100)+' %');
+    } else {
+      toast(d.ic+' '+d.n+' — pas encore prêt',
+            'jauge à '+Math.round(bPct(id)*100)+' % · continue de marquer des points');
+      haptic(30); renderBonusBar(); return;
+    }
 
     if(id==='bouclier'){ shieldOn++; toast('🛡️ Bouclier','ton prochain raté est annulé'); }
     else if(id==='ralenti'){ freezeSlowT=Math.max(freezeSlowT,8000); toast('❄️ Ralenti','8 secondes pour respirer'); }
@@ -6774,6 +6846,7 @@ var PULSE = (function(){
       fxCount = (multi>=3)?55 : (multi>=2)?42 : (hitR?30:22);
 
       score+=total; setScore();
+      addCharge(total);          /* les points rechargent les bonus */
 
       var pr=outerHit?R():Rin();
       var pa=ptOn(outerHit?hitAngle:angleIn, pr);
