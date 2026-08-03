@@ -942,11 +942,16 @@
      quelque chose a dire — au lancement, a la recharge, au declenchement —
      puis s'efface. L'information reste disponible, elle cesse d'etre du decor
      permanent pose par dessus l'anneau. */
+  /* Les libelles etaient poses en plein sur l'anneau, cote a cote sur six
+     lignes : le joueur visait a travers du texte. Ils ne sortent plus que sur
+     LE bouton qui vient de se recharger, deux secondes et demie, et jamais
+     plusieurs a la fois. Le reste de l'information vit dans la pause, ou on a
+     le temps de lire sans rien rater. */
   .bb .bl{position:absolute;right:58px;top:50%;transform:translateY(-50%);
-    white-space:nowrap;font-size:10px;font-weight:800;color:var(--ink2);
-    background:rgba(6,10,22,.78);border-radius:6px;padding:2px 6px;pointer-events:none;
-    opacity:0;transition:opacity .35s}
-  .bonusbar.say .bb .bl{opacity:1}
+    white-space:nowrap;font-size:10px;font-weight:800;color:#7CF5E2;
+    background:rgba(6,10,22,.86);border-radius:6px;padding:2px 6px;pointer-events:none;
+    opacity:0;transition:opacity .3s}
+  .bb.say .bl{opacity:1}
   .bonusbar.dense .bb .bl{right:50px;font-size:9px}
   /* Rappel des modules sur l'ecran de pause : c'est le seul moment ou le
      joueur a le temps de lire. */
@@ -1132,7 +1137,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b59</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b61</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1275,6 +1280,8 @@
   <div class="tag">souffle un coup</div>
   <div class="ntitle" id="pauseModT" style="max-width:320px;display:none">Tes modules &mdash; ils agissent seuls</div>
   <div class="modlist" id="pauseMods"></div>
+  <div class="ntitle" style="max-width:320px">Tes bonus &mdash; boutons de droite</div>
+  <div class="modlist" id="pauseBonus"></div>
   <div class="melolab">M&eacute;lodie de fond</div>
   <div class="melorow" id="meloRow"></div>
   <button class="go" onclick="PULSE.resume()">Reprendre</button>
@@ -1401,7 +1408,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b59</div>
+  <div class="buildtag">version 2026-08-03 · b61</div>
 </div>
 
 <script>
@@ -5238,9 +5245,15 @@ var PULSE = (function(){
     if(goldT>0){ z = Math.min(z*1.6, 0.62); }   /* RUSH OR : zones elargies */
     if(modZone!==1) z *= modZone;               /* modificateur du defi du jour */
     if(freezeSlowT>0) z = Math.min(z*1.25, 0.62); /* zone ❄ : on respire vraiment */
-    if(xlT>0) z = Math.min(z*1.55, 0.66);       /* bonus 🎯 Zone XL */
+    /* Zone XL empilable. Le plafond monte avec la pile, sinon le 2e et le 3e
+       cran seraient manges par la limite et l'empilement ne servirait a rien —
+       c'est exactement le bug qu'on corrige. Il reste un plafond a 0.88 : une
+       zone qui fait tout le tour supprime le jeu au lieu de l'aider. */
+    if(xlT>0 && xlStack>0){
+      z = Math.min(z*(1+0.55*xlStack), Math.min(0.66+0.09*(xlStack-1), 0.88));
+    }
     z *= mZone();                               /* modules 🔎 Lentille / ⚖️ Usurier */
-    return Math.max(0.05, Math.min(z, 0.72));
+    return Math.max(0.05, Math.min(z, xlT>0 ? 0.90 : 0.72));
   }
   function intensity(){ return Math.min(score/120, 1.2); }
   /* La courbe d'origine est intacte : les modes ne font que la multiplier a la
@@ -6122,6 +6135,7 @@ var PULSE = (function(){
   var shieldOn=0;                  /* raté(s) annulé(s) en reserve */
   var dblT=0;                      /* points x2 du bonus ⭐ */
   var xlT=0;                       /* zones XL du bonus 🎯 */
+  var xlStack=0, XL_MAX=4;         /* nombre d'activations cumulees */
   var reviveLeft=0;                /* secondes chances disponibles */
 
   /* Plus d'etape d'equipement. Avant, il fallait acheter un bonus PUIS aller
@@ -6164,33 +6178,41 @@ var PULSE = (function(){
      lequel vient de s'allumer). */
   var sayT=null;
   function sayLabels(ms){
-    var a=$('bonusBar'), b=$('buildStrip');
-    if(a) a.classList.add('say');
-    if(b) b.classList.add('say');
+    var b=$('buildStrip');
+    if(!b) return;
+    b.classList.add('say');
     if(sayT) clearTimeout(sayT);
-    sayT=setTimeout(function(){
-      if(a) a.classList.remove('say');
-      if(b) b.classList.remove('say');
-    }, ms||2600);
+    sayT=setTimeout(function(){ b.classList.remove('say'); }, ms||2600);
+  }
+  /* Un seul bouton parle a la fois, et seulement celui qui vient de passer au
+     vert. C'est l'unique moment ou le texte apporte quelque chose. */
+  var sayBT={};
+  function sayBonus(id){
+    var el=$('bb_'+id); if(!el) return;
+    el.classList.add('say');
+    if(sayBT[id]) clearTimeout(sayBT[id]);
+    sayBT[id]=setTimeout(function(){
+      var e2=$('bb_'+id); if(e2) e2.classList.remove('say');
+    }, 2500);
   }
   function addCharge(n){
     if(n<=0) return;
-    var chg=false;
+    var neufs=[];
     for(var i=0;i<BONUS.length;i++){
       var id=BONUS[i].id, av=bFull(id);
       bCharge[id]=(bCharge[id]||0)+n;
-      if(!av && bFull(id)){
-        chg=true;
-        floatText(cx,cy+120,BONUS[i].ic+' '+BONUS[i].n+' rechargé','#7CF5E2',true);
-        sfxSpecial(); haptic([15,30,15]);
-      }
+      if(!av && bFull(id)) neufs.push(BONUS[i]);
     }
     renderBonusBar();
-    if(chg){ toast('🔋 Bonus rechargé','appuie sur le bouton pour t\'en servir'); sayLabels(3200); }
+    for(var j=0;j<neufs.length;j++){
+      floatText(cx,cy+120,neufs[j].ic+' '+neufs[j].n+' prêt','#7CF5E2',true);
+      sayBonus(neufs[j].id);        /* apres renderBonusBar : le bouton existe */
+    }
+    if(neufs.length){ sfxSpecial(); haptic([15,30,15]); }
   }
 
   function initRunBonus(){
-    runBonus=[]; shieldOn=0; dblT=0; xlT=0; reviveLeft=0; bCharge={};
+    runBonus=[]; shieldOn=0; dblT=0; xlT=0; xlStack=0; reviveLeft=0; bCharge={};
     /* LES SIX BOUTONS SONT TOUJOURS AFFICHES, meme a zero exemplaire.
        Avant, la barre etait vide tant qu'on n'avait rien achete : un joueur
        pouvait donc faire vingt parties sans jamais soupconner qu'un bouclier
@@ -6201,7 +6223,6 @@ var PULSE = (function(){
       runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
     }
     renderBonusBar();
-    sayLabels(4000);        /* une lecture au demarrage, puis l'ecran se degage */
   }
   function renderBonusBar(){
     var el=$('bonusBar'); if(!el) return;
@@ -6220,7 +6241,7 @@ var PULSE = (function(){
        + ' onclick="PULSE.useBonus(\''+b.id+'\')" title="'+d.n+'">'
        + '<span class="bi">'+d.ic+'</span>'
        + (b.left>0?'<span class="bq">'+b.left+'</span>':'')
-       + '<span class="bl">'+(actif?'en cours':(pret?d.court:pct+' % — '+d.court))+'</span></div>';
+       + '<span class="bl">'+(b.id==='zonexl'&&xlStack>1 ? '×'+xlStack+' cumulé' : d.court)+'</span></div>';
     }
     el.innerHTML=h;
     el.classList.toggle('dense', runBonus.length>4);   /* six boutons : toujours vrai */
@@ -6248,7 +6269,17 @@ var PULSE = (function(){
 
     if(id==='bouclier'){ shieldOn++; toast('🛡️ Bouclier','ton prochain raté est annulé'); }
     else if(id==='ralenti'){ freezeSlowT=Math.max(freezeSlowT,8000); toast('❄️ Ralenti','8 secondes pour respirer'); }
-    else if(id==='zonexl'){ xlT=12000; toast('🎯 Zone XL','zones élargies 12 s'); }
+    else if(id==='zonexl'){
+      /* On EMPILE au lieu d'ecraser. Avant, relancer Zone XL pendant qu'il
+         tournait ne faisait que remettre le chrono a 12 s : le joueur depensait
+         une charge pleine pour un resultat invisible. Desormais chaque
+         activation elargit un cran de plus et ajoute 12 s. Depenser trois
+         charges d'un coup devient une decision, et ca se VOIT. */
+      xlStack=Math.min(xlStack+1, XL_MAX);
+      xlT=Math.min(xlT+12000, 48000);
+      toast('🎯 Zone XL ×'+xlStack, 'zones élargies · '+Math.round(xlT/1000)+' s');
+      if(xlStack>1){ floatText(cx,cy-130,'🎯 ZONE XL ×'+xlStack,'#FF8C42',true); }
+    }
     else if(id==='double'){ dblT=15000; toast('⭐ Points ×2','15 secondes, tout compte double'); }
     else if(id==='vies'){ lives+=2; updateLives(); toast('💖 +2 vies', lives+' cœurs'); sfxHeart(); }
     else if(id==='revive'){ reviveLeft++; toast('🔁 2e chance','tu repartiras après le game over'); }
@@ -7497,7 +7528,7 @@ var PULSE = (function(){
     /* minuteries des bonus equipables. Chacune previent quand elle s'eteint :
        un effet qui disparait en silence donne l'impression d'avoir ete vole. */
     if(dblT>0 && running){ dblT-=dt; if(dblT<=0){ dblT=0; toast('⭐ Terminé','points normaux'); renderBonusBar(); } }
-    if(xlT>0 && running){ xlT-=dt; if(xlT<=0){ xlT=0; toast('🎯 Terminé','zones normales'); renderBonusBar(); } }
+    if(xlT>0 && running){ xlT-=dt; if(xlT<=0){ xlT=0; xlStack=0; toast('🎯 Terminé','zones normales'); renderBonusBar(); } }
     if(quizCool>0 && running){ quizCool-=dt; if(quizCool<0) quizCool=0; }
     /* horloge des sequences : elle tourne en temps reel, mais s'arrete pendant
        le hit-stop, les QCM et les pauses (running=false) */
@@ -8247,12 +8278,30 @@ var PULSE = (function(){
     box.innerHTML=h;
     tit.style.display = n?'block':'none';
   }
+  /* Tout ce que les libelles disaient a l'ecran est ici, en entier : etat de
+     charge, effet, reserve. C'est le bon endroit — on lit sans rien rater, et
+     l'anneau reste degage pendant qu'on joue. */
+  function renderPauseBonus(){
+    var box=$('pauseBonus'); if(!box) return;
+    var h='';
+    for(var i=0;i<BONUS.length;i++){
+      var d=BONUS[i], pct=Math.round(bPct(d.id)*100), q=bonusQty(d.id), pret=bFull(d.id);
+      var etat = pret ? '<b style="color:#7CF5E2">PRÊT</b>'
+                      : '<b>'+pct+' %</b> chargé';
+      if(d.id==='zonexl' && xlT>0 && xlStack>0) etat='<b style="color:#FFD166">en cours ×'+xlStack+'</b>';
+      h+='<div class="ml"><div class="mli">'+d.ic+'</div>'
+       + '<div class="mlt">'+etat+' — '+d.court
+       + (q>0?' · <span style="color:var(--dim)">'+q+' en réserve</span>':'')+'</div></div>';
+    }
+    box.innerHTML=h;
+  }
   function doPause(){
     if(!running) return;
     running=false; stopMusic();
     buildMeloBtns();
     buildAdmin();
     renderPauseMods();
+    renderPauseBonus();
     hideAll(); document.body.classList.add('playing');
     $('pauseScreen').classList.remove('hide');
   }
