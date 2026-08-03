@@ -952,6 +952,8 @@
     background:rgba(6,10,22,.86);border-radius:6px;padding:2px 6px;pointer-events:none;
     opacity:0;transition:opacity .3s}
   .bb.say .bl{opacity:1}
+  .bst2{position:absolute;bottom:-2px;left:-2px;font-size:10px;font-weight:900;
+    color:#FF8C42;background:rgba(6,10,22,.9);border-radius:6px;padding:0 3px}
   .bonusbar.dense .bb .bl{right:50px;font-size:9px}
   /* Rappel des modules sur l'ecran de pause : c'est le seul moment ou le
      joueur a le temps de lire. */
@@ -983,10 +985,9 @@
   .buildstrip .bsi{font-size:15px;line-height:1;flex:none;position:relative}
   .buildstrip .bsi i{position:absolute;bottom:-3px;right:-5px;font-style:normal;
     font-size:8px;font-weight:900;color:var(--gold)}
-  .buildstrip .bst{font-size:10px;font-weight:800;color:var(--ink2);white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis;max-width:0;opacity:0;
-    transition:max-width .3s,opacity .3s}
-  .buildstrip.say .bst,.buildstrip .bs.fire .bst{max-width:44vw;opacity:1}
+  /* Zero texte sur le terrain. L'icone s'allume quand le module agit, c'est
+     tout. Les libelles complets vivent dans la pause. */
+  .buildstrip .bst{display:none}
   /* Le module vient d'agir : la ligne s'allume et son libelle est remplace une
      seconde par CE QU'IL VIENT DE FAIRE. C'est la seule facon de relier un
      effet invisible a la cause qui l'a produit. */
@@ -1137,7 +1138,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b61</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b62</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1408,7 +1409,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b61</div>
+  <div class="buildtag">version 2026-08-03 · b62</div>
 </div>
 
 <script>
@@ -6241,7 +6242,8 @@ var PULSE = (function(){
        + ' onclick="PULSE.useBonus(\''+b.id+'\')" title="'+d.n+'">'
        + '<span class="bi">'+d.ic+'</span>'
        + (b.left>0?'<span class="bq">'+b.left+'</span>':'')
-       + '<span class="bl">'+(b.id==='zonexl'&&xlStack>1 ? '×'+xlStack+' cumulé' : d.court)+'</span></div>';
+       + (b.id==='zonexl'&&xlStack>1 ? '<span class="bst2">×'+xlStack+'</span>' : '')
+       + '</div>';
     }
     el.innerHTML=h;
     el.classList.toggle('dense', runBonus.length>4);   /* six boutons : toujours vrai */
