@@ -930,7 +930,7 @@
   </div>
 </div>
 
-<div class="overlay" id="pseudo">
+<div class="overlay hide" id="pseudo">
   <div class="title" style="font-size:42px">Ton <span>pseudo</span></div>
   <div class="tag">pour le classement</div>
   <div class="jojo-intro"><img class="avatar" id="jojoPseudoImg" alt="Jojo"><div class="jojo-hi">Choisis un pseudo et un code &agrave; 4&nbsp;chiffres.<br>Le code te rend <b>ta progression</b> si tu changes de t&eacute;l&eacute;phone ! &#128512;</div></div>
@@ -943,6 +943,7 @@
     <div class="hint" id="codeHint">&#128274; Note-le&nbsp;: il sert &agrave; r&eacute;cup&eacute;rer ton compte</div>
   </div>
   <button class="go" id="pseudoBtn" onclick="PULSE.savePseudo()">C'est parti</button>
+  <button class="ghost" onclick="PULSE.home()">Plus tard</button>
   <div class="hint" style="margin-top:6px">D&eacute;j&agrave; un compte&nbsp;? Tape le m&ecirc;me pseudo et le m&ecirc;me code.</div>
 </div>
 
@@ -991,7 +992,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b42</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b45</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1017,6 +1018,7 @@
   <div class="jojo-joke hide" id="jojoJoke"></div>
   <div class="nextgoal" id="nextGoal"></div>
   <div class="prog-mini" id="progMini"></div>
+  <button class="btn-defi" id="btnGuest" onclick="PULSE.secure()" style="display:none">&#127942; Enregistrer mon score au classement</button>
   <button class="btn-defi" id="btnDefi" onclick="PULSE.defi()">&#9876;&#65039; D&eacute;fier un ami</button>
   <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#127866; Paye ta bi&egrave;re &middot; joueur en ligne</button>
   <button class="go" onclick="PULSE.play()">Rejouer</button>
@@ -1248,7 +1250,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b42</div>
+  <div class="buildtag">version 2026-08-03 · b45</div>
 </div>
 
 <script>
@@ -2173,7 +2175,7 @@ var PULSE = (function(){
      Les autres modes arrivent vite (rangs 2, 3, 5) : le jeu doit continuer de
      s'ouvrir pendant les dix premieres parties, pas pendant les cinquante. */
   /* ================= LES MODES =================
-     Classique reste la partie complete : les paliers, les QCM, les cinq phases
+     Classique reste la partie complete : les paliers, les QCM, les sept phases
      qui arrivent chacune a leur tour, le classement mondial.
 
      Les cinq autres modes sont les phases elles-memes, jouees en continu. Elles
@@ -2187,7 +2189,7 @@ var PULSE = (function(){
      choisit quelque chose qu'il connait deja pour l'avoir croise en Classique. */
   var MODES=[
     {id:'classic',  name:'Classique',   icon:'🎯',  sub:'la partie complète',   rank:0,
-     desc:'6 vies, les paliers, les QCM, les cinq phases à leur tour. Le seul mode classé au mondial.'},
+     desc:'6 vies, les paliers, les QCM, les sept phases à leur tour. Le seul mode classé au mondial.'},
     /* Le Defi du jour n'apparait pas dans ce selecteur : c'est une destination
        avec ses propres medailles, atteinte par son icone. Il reste declare ici
        pour que modeById() le reconnaisse et que ses modificateurs s'appliquent. */
@@ -2202,7 +2204,11 @@ var PULSE = (function(){
     {id:'nuit',     name:'Nuit',        icon:'🌑', sub:'lumières coupées',      rank:4, phase:'nuit',
      desc:'Les billes ne se voient qu\'en approchant de la zone. Toute la partie dans le noir.'},
     {id:'surcharge',name:'Surcharge',   icon:'💥', sub:'deux zones à la fois',  rank:5, phase:'surcharge',
-     desc:'Deux zones valides en permanence. Tape dans l\'une ou dans l\'autre, tout compte.'}
+     desc:'Deux zones valides en permanence. Tape dans l\'une ou dans l\'autre, tout compte.'},
+    {id:'contresens',name:'Contresens', icon:'↩️', sub:'elle fait demi-tour',   rank:6, phase:'contresens',
+     desc:'La bille repart en sens inverse quand ça lui chante, toute la partie. Une flèche prévient, tes réflexes non.'},
+    {id:'fantome',  name:'Fantôme',     icon:'👻', sub:'la zone s\'efface',      rank:7, phase:'fantome',
+     desc:'La zone disparaît et revient sans jamais bouger. À toi de te souvenir où elle est.'}
   ];
   /* La phase permanente du mode en cours ('' en Classique). */
   function modePhase(){ var m=modeById(gameMode); return m && m.phase ? m.phase : ''; }
@@ -2310,7 +2316,13 @@ var PULSE = (function(){
     {id:'gene',   n:'💎 Générosité',    d:'tous les points comptent double', w:0.62},
     {id:'nuit',   n:'🌑 Nuit noire',    d:'les billes s\'effacent loin de la zone', w:1.35},
     {id:'rapide', n:'🌀 Rotation',      d:'l\'anneau tourne dès le début', w:1.12},
-    {id:'boost',  n:'🎁 Départ lancé',  d:'tu commences avec 10 vies', w:0.80}
+    {id:'boost',  n:'🎁 Départ lancé',  d:'tu commences avec 10 vies', w:0.80},
+    /* Les deux mecaniques neuves entrent aussi ici, et c'est le chemin le plus
+       court vers elles : le Defi du jour est ouvert des le premier jour, sans
+       rang a atteindre ni palier a franchir. Un joueur peut donc rencontrer
+       CONTRESENS et FANTOME bien avant de les avoir debloques. */
+    {id:'contre', n:'↩️ Contresens',    d:'la bille fait demi-tour toute seule', w:1.28},
+    {id:'zonefan',n:'👻 Zone fantôme',  d:'la zone s\'efface par intermittence', w:1.32}
   ];
   var dailyMods=[], dailyGoals=[0,0,0];
   function rollDaily(){
@@ -4054,9 +4066,17 @@ var PULSE = (function(){
     {at:ARK_AT, kind:'arkanoid',  mult:2},
     {at:400,    kind:'surcharge', mult:3},
     {at:700,    kind:'eclipse',   mult:4},
-    {at:1000,   kind:'arkanoid',  mult:5},
-    {at:1400,   kind:'nuit',      mult:6},
-    {at:1900,   kind:'gravite',   mult:7}
+    /* CONTRESENS et FANTOME prennent les deux paliers du milieu. Ils etaient
+       relegues a 2500 et 3200 : deux phases neuves que presque personne
+       n'atteignait. Le palier de 1000 rejouait TENIFLIP, deja vu a 150 — un
+       palier qui repete est le moins cher a sacrifier. NUIT descend a 2500 :
+       elle est visuelle, elle supporte d'attendre. GRAVITE ne bouge pas de
+       1900, c'est le clou du spectacle et il reste a sa place. */
+    {at:1000,   kind:'contresens',mult:5},
+    {at:1400,   kind:'fantome',   mult:6},
+    {at:1900,   kind:'gravite',   mult:7},
+    {at:2500,   kind:'nuit',      mult:8},
+    {at:3200,   kind:'arkanoid',  mult:9}
   ];
   var scriptIdx=0;
   /* Nom court d'une phase pour la barre du bas. Passe par la table PHASES :
@@ -4102,6 +4122,10 @@ var PULSE = (function(){
   var zoneAnim=0;                            // animation d'apparition de la zone
   var goldT=0, GOLD_MS=20000;                // RUSH OR : ralenti + points x3
   var dirCueT=0;                             // fleche de sens apres chaque reussite
+  /* CONTRESENS : delai avant le prochain demi-tour spontane. Irregulier par
+     construction — a intervalle fixe le joueur recompte les secondes au lieu
+     de regarder la bille, et la phase perd tout son sel des la deuxieme fois. */
+  var csT=0;
   var angle2=0, angle3=0, ball2=false, ball3=false, innerRing=false, angleIn=0, targetIn=0;
   var zonePulse=false, pulsePhase=0, ringSpin=false, spinAng=0, zoneDrift=false;
   var trail1=[], trail2=[], trail3=[], trailIn=[];
@@ -4112,6 +4136,7 @@ var PULSE = (function(){
      Des multiplicateurs neutres (1) en mode Classique : le mode de reference
      traverse exactement le meme code qu'avant, a l'octet pres. */
   var modSpeed=1, modZone=1, modNight=false, modNoQuiz=false;
+  var modContre=false, modGhost=false;   /* defi du jour : demi-tours / zone qui s'efface */
 
   /* ---------- phases (tous les 1000 points) ----------
      Chaque phase RELIT le vocabulaire existant (anneau, billes, zone, tap,
@@ -4131,7 +4156,22 @@ var PULSE = (function(){
     {id:'nuit',      name:'\u{1F311} NUIT', sub:'les billes s\'effacent',
      line:'Lumieres coupees ! Les billes ne se voient plus qu\'en approchant de la zone \u{1F311}'},
     {id:'surcharge', name:'\u{1F4A5} SURCHARGE', sub:'deux zones a la fois',
-     line:'DEUX zones valides en meme temps ! Tape dans l\'une ou dans l\'autre, tout compte \u{1F4A5}'}
+     line:'DEUX zones valides en meme temps ! Tape dans l\'une ou dans l\'autre, tout compte \u{1F4A5}'},
+    /* CONTRESENS : la seule phase ou la bille decide toute seule. Elle fait
+       demi-tour sans qu'on ait tape, a intervalle irregulier. La commande ne
+       change pas d'un poil — c'est l'ANTICIPATION qui casse, et l'anticipation
+       est justement ce que le joueur a construit pendant les 400 premiers
+       points. Une fleche accompagne chaque demi-tour : on veut le surprendre,
+       pas lui mentir. */
+    {id:'contresens', name:'\u21A9\uFE0F CONTRESENS', sub:'elle fait demi-tour',
+     line:'La bille repart en sens inverse quand ca lui chante ! Regarde la fleche et oublie tes reflexes \u21A9\uFE0F'},
+    /* FANTOME : la zone s'efface par intermittence. NUIT enleve la bille,
+       FANTOME enleve la cible — deux moities du meme ecran, deux phases qui ne
+       se ressemblent pas une seconde. Et c'est la seule qui demande de la
+       MEMOIRE : la zone est toujours la ou on l'a vue, il suffit de s'en
+       souvenir. Un axe que le jeu n'utilisait nulle part ailleurs. */
+    {id:'fantome',   name:'\u{1F47B} FANTÔME', sub:'la zone s\'efface',
+     line:'La zone dispara\u00eet et revient... elle n\'a pas bouge d\'un pouce, souviens-toi ou elle est ! \u{1F47B}'}
   ];
   function phaseById(id){ for(var i=0;i<PHASES.length;i++){ if(PHASES[i].id===id) return PHASES[i]; } return null; }
   var phaseId='', phaseIdx=-1;
@@ -4520,6 +4560,21 @@ var PULSE = (function(){
     return Math.max(0.10, 1-(d-near)/1.05);
   }
 
+  /* FANTOME : opacite de la zone. Meme plancher que la NUIT et pour la meme
+     raison — une zone completement absente se lit comme un bug d'affichage,
+     une zone a peine devinee se lit comme une regle. Le cycle dure 2,6 s :
+     assez long pour qu'on ait le temps de viser en pleine lumiere, assez court
+     pour qu'on ne fasse jamais un tour entier a l'aveugle. */
+  var GHOST_MS=2600;
+  function ghostAlpha(){
+    if(!phaseIs('fantome') && !modGhost) return 1;
+    var t=(performance.now()%GHOST_MS)/GHOST_MS;
+    if(t<0.44) return 1;                          /* pleine lumiere */
+    if(t<0.56) return 1-(t-0.44)/0.12*0.86;       /* elle s'efface */
+    if(t<0.88) return 0.14;                       /* presque rien */
+    return 0.14+(t-0.88)/0.12*0.86;               /* elle revient */
+  }
+
   function R(){return Math.min(W,H)*(phaseIs('gravite')?GRAV_R:0.30)*breathScale();}
   function Rin(){return Math.min(W,H)*0.185*breathScale();}
   function aDiff(a,b){var d=(a-b)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return d;}
@@ -4766,7 +4821,14 @@ var PULSE = (function(){
      le debut de partie doit rester le tutoriel muet qu'il est aujourd'hui. */
   var SPECIALS={
     or:     {at:30,  ic:'★', col:'#FFD166', txt:'ZONE OR ×5',      w:26},
+    /* Les deux plus recentes sont posees TRES tot (45 et 75) et pesent lourd
+       dans le tirage : ce sont les seules recompenses du jeu qu'un joueur
+       rencontre avant son centieme point. Toutes les deux reprennent un effet
+       de bonus payant — c'est aussi la meilleure publicite pour la boutique :
+       on y goute gratuitement, on rachete ensuite. */
+    bouclier:{at:45, ic:'🛡', col:'#4DFFB1', txt:'BOUCLIER',        w:18},
     coeur:  {at:60,  ic:'♥', col:'#FF4D6D', txt:'+1 VIE',           w:16},
+    viseur: {at:75,  ic:'◎', col:'#FF8C42', txt:'ZONES XL 8 s',     w:16},
     eclair: {at:90,  ic:'⚡', col:'#7C8CFF', txt:'+30 💎',           w:20},
     gel:    {at:140, ic:'❄', col:'#9FE8FF', txt:'RALENTI 6 s',      w:18},
     quiz:   {at:200, ic:'?', col:'#B14DFF', txt:'QUESTION BONUS',   w:14}
@@ -4808,6 +4870,11 @@ var PULSE = (function(){
     sfxSpecial(); haptic([25,35,25,35,60]);
     if(k==='or') m=5;
     else if(k==='coeur'){ lives++; updateLives(); sfxHeart(); }
+    /* Les deux nouvelles passent par les MEMES variables que les bonus payants
+       (shieldOn, xlT) : elles s'affichent donc dans la barre du bas, se
+       cumulent proprement et n'ajoutent aucun etat a nettoyer en fin de partie. */
+    else if(k==='bouclier'){ shieldOn++; renderBonusBar(); toast('🛡️ Bouclier','ton prochain raté est annulé'); }
+    else if(k==='viseur'){ xlT=Math.max(xlT,8000); renderBonusBar(); toast('◎ Zones XL','élargies pendant 8 s'); }
     else if(k==='eclair'){ addShards(30,'zone'); }
     else if(k==='gel'){ freezeSlowT=6000; toast('❄ Ralenti','6 secondes pour respirer'); }
     else if(k==='quiz'){ setTimeout(function(){ if(running) askQuiz(Math.random()<0.4); }, 420); }
@@ -5441,6 +5508,10 @@ var PULSE = (function(){
     if(id==='classic') return 1;
     if(id==='daily')   return 1.1;
     if(id==='surcharge'||id==='nuit') return 1.3;   /* les deux plus durs a tenir */
+    /* CONTRESENS et FANTOME s'ouvrent aux rangs 6 et 7 et cassent chacun un
+       appui du joueur — l'anticipation pour l'un, le repere visuel pour
+       l'autre. Ils paient donc au-dessus des autres. */
+    if(id==='contresens'||id==='fantome') return 1.35;
     return 1.15;
   }
   /* Le score final monte au lieu de s'afficher. C'est un vieux truc de flipper
@@ -5738,6 +5809,10 @@ var PULSE = (function(){
        geometrie existante. newTarget() (appele par startPhase) pose la 2e zone
        si besoin. C'est exactement le genre de phase qu'on veut pouvoir ajouter
        en dix lignes. */
+    /* CONTRESENS : le premier demi-tour n'arrive pas tout de suite. Le joueur
+       doit d'abord retrouver ses marques dans le cercle, sinon la surprise
+       tombe pendant le ralenti d'entree et passe inapercue. */
+    if(kind==='contresens'){ csT=2000+Math.random()*1200; }
     /* nouveau champignon vert a chaque TENIFLIP, et jauge remise a zero :
        le joueur doit le chercher, ce n'est jamais le meme coin */
     if(kind==='arkanoid'){ lifeBump=Math.floor(gr('bosse')*4); arkBuildBumps(); }
@@ -5802,7 +5877,7 @@ var PULSE = (function(){
     }
     /* 2) au merite : chaque compteur ouvre SA phase de reference...
        ...jusqu'au 4e bonus merite, ou la ROULETTE prend le relais et tire au
-       hasard parmi les cinq phases. C'est l'endgame : le joueur connait tout,
+       hasard parmi les sept phases. C'est l'endgame : le joueur connait tout,
        il ne peut plus anticiper QUOI, seulement QUAND. Une partie de 5000
        points cesse d'etre previsible, et c'est tout ce qu'on lui demande. */
     if(meritOn){
@@ -5823,8 +5898,8 @@ var PULSE = (function(){
         earned++;
         var kind=trigger;
         if(earned>=4){
-          var wheel=['arkanoid','gravite','eclipse','nuit','surcharge'];
-          /* La roulette ne rejoue jamais la phase precedente : sur cinq faces,
+          var wheel=['arkanoid','gravite','eclipse','nuit','surcharge','contresens','fantome'];
+          /* La roulette ne rejoue jamais la phase precedente : sur sept faces,
              retomber sur la meme donne l'impression d'un tirage casse. */
           var libre=[];
           for(var wi=0;wi<wheel.length;wi++) if(wheel[wi]!==lastPhaseKind) libre.push(wheel[wi]);
@@ -6516,6 +6591,16 @@ var PULSE = (function(){
       $('progMini').innerHTML = toBel>0 ? 'Encore <b>'+toBel+'</b> pts pour le th\u00e8me Belgique \u{1F1E7}\u{1F1EA}\u{1F35F}' : 'Th\u00e8me Belgique atteint !';
     }
     else { $('progMini').innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour le mode infini':''); }
+    /* Fin de partie d'un invite : c'est ICI qu'on demande le pseudo, et nulle
+       part ailleurs. Le joueur vient de faire un score, il voit sa progression
+       et le classement juste en dessous — la demande a enfin un sens.
+       Defier un ami et Paye ta biere disparaissent : les deux ont besoin d'un
+       nom pour fonctionner, un bouton qui echoue vaut moins que pas de bouton. */
+    var bg=$('btnGuest'), bd=$('btnDefi'), bb=$('btnBiere');
+    if(bg) bg.style.display = (!pseudo && score>0) ? 'block' : 'none';
+    if(bd) bd.style.display = pseudo ? '' : 'none';
+    if(bb) bb.style.display = pseudo ? '' : 'none';
+
     $('goalbar').classList.remove('show'); $('levelchip').classList.remove('show'); $('centerjoke').classList.remove('show');
     $('jojoJoke').classList.add('hide');
     $('quizbox').classList.add('hide');
@@ -6625,7 +6710,8 @@ var PULSE = (function(){
     }
     if(running && !arkOn){
       var gravOn = phaseIs('gravite');
-      var zw = (gravOn?20:14)*(1+zoneAnim*0.6), za = 0.92 - zoneAnim*0.3;
+      var zg = ghostAlpha();
+      var zw = (gravOn?20:14)*(1+zoneAnim*0.6), za = (0.92 - zoneAnim*0.3)*zg;
       var zc = m>1?'#FFD166':THEME.glow;
       /* une zone speciale se reconnait a sa COULEUR avant son symbole : la
          couleur se lit en peripherie, le symbole demande de fixer le regard. */
@@ -6634,7 +6720,7 @@ var PULSE = (function(){
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn,targetA+zn);
       ctx.strokeStyle=zc;ctx.globalAlpha=za;ctx.lineWidth=zw;ctx.lineCap='round';
       ctx.shadowColor=zc;ctx.shadowBlur=SP?30:22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn*0.35,targetA+zn*0.35);ctx.strokeStyle=SP?'#ffffff':THEME.core;ctx.lineWidth=zw;ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn*0.35,targetA+zn*0.35);ctx.strokeStyle=SP?'#ffffff':THEME.core;ctx.lineWidth=zw;ctx.globalAlpha=zg;ctx.stroke();ctx.globalAlpha=1;
       /* SURCHARGE : la 2e zone est dessinee a l'identique, sans marque
          distinctive. Deux zones egales = aucune regle a apprendre. */
       if(phaseIs('surcharge')){
@@ -6874,6 +6960,19 @@ var PULSE = (function(){
       if(ringSpin){ spinAng+=0.0032*step; if(spinAng>Math.PI*2)spinAng-=Math.PI*2; }
       if(zoneAnim>0){ zoneAnim=Math.max(0,zoneAnim-0.06*step); }
     } else if(running && freezeT<=0){
+      /* CONTRESENS : le demi-tour tombe ici, AVANT le deplacement de la frame,
+         pour que la fleche et le premier pixel de la nouvelle course partent
+         du meme instant. On ne touche ni a la zone ni a la vitesse : seul le
+         signe change, donc le bareme reste rigoureusement celui du cercle. */
+      if(phaseIs('contresens') || modContre){
+        csT-=dt;
+        if(csT<=0){
+          dir*=-1;
+          dirCueT=620;                       /* la fleche montre le NOUVEAU sens */
+          csT=1300+Math.random()*1500;       /* de 1,3 a 2,8 s */
+          sfxTick(); haptic(18); doFlash(0.12,'92,225,230');
+        }
+      }
       var gsp=speed*(goldT>0?0.55:1)*(freezeSlowT>0?0.62:1);
       angle+=gsp*dir*step*gravF(angle);if(angle>Math.PI)angle-=Math.PI*2;if(angle<-Math.PI)angle+=Math.PI*2;
       pushTrail(trail1,angle,10);
@@ -7653,6 +7752,14 @@ var PULSE = (function(){
     var sw=$('saveWarn');
     if(sw){
       if(cloudState==='denied'){ cloudWarned=false; cloudWarn(); }
+      else if(!pseudo){
+        /* L'invitation ne fait pas peur et ne bloque rien : elle dit ce qu'on
+           GAGNE a s'inscrire, jamais ce qu'on risque. */
+        sw.classList.remove('hide');
+        sw.onclick=function(){ PULSE.secure(); };
+        sw.innerHTML='<div class="sw1">👋 Tu joues en invité</div>'
+          +'<div class="sw2">Choisis un pseudo pour entrer au classement et défier tes amis — appuie ici</div>';
+      }
       else if(pseudo && !myCode){
         sw.classList.remove('hide');
         sw.onclick=function(){ PULSE.secure(); };
@@ -7689,7 +7796,18 @@ var PULSE = (function(){
       });
     }
   } else {
-    $('start').classList.add('hide');
+    /* ---------- Mode INVITE : on joue d'abord, on s'inscrit ensuite ----------
+       Avant, un nouveau venu tombait sur le formulaire pseudo + code AVANT
+       d'avoir vu une seule seconde de jeu. Sur telephone c'est le pire moment
+       possible pour demander un clavier : le joueur arrive presque toujours
+       par un lien WhatsApp, pouce en l'air, et doit inventer un nom ET un code
+       pour un jeu dont il ignore encore tout. Beaucoup repartaient la.
+
+       Desormais il joue tout de suite. Le pseudo est demande au seul moment ou
+       il a une VRAIE raison de le donner : quand il a un score a defendre.
+       Rien n'est perdu au passage — le profil d'invite (rang, eclats, themes)
+       vit deja en localStorage et part au nuage a l'inscription. */
+    showStart();
   }
 
   /* ---------- lancement d'une partie ---------- */
@@ -7771,6 +7889,7 @@ var PULSE = (function(){
   function applyModeSetup(){
     lives = START_LIVES;
     modSpeed=1; modZone=1; modNight=false; modNoQuiz=false;
+    modContre=false; modGhost=false;
     /* Mode-phase : la phase EST la partie. Aucun QCM, aucun palier programme,
        aucune phase au merite — sinon une phase viendrait en interrompre une
        autre, ce qui n'a aucun sens quand on a choisi de ne jouer que celle-la. */
@@ -7782,6 +7901,8 @@ var PULSE = (function(){
       if(dailyHas('boost'))  lives=10;
       if(dailyHas('muet'))   modNoQuiz=true;
       if(dailyHas('nuit'))   modNight=true;
+      if(dailyHas('contre')){ modContre=true; csT=2000+Math.random()*1200; }
+      if(dailyHas('zonefan')) modGhost=true;
       var ml=$('modline');
       if(ml) ml.textContent=dailyMods[0].n+'  \u00b7  '+dailyMods[1].n;
     }
@@ -7893,6 +8014,7 @@ var PULSE = (function(){
           pseudo=p; myCode=code;
           try{ localStorage.setItem('pulse_pseudo',pseudo); localStorage.setItem('pulse_code',code); }catch(e){}
           applySave(save);
+          if(best>0) submitScore(best);
           showStart(); startLive();
           try{ setTimeout(ramasserParrainages, 2500); }catch(e){}
           toast('👋 Content de te revoir !','Rang '+PROF.rank+' · '+rankName(PROF.rank)+' · '+PROF.shards+' 💎 récupérés');
@@ -7917,7 +8039,14 @@ var PULSE = (function(){
           pseudo=p; myCode=code;
           try{ localStorage.setItem('pulse_pseudo',pseudo); localStorage.setItem('pulse_code',code); }catch(e){}
           cloudSave(true);
+          /* Le score fait en invite n'est pas perdu : il part au classement au
+             moment meme de l'inscription. Sans cela, le joueur devrait refaire
+             la partie qui l'a decide a donner son nom — exactement ce qu'il
+             faut eviter. */
+          if(best>0) submitScore(best);
           showStart(); startLive();
+          if(best>0){ toast('🏆 '+pseudo+' au classement','ton record de '+best+' est enregistré'); sfxRank(); }
+          else toast('👋 Bienvenue '+pseudo,'ta progression est sauvegardée');
         });
       });
     },
@@ -7970,8 +8099,17 @@ var PULSE = (function(){
       $('pseudo').classList.remove('hide');
       $('pseudoInput').value=pseudo;
       $('codeInput').value='';
-      var h=$('pseudoHint'); if(h){ h.textContent='Garde le meme pseudo'; h.className='hint'; }
-      var c=$('codeHint'); if(c){ c.innerHTML='&#128274; Choisis 4 chiffres et note-les'; c.className='hint'; }
+      var h=$('pseudoHint'), c=$('codeHint');
+      /* Deux publics sur le meme ecran : l'invite qui n'a encore rien, et
+         l'inscrit venu poser un code. Les memes mots ne peuvent pas servir aux
+         deux — "Garde le meme pseudo" n'a aucun sens quand on n'en a pas. */
+      if(!pseudo){
+        if(h){ h.textContent='3 à 14 caractères, visible par tous'; h.className='hint'; }
+        if(c){ c.innerHTML='&#128274; Choisis 4 chiffres et note-les : ils te rendent ta progression sur un autre téléphone'; c.className='hint'; }
+      } else {
+        if(h){ h.textContent='Garde le meme pseudo'; h.className='hint'; }
+        if(c){ c.innerHTML='&#128274; Choisis 4 chiffres et note-les'; c.className='hint'; }
+      }
     },
     /* Emporter / reposer un bonus. Trois emplacements, donc un vrai arbitrage.
        IMPORTANT : chaque reponse passe aussi par toast() (centre de l'ecran,
