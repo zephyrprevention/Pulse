@@ -912,12 +912,27 @@
   .dr-c.r3{border-color:rgba(255,209,102,.65);background:rgba(40,32,12,.7)}
   /* Bandeau des modules deja acquis, pendant la partie. Minuscule : c'est un
      rappel, pas un tableau de bord. */
-  .buildstrip{position:fixed;left:0;right:0;top:74px;z-index:5;display:none;
-    justify-content:center;gap:5px;pointer-events:none;flex-wrap:wrap;padding:0 12px}
+  /* Colonne de gauche, en miroir exact des boutons ronds de droite. La
+     symetrie porte tout le message : a droite ce sur quoi on APPUIE, a gauche
+     ce qui agit TOUT SEUL. Deux colonnes, deux natures, aucun mot a lire. */
+  .buildstrip{position:fixed;left:12px;bottom:calc(78px + env(safe-area-inset-bottom));
+    z-index:5;display:none;flex-direction:column;gap:6px;pointer-events:none;max-width:58vw}
   body.playing .buildstrip{display:flex}
-  .buildstrip .bs{font-size:14px;background:rgba(10,15,30,.6);border:1px solid var(--glass-b);
-    border-radius:9px;padding:1px 5px;position:relative}
-  .buildstrip .bs i{font-style:normal;font-size:9px;font-weight:900;color:var(--gold);margin-left:1px}
+  .buildstrip .bs{display:flex;align-items:center;gap:6px;
+    background:rgba(10,15,30,.62);border:1px solid var(--glass-b);border-radius:10px;
+    padding:3px 8px 3px 5px;transition:border-color .2s,background .2s,transform .12s}
+  .buildstrip .bsi{font-size:15px;line-height:1;flex:none;position:relative}
+  .buildstrip .bsi i{position:absolute;bottom:-3px;right:-5px;font-style:normal;
+    font-size:8px;font-weight:900;color:var(--gold)}
+  .buildstrip .bst{font-size:10px;font-weight:800;color:var(--ink2);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  /* Le module vient d'agir : la ligne s'allume et son libelle est remplace une
+     seconde par CE QU'IL VIENT DE FAIRE. C'est la seule facon de relier un
+     effet invisible a la cause qui l'a produit. */
+  .buildstrip .bs.fire{border-color:rgba(255,209,102,.85);background:rgba(255,209,102,.2);
+    transform:scale(1.06)}
+  .buildstrip .bs.fire .bst{color:#FFD166}
+  @media (prefers-reduced-motion:reduce){.buildstrip .bs.fire{transform:none}}
 </style>
 
 </head>
@@ -1052,7 +1067,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b52</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b54</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1092,8 +1107,8 @@
   <div class="tag" id="missTag">tout ce qu'il y a &agrave; gagner aujourd'hui</div>
 
   <div class="explain">
-    <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Ils sont <b>passifs</b> &mdash; <i>rien &agrave; d&eacute;clencher</i>, ils agissent seuls jusqu'&agrave; la fin de la partie. Ils s'empilent, se combinent, et certains se contredisent. Tu les retrouves list&eacute;s dans la <b>pause</b>.</div></div>
-    <div class="ex"><div class="exi">&#128266;</div><div class="ext">&Agrave; ne pas confondre&nbsp;: les <b>boutons ronds &agrave; droite</b> sont tes <b>bonus achet&eacute;s</b>. Eux, c'est toi qui les d&eacute;clenches, <i>au moment que tu choisis</i>. L'&eacute;tiquette &agrave; c&ocirc;t&eacute; dit ce qu'ils font et combien de temps &ccedil;a dure.</div></div>
+    <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Ils sont <b>passifs</b> &mdash; <i>rien &agrave; d&eacute;clencher</i>. Ils s'affichent dans la <b>colonne de gauche</b>, et cette ligne <b>s'allume en disant ce qu'elle vient de faire</b> chaque fois que le module agit.</div></div>
+    <div class="ex"><div class="exi">&#128266;</div><div class="ext">Retiens juste les deux c&ocirc;t&eacute;s&nbsp;: <b>&agrave; gauche</b>, ce qui agit tout seul. <b>&Agrave; droite</b>, les <b>boutons ronds</b> &mdash; tes <b>bonus achet&eacute;s</b>. Eux, c'est toi qui les d&eacute;clenches, <i>au moment que tu choisis</i>. L'&eacute;tiquette &agrave; c&ocirc;t&eacute; dit ce qu'ils font et combien de temps &ccedil;a dure.</div></div>
     <div class="ex"><div class="exi">&#11088;</div><div class="ext">L'<b>XP</b> fait monter ton <b>rang</b>. Chaque rang d&eacute;bloque un th&egrave;me, une bille, une tra&icirc;n&eacute;e, un titre ou un <i>mode de jeu</i>. Tu en gagnes &agrave; <i>chaque partie</i>, m&ecirc;me rat&eacute;e.</div></div>
     <div class="ex"><div class="exi">&#128142;</div><div class="ext">Les <b>&eacute;clats &#128142;</b> (&agrave; ne pas confondre avec les WIZZ &#9889;) s'&eacute;changent contre des <b>bonus</b> que tu d&eacute;clenches en pleine partie&nbsp;: bouclier, ralenti, points &times;2, vies... <i>C'est ici qu'on en gagne le plus.</i></div></div>
   </div>
@@ -1201,8 +1216,14 @@
   <div id="admBox" style="display:none;width:100%;max-width:300px;margin-top:14px">
     <div class="ntitle" style="max-width:300px">&#128295; Admin &mdash; essai rapide</div>
     <div class="mlist" id="admPhases"></div>
+    <div class="ntitle" style="max-width:300px">&#129513; Modules</div>
+    <button class="ghost" onclick="PULSE.admDraft()">Forcer un tirage maintenant</button>
+    <button class="ghost" onclick="PULSE.admModsReset()">Vider mes modules</button>
+    <div class="mlist" id="admMods"></div>
+    <div class="ntitle" style="max-width:300px">&#128176; Ressources</div>
     <button class="ghost" onclick="PULSE.admScore(500)">+500 points</button>
     <button class="ghost" onclick="PULSE.admShards()">+2000 &#128142; +20 &#9889; et +1500 XP</button>
+    <button class="ghost" onclick="PULSE.admBonus()">+5 de chaque bonus (remplir la barre)</button>
   </div>
 </div>
 
@@ -1314,7 +1335,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b52</div>
+  <div class="buildtag">version 2026-08-03 · b54</div>
 </div>
 
 <script>
@@ -2192,7 +2213,9 @@ var PULSE = (function(){
   /* ---------- ECLATS ---------- */
   function addShards(n,why){
     if(n<=0) return;
+    var brut=n;
     n=Math.round(n*mShards());          /* module 💎 Avarice */
+    if(n>brut) modPing('avarice','+'+(n-brut)+' 💎 en plus');
     PROF.shards+=n; profDirty=true;
     if(why) runReward.shards+=n;
   }
@@ -4887,6 +4910,29 @@ var PULSE = (function(){
     {id:'usurier',  ic:'⚖️', r:3, max:1, n:'Usurier',
      d:function(l){ return 'Zones −20 %, mais points ×2. Le pari le plus cher du jeu.'; }}
   ];
+  /* Libelle court affiche en permanence dans la colonne. Quand une valeur bouge
+     en cours de partie (Surtension depend du combo), elle est affichee EN
+     DIRECT : le joueur voit le chiffre monter, il n'a rien a deduire. */
+  function modLabel(d,l){
+    switch(d.id){
+      case 'lentille':  return 'zones +'+(10*l)+' %';
+      case 'metronome': return 'centre ×'+(1+l);
+      case 'aimant':    return 'spéciales +'+(45*l)+' %';
+      case 'avarice':   return 'éclats ×'+(1+l);
+      case 'vitalite':  return '+'+(2*l)+' cœurs donnés';
+      case 'ancre':     return 'combo gardé';
+      case 'fournaise': return 'fever à '+(l===1?4:3);
+      case 'surtension':return 'points ×'+mCombo().toFixed(2).replace('.',',');
+      case 'carapace':  return 'bouclier /'+(l===1?15:9);
+      case 'ricochet':  return (12*l)+' % double';
+      case 'prolonge':  return 'phases '+(15+7*l)+' s';
+      case 'verre':     return 'points ×'+(1+0.6*l).toFixed(1).replace('.',',');
+      case 'nitro':     return 'vite, +'+(35*l)+' %';
+      case 'chasseur':  return 'phases ×2';
+      case 'usurier':   return 'zones −20 %, ×2';
+    }
+    return '';
+  }
   function moduleById(id){ for(var i=0;i<MODULES.length;i++) if(MODULES[i].id===id) return MODULES[i]; return null; }
   var mods={};                       /* id -> niveau, remis a zero a chaque partie */
   var modLv=function(id){ return mods[id]||0; };
@@ -4913,9 +4959,39 @@ var PULSE = (function(){
     var h='', id;
     for(id in mods){
       var d=moduleById(id); if(!d) continue;
-      h+='<div class="bs">'+d.ic+(mods[id]>1?'<i>'+mods[id]+'</i>':'')+'</div>';
+      h+='<div class="bs" id="bsm_'+id+'">'
+       + '<div class="bsi">'+d.ic+(mods[id]>1?'<i>'+mods[id]+'</i>':'')+'</div>'
+       + '<div class="bst" id="bsl_'+id+'">'+modLabel(d,mods[id])+'</div></div>';
     }
     el.innerHTML=h;
+  }
+  /* Rafraichissement des libelles vivants, appele a chaque touche reussie.
+     Seul Surtension bouge aujourd'hui, mais passer par modLabel evite d'avoir
+     a se souvenir de cette exception le jour ou un autre module bougera. */
+  function refreshBuildLabels(){
+    for(var id in mods){
+      var d=moduleById(id); if(!d) continue;
+      var el=$('bsl_'+id);
+      if(el && !el.getAttribute('data-fire')) el.textContent=modLabel(d,mods[id]);
+    }
+  }
+  /* LE point cle : quand un module agit, sa ligne s'allume et dit ce qu'elle
+     vient de faire. `data-fire` protege le libelle temporaire du
+     rafraichissement automatique pendant la seconde ou il est affiche. */
+  var modFireT={};
+  function modPing(id, txt){
+    if(!modLv(id)) return;
+    var row=$('bsm_'+id), lab=$('bsl_'+id);
+    if(!row||!lab) return;
+    row.classList.add('fire');
+    lab.setAttribute('data-fire','1');
+    lab.textContent=txt;
+    if(modFireT[id]) clearTimeout(modFireT[id]);
+    modFireT[id]=setTimeout(function(){
+      row.classList.remove('fire');
+      lab.removeAttribute('data-fire');
+      var d=moduleById(id); if(d) lab.textContent=modLabel(d,mods[id]||1);
+    },1300);
   }
 
   /* ---- le tirage ----
@@ -5105,6 +5181,7 @@ var PULSE = (function(){
     doFlash(0.5, k==='coeur'?'255,77,109':k==='eclair'?'124,140,255':'255,209,102');
     floatText(px,py-34,S.txt,S.col,true);
     sfxSpecial(); haptic([25,35,25,35,60]);
+    modPing('aimant','zone spéciale sortie');
     if(k==='or') m=5;
     else if(k==='coeur'){ lives++; updateLives(); sfxHeart(); }
     /* Les deux nouvelles passent par les MEMES variables que les bonus payants
@@ -6069,6 +6146,8 @@ var PULSE = (function(){
        doit d'abord retrouver ses marques dans le cercle, sinon la surprise
        tombe pendant le ralenti d'entree et passe inapercue. */
     if(kind==='contresens'){ csT=2000+Math.random()*1200; }
+    modPing('prolonge','phase rallongée');
+    modPing('chasseur','phase déclenchée');
     /* nouveau champignon vert a chaque TENIFLIP, et jauge remise a zero :
        le joueur doit le chercher, ce n'est jamais le meme coin */
     if(kind==='arkanoid'){ lifeBump=Math.floor(gr('bosse')*4); arkBuildBumps(); }
@@ -6543,6 +6622,7 @@ var PULSE = (function(){
       if(carp>0 && Math.floor(combo/carp)>Math.floor(oldCombo/carp)){
         shieldOn++; renderBonusBar();
         floatText(cx,cy-100,'🛡️ BOUCLIER','#4DFFB1',true); sfxSpecial();
+        modPing('carapace','bouclier offert');
       }
       if(combo>=10 && Math.floor(combo/10)>Math.floor(oldCombo/10)){
         burst(cx,cy,'#FFD166',18);
@@ -6568,12 +6648,11 @@ var PULSE = (function(){
          accelerer la montee en difficulte par effet de bord. */
       var total=gain*mPerf*m*rateNow()*zmul*(dblT>0?2:1)*mScore()*mCombo()*(rico?2:1);
       total=Math.round(total);
-      if(rico){ floatText(pz.x,pz.y-52,'🎲 RICOCHET ×2','#B14DFF',true); sfxSpecial(); }
-      /* Un passif silencieux est un passif dont le joueur doute. Les deux qui
-         n'avaient AUCUNE trace a l'ecran parlent maintenant au moment ou ils
-         agissent — c'est la seule preuve qui compte. */
-      if(perfect && mPerf>1) floatText(pz.x,pz.y-78,'🎯 PLEIN CENTRE ×'+mPerf,'#FF8C42',true);
-      if(mCombo()>1.05) floatText(pz.x,pz.y-104,'⚡ SURTENSION ×'+mCombo().toFixed(2).replace('.',','),'#7C8CFF',false);
+      /* Chaque module qui agit le DIT, sur sa propre ligne a gauche. Un passif
+         silencieux est un passif dont le joueur doute. */
+      if(rico){ floatText(pz.x,pz.y-52,'🎲 RICOCHET ×2','#B14DFF',true); sfxSpecial(); modPing('ricochet','×2 ! il a payé'); }
+      if(perfect && mPerf>1) modPing('metronome','plein centre ×'+mPerf);
+      refreshBuildLabels();
       dscore+=gain*m;
       if(goldT<=0 && feverM>oldM){
         toast(feverName(feverM), feverM===3?'Triple points !':'Points doubles !');
@@ -6706,7 +6785,7 @@ var PULSE = (function(){
        chose et change completement la façon de jouer les fins de partie. */
     var garde=mKeepCombo();
     running=false; shake=16; combo=garde; noMiss=0; goldT=0; multiHits=0; perfHits=0;
-    if(garde>0) floatText(cx,cy-70,'⚓ combo '+garde+' gardé','#4DFFB1',true);
+    if(garde>0){ floatText(cx,cy-70,'⚓ combo '+garde+' gardé','#4DFFB1',true); modPing('ancre','combo '+garde+' sauvé'); }
     /* point d'impact : la balle en mode arkanoid, la bille sur l'anneau sinon */
     var p = (phaseIs('arkanoid') && arkBall) ? {x:arkBall.x,y:Math.min(arkBall.y,arkPadY()+40)} : ptOn(angle,R());
     if(near){ floatText(p.x,p.y-26,'PRESQUE !','#FFD166',true); }
@@ -7936,8 +8015,8 @@ var PULSE = (function(){
   /* ---------- pause ---------- */
   var pausedState=null;
   /* Liste lisible des modules, avec leur effet au niveau atteint. Le bandeau
-     du haut ne montre que des pictogrammes : suffisant comme rappel pendant
-     l'action, insuffisant pour comprendre. Ici on a le temps. */
+     de gauche donne l'essentiel en un coup d'oeil, mais pas le detail des
+     niveaux. Ici on a le temps de lire. */
   function renderPauseMods(){
     var box=$('pauseMods'), tit=$('pauseModT');
     if(!box||!tit) return;
@@ -7975,6 +8054,22 @@ var PULSE = (function(){
        + '<div class="ms">'+PHASES[i].sub+'</div></div></div>';
     }
     el.innerHTML=h;
+
+    /* Chaque module s'ajoute d'un appui, et la carte affiche le niveau atteint
+       sur son plafond. Sans ca, juger une combinaison comme Usurier+Surtension
+       demanderait de refaire 640 points ET de tomber sur les bonnes offres —
+       autant dire de ne jamais la juger. */
+    var em=$('admMods'); if(!em) return;
+    var hm='';
+    for(var j=0;j<MODULES.length;j++){
+      var d=MODULES[j], lv=modLv(d.id);
+      hm+='<div class="mcard tap'+(lv>=d.max?' lock':'')+'" onclick="PULSE.admMod(\''+d.id+'\')">'
+        + '<div class="mi">'+d.ic+'</div><div class="mm">'
+        + '<div class="mt">'+d.n+' <span style="color:var(--dim);font-weight:700">'+lv+'/'+d.max+'</span></div>'
+        + '<div class="ms">'+d.d(Math.min(lv+1,d.max))+'</div></div>'
+        + '<div class="mr">'+(lv>=d.max?'✔':'＋')+'</div></div>';
+    }
+    em.innerHTML=hm;
   }
   function doResume(){
     $('pauseScreen').classList.add('hide');
@@ -8543,6 +8638,57 @@ var PULSE = (function(){
       if(!isAdmin) return;
       score+=n; dscore+=n; setScore(); speed=speedFor(dscore); updateFeatures();
       var m=$('cleanMsg'); if(m) m.textContent='';
+    },
+    /* Ajoute un niveau d'un module sans quitter la pause : on empile trois ou
+       quatre cartes d'affilee, puis on reprend et on juge la combinaison. */
+    admMod:function(id){
+      if(!isAdmin) return;
+      var d=moduleById(id); if(!d) return;
+      if(modLv(id)>=d.max){ toast('Déjà au plafond', d.n+' ×'+d.max); haptic(30); return; }
+      mods[id]=modLv(id)+1;
+      if(id==='vitalite'){ lives+=2; updateLives(); }
+      if(id==='verre'){ lives=Math.max(1,lives-2); updateLives(); }
+      if(id==='chasseur'){ MERIT_COMBO=Math.round(MERIT_COMBO/2); MERIT_MULTI=Math.max(2,Math.round(MERIT_MULTI/2)); MERIT_PERF=Math.max(3,Math.round(MERIT_PERF/2)); }
+      renderBuild(); renderPauseMods(); buildAdmin();
+      toast('🔧 '+d.ic+' '+d.n, 'niveau '+mods[id]);
+      sfxContract(); haptic(15);
+    },
+    admModsReset:function(){
+      if(!isAdmin) return;
+      mods={}; draftDone=0; draftOffer=[];
+      MERIT_COMBO=MERIT_COMBO0; MERIT_MULTI=MERIT_MULTI0; MERIT_PERF=MERIT_PERF0;
+      renderBuild(); renderPauseMods(); buildAdmin();
+      toast('🔧 Modules vidés','le compteur de tirages repart à zéro');
+    },
+    /* Rejoue l'ecran de tirage tel quel, offres comprises : c'est le seul moyen
+       de juger la LISIBILITE des cartes, que la liste ci-dessus court-circuite. */
+    admDraft:function(){
+      if(!isAdmin) return;
+      var pool=draftPool();
+      if(!pool.length){ toast('Rien à tirer','tous les modules sont au plafond'); return; }
+      draftOffer=[];
+      var garde=0;
+      while(draftOffer.length<3 && garde++<60){
+        var c=pool[Math.floor(Math.random()*pool.length)], deja=false;
+        for(var i=0;i<draftOffer.length;i++) if(draftOffer[i].id===c.id) deja=true;
+        if(!deja) draftOffer.push(c);
+      }
+      draftDone++;
+      $('pauseScreen').classList.add('hide');
+      openDraft();
+    },
+    admBonus:function(){
+      if(!isAdmin) return;
+      for(var i=0;i<BONUS.length;i++) bonusAdd(BONUS[i].id,5);
+      saveProf();
+      /* On reconstruit la barre SANS passer par initRunBonus : celui-ci remet
+         a zero shieldOn, dblT, xlT et reviveLeft, et effacerait donc les effets
+         en cours au moment meme ou on veut les observer. */
+      runBonus=[];
+      for(i=0;i<BONUS.length;i++) runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
+      renderBonusBar();
+      toast('🔧 Admin','+5 de chaque bonus — la barre est pleine');
+      haptic(15);
     },
     admShards:function(){
       if(!isAdmin) return;
