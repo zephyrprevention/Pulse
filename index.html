@@ -864,6 +864,38 @@
   .quizcard.golden .quizhead{color:var(--gold)}
   .quizcard.golden .quizopt .ql{background:rgba(255,209,102,.15);border-color:rgba(255,209,102,.5);color:var(--gold)}
   .quizfeed.ko{color:#FF9DB0}
+  /* ---------- TIRAGE DE MODULES ----------
+     L'ecran le plus important du jeu : c'est le seul endroit ou le joueur
+     DECIDE quelque chose. Il doit donc etre lisible d'un coup d'oeil, tenir
+     sans defilement sur un petit telephone, et laisser voir l'anneau derriere
+     — la partie n'est pas finie, elle est suspendue. */
+  #draft{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;
+    align-items:center;justify-content:center;padding:18px;
+    background:rgba(4,6,14,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  #draft.show{display:flex}
+  .dr-t{font-size:12px;letter-spacing:3px;color:var(--gold);font-weight:900;text-transform:uppercase}
+  .dr-s{font-size:13px;color:var(--ink2);margin:4px 0 16px;text-align:center}
+  .dr-cards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px}
+  .dr-c{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;
+    border-radius:var(--r-md);border:1.5px solid var(--glass-b);background:rgba(14,20,38,.82);
+    transition:transform .12s,border-color .12s;text-align:left}
+  .dr-c:active{transform:scale(.97)}
+  .dr-c .di{font-size:26px;width:34px;text-align:center;flex:none}
+  .dr-c .dn{font-size:15px;font-weight:900;color:#fff}
+  .dr-c .dd{font-size:12px;color:var(--ink2);line-height:1.35;margin-top:2px}
+  .dr-c .dlv{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--gold);margin-top:3px}
+  /* La rarete se lit a la couleur du liseré, jamais a un mot ecrit : sur trois
+     cartes lues en deux secondes, un mot demande un aller-retour du regard. */
+  .dr-c.r2{border-color:rgba(92,225,230,.55)}
+  .dr-c.r3{border-color:rgba(255,209,102,.65);background:rgba(40,32,12,.7)}
+  /* Bandeau des modules deja acquis, pendant la partie. Minuscule : c'est un
+     rappel, pas un tableau de bord. */
+  .buildstrip{position:fixed;left:0;right:0;top:74px;z-index:5;display:none;
+    justify-content:center;gap:5px;pointer-events:none;flex-wrap:wrap;padding:0 12px}
+  body.playing .buildstrip{display:flex}
+  .buildstrip .bs{font-size:14px;background:rgba(10,15,30,.6);border:1px solid var(--glass-b);
+    border-radius:9px;padding:1px 5px;position:relative}
+  .buildstrip .bs i{font-style:normal;font-size:9px;font-weight:900;color:var(--gold);margin-left:1px}
 </style>
 
 </head>
@@ -884,6 +916,12 @@
 <div class="timer" id="timer">60</div>
 <div class="modline" id="modline"></div>
 <div class="bonusbar" id="bonusBar"></div>
+<div class="buildstrip" id="buildStrip"></div>
+<div id="draft">
+  <div class="dr-t" id="draftTitle">Module</div>
+  <div class="dr-s" id="draftSub">Choisis, la partie reprend juste après</div>
+  <div class="dr-cards" id="draftCards"></div>
+</div>
 
 <div class="goalbar" id="goalbar">
   <div class="goaltop"><div class="g1" id="goalLbl">Objectif</div><div class="g2" id="goalTxt">0 / 150</div></div>
@@ -992,7 +1030,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b45</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b50</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1032,6 +1070,7 @@
   <div class="tag" id="missTag">tout ce qu'il y a &agrave; gagner aujourd'hui</div>
 
   <div class="explain">
+    <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Ils s'empilent et se combinent &mdash; c'est ce qui fait qu'aucune partie ne ressemble &agrave; la pr&eacute;c&eacute;dente. Certains se contredisent&nbsp;: &agrave; toi de voir.</div></div>
     <div class="ex"><div class="exi">&#11088;</div><div class="ext">L'<b>XP</b> fait monter ton <b>rang</b>. Chaque rang d&eacute;bloque un th&egrave;me, une bille, une tra&icirc;n&eacute;e, un titre ou un <i>mode de jeu</i>. Tu en gagnes &agrave; <i>chaque partie</i>, m&ecirc;me rat&eacute;e.</div></div>
     <div class="ex"><div class="exi">&#128142;</div><div class="ext">Les <b>&eacute;clats &#128142;</b> (&agrave; ne pas confondre avec les WIZZ &#9889;) s'&eacute;changent contre des <b>bonus</b> que tu d&eacute;clenches en pleine partie&nbsp;: bouclier, ralenti, points &times;2, vies... <i>C'est ici qu'on en gagne le plus.</i></div></div>
   </div>
@@ -1250,7 +1289,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b45</div>
+  <div class="buildtag">version 2026-08-03 · b50</div>
 </div>
 
 <script>
@@ -2127,6 +2166,7 @@ var PULSE = (function(){
   /* ---------- ECLATS ---------- */
   function addShards(n,why){
     if(n<=0) return;
+    n=Math.round(n*mShards());          /* module 💎 Avarice */
     PROF.shards+=n; profDirty=true;
     if(why) runReward.shards+=n;
   }
@@ -4086,6 +4126,9 @@ var PULSE = (function(){
   /* Conditions de merite (apres les paliers programmes). Volontairement hautes :
      un bonus toutes les deux minutes reste un evenement, un bonus toutes les
      vingt secondes devient le jeu lui-meme. */
+  /* Valeurs d'origine conservees a part : le module 👁️ Chasseur divise ces
+     seuils pendant une partie, il faut pouvoir les restaurer a la suivante. */
+  var MERIT_COMBO0=30, MERIT_MULTI0=6, MERIT_PERF0=10;
   var MERIT_COMBO=30;                // combo a atteindre        -> TENIFLIP
   var MERIT_MULTI=6;                 // touches a 2 billes ou +  -> GRAVITE
   var MERIT_PERF=10;                 // touches en plein centre  -> ECLIPSE
@@ -4764,7 +4807,172 @@ var PULSE = (function(){
   resize();
 
   /* ---------- combo / fever ---------- */
-  function mult(){ return combo>=12 ? 3 : combo>=6 ? 2 : 1; }
+  /* ================== MODULES : la construction de partie ==================
+     Le vrai probleme signale par les joueurs n'est pas le manque de contenu :
+     c'est que le contenu ARRIVE toujours dans le meme ordre, et que le joueur
+     n'y touche jamais. Sept phases, sept zones speciales, des missions, des
+     rangs — mais aucune DECISION. Deux parties de 600 points se ressemblent
+     parce qu'elles sont identiques : le joueur les subit.
+
+     Les modules retournent ce rapport. Tous les 40 a 350 points, la partie
+     s'arrete et propose TROIS modules parmi une quinzaine ; le joueur en prend
+     un. Ils s'empilent, ils se combinent, et deux d'entre eux se contredisent
+     volontairement. Ce n'est plus une partie qu'on subit, c'est une partie
+     qu'on batit — et c'est la seule chose qui rende deux parties differentes
+     sans avoir a ecrire une ligne de contenu de plus.
+
+     Tirage seede (gr('draft')) : deux joueurs d'un meme duel recoivent les
+     memes offres. Ce qui les separe, ce sont leurs CHOIX. */
+  var MODULES=[
+    /* --- courants : ils reglent des chiffres, on les prend sans reflechir --- */
+    {id:'lentille', ic:'🔎', r:1, max:4, n:'Lentille',
+     d:function(l){ return 'Zones +'+(10*l)+' % — tout devient plus large.'; }},
+    {id:'metronome',ic:'🎯', r:1, max:3, n:'Métronome',
+     d:function(l){ return 'Les touches en plein centre valent ×'+(1+l)+'.'; }},
+    {id:'aimant',   ic:'🧲', r:1, max:3, n:'Aimant',
+     d:function(l){ return '+'+(45*l)+' % de zones spéciales.'; }},
+    {id:'avarice',  ic:'💎', r:1, max:3, n:'Avarice',
+     d:function(l){ return 'Éclats ×'+(1+l)+' — la boutique arrive vite.'; }},
+    {id:'vitalite', ic:'💖', r:1, max:5, n:'Vitalité',
+     d:function(l){ return '+2 cœurs, tout de suite.'; }},
+
+    /* --- interessants : ils changent une regle, donc une facon de jouer --- */
+    {id:'ancre',    ic:'⚓', r:2, max:2, n:'Ancre',
+     d:function(l){ return 'Un raté ne remet plus ton combo à zéro : il en garde '+(l===1?'la moitié':'les deux tiers')+'.'; }},
+    {id:'fournaise',ic:'🔥', r:2, max:2, n:'Fournaise',
+     d:function(l){ return 'Le FEVER se déclenche à '+(l===1?'4 et 9':'3 et 7')+' de combo au lieu de 6 et 12.'; }},
+    {id:'surtension',ic:'⚡', r:2, max:3, n:'Surtension',
+     d:function(l){ return '+'+(1.5*l).toFixed(1).replace('.',',')+' % de points par point de combo. Sans plafond.'; }},
+    {id:'carapace', ic:'🛡️', r:2, max:2, n:'Carapace',
+     d:function(l){ return 'Un bouclier offert tous les '+(l===1?15:9)+' de combo.'; }},
+    {id:'ricochet', ic:'🎲', r:2, max:3, n:'Ricochet',
+     d:function(l){ return (12*l)+' % de chance qu\'une touche compte double.'; }},
+    {id:'prolonge', ic:'⏳', r:2, max:2, n:'Prolongation',
+     d:function(l){ return 'Les phases durent '+(15+7*l)+' s au lieu de 15.'; }},
+
+    /* --- rares : de vrais paris. Ils donnent beaucoup et prennent beaucoup.
+           C'est la ou une partie devient une histoire qu'on raconte. --- */
+    {id:'verre',    ic:'🩸', r:3, max:2, n:'Cœur de verre',
+     d:function(l){ return '−2 cœurs maintenant, mais TOUS tes points ×'+(1+0.6*l).toFixed(1).replace('.',',')+'.'; }},
+    {id:'nitro',    ic:'🚀', r:3, max:3, n:'Nitro',
+     d:function(l){ return 'Billes +'+(14*l)+' % de vitesse, points +'+(35*l)+' %.'; }},
+    {id:'chasseur', ic:'👁️', r:3, max:1, n:'Chasseur',
+     d:function(l){ return 'Les phases tombent deux fois plus vite, et chacune paie un multiplicateur de plus.'; }},
+    {id:'usurier',  ic:'⚖️', r:3, max:1, n:'Usurier',
+     d:function(l){ return 'Zones −20 %, mais points ×2. Le pari le plus cher du jeu.'; }}
+  ];
+  function moduleById(id){ for(var i=0;i<MODULES.length;i++) if(MODULES[i].id===id) return MODULES[i]; return null; }
+  var mods={};                       /* id -> niveau, remis a zero a chaque partie */
+  var modLv=function(id){ return mods[id]||0; };
+
+  /* Les accesseurs. Un par effet, tous neutres quand aucun module n'est pris :
+     le mode Classique d'origine reste EXACTEMENT ce qu'il etait pour qui ne
+     prend rien — condition pour que les anciens records gardent un sens. */
+  function mZone(){ return 1 + 0.10*modLv('lentille') - 0.20*modLv('usurier'); }
+  function mPerfect(){ return 1 + modLv('metronome'); }
+  function mSpecial(){ return 1 + 0.45*modLv('aimant'); }
+  function mShards(){ return 1 + modLv('avarice'); }
+  function mCombo(){ return 1 + 0.015*modLv('surtension')*combo; }
+  function mScore(){ return (1 + 0.6*modLv('verre')) * (1 + 0.35*modLv('nitro')) * (modLv('usurier')?2:1); }
+  function mSpeedMul(){ return 1 + 0.14*modLv('nitro'); }
+  function mKeepCombo(){ var l=modLv('ancre'); return l===0?0 : Math.floor(combo*(l===1?0.5:0.667)); }
+  function mFever(){ var l=modLv('fournaise'); return l===0?[6,12] : l===1?[4,9] : [3,7]; }
+  function mSeqMs(){ var l=modLv('prolonge'); return SEQ_MS + 7000*l; }
+  function mCarapace(){ var l=modLv('carapace'); return l===0?0 : (l===1?15:9); }
+  function mRicochet(){ return 0.12*modLv('ricochet'); }
+
+  /* Le bandeau des modules acquis. */
+  function renderBuild(){
+    var el=$('buildStrip'); if(!el) return;
+    var h='', id;
+    for(id in mods){
+      var d=moduleById(id); if(!d) continue;
+      h+='<div class="bs">'+d.ic+(mods[id]>1?'<i>'+mods[id]+'</i>':'')+'</div>';
+    }
+    el.innerHTML=h;
+  }
+
+  /* ---- le tirage ----
+     Paliers resserres au debut (40, 130, 260) puis espaces : les trois
+     premieres minutes doivent donner trois decisions, c'est la que le joueur
+     decide s'il reste. Ensuite un module tous les ~350 points, indefiniment :
+     une partie longue ne cesse jamais de se transformer. */
+  var DRAFT_AT=[40,130,260,430,640,900], draftDone=0, draftOffer=[];
+  function nextDraftAt(){
+    return draftDone<DRAFT_AT.length ? DRAFT_AT[draftDone]
+                                     : DRAFT_AT[DRAFT_AT.length-1] + 350*(draftDone-DRAFT_AT.length+1);
+  }
+  /* Un module au plafond ne ressort plus : proposer une carte inutile est la
+     façon la plus simple de gacher un tirage sur trois. */
+  function draftPool(){
+    var p=[], i, d;
+    for(i=0;i<MODULES.length;i++){
+      d=MODULES[i];
+      if(modLv(d.id)>=d.max) continue;
+      /* les rares n'apparaissent qu'a partir du 3e tirage : les deux premiers
+         choix doivent etre lisibles par quelqu'un qui decouvre le systeme */
+      if(d.r===3 && draftDone<2) continue;
+      var poids = d.r===1?4 : d.r===2?3 : 1;
+      for(var w=0;w<poids;w++) p.push(d);
+    }
+    return p;
+  }
+  function checkDraft(){
+    if(seqKind || restT>0) return false;        /* jamais pendant une phase */
+    if(score < nextDraftAt()) return false;
+    var pool=draftPool();
+    if(!pool.length){ draftDone++; return false; }
+    draftOffer=[];
+    var garde=0;
+    while(draftOffer.length<3 && garde++<60){
+      var c=pool[Math.floor(gr('draft')*pool.length)];
+      var deja=false;
+      for(var i=0;i<draftOffer.length;i++) if(draftOffer[i].id===c.id) deja=true;
+      if(!deja) draftOffer.push(c);
+    }
+    draftDone++;
+    openDraft();
+    return true;
+  }
+  function openDraft(){
+    running=false; stopMusic();
+    var el=$('draftCards'); if(!el) return;
+    $('draftTitle').textContent = 'Module '+draftDone;
+    $('draftSub').textContent   = draftOffer.length===1 ? 'Un seul module disponible'
+                                                        : 'Choisis-en un, la partie reprend juste après';
+    var h='';
+    for(var i=0;i<draftOffer.length;i++){
+      var d=draftOffer[i], lv=modLv(d.id)+1;
+      h+='<div class="dr-c r'+d.r+'" onclick="PULSE.draftPick(\''+d.id+'\')">'
+       + '<div class="di">'+d.ic+'</div><div>'
+       + '<div class="dn">'+d.n+'</div>'
+       + '<div class="dd">'+d.d(lv)+'</div>'
+       + (lv>1?'<div class="dlv">déjà pris '+(lv-1)+' fois → niveau '+lv+'</div>':'')
+       + '</div></div>';
+    }
+    el.innerHTML=h;
+    $('draft').classList.add('show');
+    sfxLevel(); haptic([20,40,20]);
+  }
+  function draftPick(id){
+    var d=moduleById(id); if(!d) return;
+    mods[id]=modLv(id)+1;
+    /* effets immediats — les seuls qui ne passent pas par un accesseur */
+    if(id==='vitalite'){ lives+=2; updateLives(); sfxHeart(); }
+    if(id==='verre'){ lives=Math.max(1,lives-2); updateLives(); }
+    if(id==='chasseur'){ MERIT_COMBO=Math.round(MERIT_COMBO/2); MERIT_MULTI=Math.max(2,Math.round(MERIT_MULTI/2)); MERIT_PERF=Math.max(3,Math.round(MERIT_PERF/2)); }
+    $('draft').classList.remove('show');
+    renderBuild();
+    burst(cx,cy,'#FFD166',44); doFlash(0.5,'255,209,102');
+    floatText(cx,cy-60,d.ic+' '+d.n,'#FFD166',true);
+    sfxRank(); haptic([25,45,25,45,90]);
+    countdown(function(){
+      running=true; ready=true;
+      if(soundOn) startMusic();
+    });
+  }
+
+  function mult(){ var f=mFever(); return combo>=f[1] ? 3 : combo>=f[0] ? 2 : 1; }
   function feverName(m){ return m===3 ? 'FEVER MAX x3' : 'FEVER x2'; }
   function sfxFever(){ beep(784,0.08,'square',0.45); setTimeout(function(){beep(988,0.08,'square',0.45);},70); setTimeout(function(){beep(1319,0.14,'square',0.45);},140); }
 
@@ -4788,7 +4996,8 @@ var PULSE = (function(){
     if(modZone!==1) z *= modZone;               /* modificateur du defi du jour */
     if(freezeSlowT>0) z = Math.min(z*1.25, 0.62); /* zone ❄ : on respire vraiment */
     if(xlT>0) z = Math.min(z*1.55, 0.66);       /* bonus 🎯 Zone XL */
-    return z;
+    z *= mZone();                               /* modules 🔎 Lentille / ⚖️ Usurier */
+    return Math.max(0.05, Math.min(z, 0.72));
   }
   function intensity(){ return Math.min(score/120, 1.2); }
   /* La courbe d'origine est intacte : les modes ne font que la multiplier a la
@@ -4802,7 +5011,7 @@ var PULSE = (function(){
     else if(s<=150) v = 0.038 + (s-GOAL)*0.00020;
     else if(s<=250) v = 0.048 + (s-150)*0.00005;
     else v = Math.min(0.053 + (s-250)*0.00002, 0.057);
-    return v*modSpeed;
+    return v*modSpeed*mSpeedMul();   /* module 🚀 Nitro */
   }
   function zoneFor(s){
     if(s<50){ return 0.40-0.25*(s/50)*0.6; }
@@ -4839,7 +5048,7 @@ var PULSE = (function(){
      comme un evenement et se met a les attendre : elles perdent tout effet. */
   function specialChance(){
     if(seqKind) return 0;
-    return Math.min(0.055 + dscore*0.00022, 0.135);
+    return Math.min((0.055 + dscore*0.00022)*mSpecial(), 0.42);
   }
   function rollZoneKind(){
     zoneKind='';
@@ -5137,6 +5346,7 @@ var PULSE = (function(){
   function hideAll(){
     introHide();                      /* elle ne flotte au-dessus d'aucun ecran */
     document.body.classList.remove('playing');
+    var d=$('draft'); if(d) d.classList.remove('show');
     var a=['pseudo','start','over','win','boardScreen','howtoScreen','pauseScreen','wizzPicker',
            'missionScreen','modeScreen','shopScreen','rankUp','biereScreen','biereRecu','biereVerdict'];
     for(var i=0;i<a.length;i++){ var e=$(a[i]); if(e) e.classList.add('hide'); }
@@ -5800,7 +6010,7 @@ var PULSE = (function(){
      l'infini plutot que desactive, pour que tout le reste du moteur continue de
      fonctionner sans qu'aucune autre branche ait a connaitre le cas. */
   function startSeq(kind, mult, perm){
-    seqKind=kind; seqT=perm?Infinity:SEQ_MS; seqMult=mult; restT=0; seqCount++;
+    seqKind=kind; seqT=perm?Infinity:mSeqMs(); seqMult=mult; restT=0; seqCount++;   /* ⏳ Prolongation */
     lastPhaseKind=kind;                /* memoire pour ne pas la rejouer d'affilee */
     track('bonus',1);
     zoneKind='';                       /* une zone speciale ne survit pas a un changement de phase */
@@ -5908,7 +6118,7 @@ var PULSE = (function(){
         } else {
           toast(seqLabel(kind)+' !','m\u00e9rit\u00e9 \u2014 points \u00d7'+(5+earned));
         }
-        startSeq(kind, 5+earned);
+        startSeq(kind, 5+earned+(modLv('chasseur')?1:0));   /* 👁️ Chasseur */
         return true;
       }
     }
@@ -6281,6 +6491,13 @@ var PULSE = (function(){
       var oldM=mult(), oldCombo=combo;
       combo += (multi>=2)?3 : perfect?2 : 1;
       if(combo>comboRun) comboRun=combo;
+      /* 🛡️ Carapace : le bouclier tombe sur un palier de combo, donc il
+         recompense exactement ce que le module demande de tenir. */
+      var carp=mCarapace();
+      if(carp>0 && Math.floor(combo/carp)>Math.floor(oldCombo/carp)){
+        shieldOn++; renderBonusBar();
+        floatText(cx,cy-100,'🛡️ BOUCLIER','#4DFFB1',true); sfxSpecial();
+      }
       if(combo>=10 && Math.floor(combo/10)>Math.floor(oldCombo/10)){
         burst(cx,cy,'#FFD166',18);
         floatText(cx,cy-72,'COMBO '+(Math.floor(combo/10)*10)+' !','#FFD166',true);
@@ -6294,7 +6511,18 @@ var PULSE = (function(){
          au moment ou il l'a merite. */
       var pz=ptOn(hitAngle,R());
       var zmul=cashZone(pz.x,pz.y);
-      var total=gain*m*rateNow()*zmul*(dblT>0?2:1);
+      /* Les modules s'appliquent ICI, en toute fin de chaine, pour qu'ils se
+         cumulent avec le fever, la zone speciale et le multiplicateur de phase :
+         c'est cet empilement qui produit les nombres absurdes dont le joueur se
+         souvient, et qu'il a lui-meme construits. */
+      var mPerf = perfect ? mPerfect() : 1;              /* 🎯 Metronome */
+      var rico = mRicochet()>0 && Math.random()<mRicochet();
+      /* `gain` n'est PAS modifie : il alimente aussi dscore, qui pilote la
+         courbe de difficulte. Un module qui rapporte des points ne doit pas
+         accelerer la montee en difficulte par effet de bord. */
+      var total=gain*mPerf*m*rateNow()*zmul*(dblT>0?2:1)*mScore()*mCombo()*(rico?2:1);
+      total=Math.round(total);
+      if(rico){ floatText(pz.x,pz.y-52,'🎲 RICOCHET ×2','#B14DFF',true); sfxSpecial(); }
       dscore+=gain*m;
       if(goldT<=0 && feverM>oldM){
         toast(feverName(feverM), feverM===3?'Triple points !':'Points doubles !');
@@ -6347,7 +6575,9 @@ var PULSE = (function(){
       speed=speedFor(dscore);
       dir*=-1; newTarget(); dirCueT=500;
       updateFeatures();
-      if(!checkPhase()) checkMilestone(prev);
+      /* Ordre volontaire : le tirage passe AVANT la phase et le palier. Trois
+         celebrations simultanees ne s'additionnent pas, elles s'annulent. */
+      if(!checkDraft()){ if(!checkPhase()) checkMilestone(prev); }
 
       if(multi>=2){ jojo('perfect', msg+' \u{1F525}'); sfxBonus(); }
       else if(hitR){ sfxPerfect(); }
@@ -6420,7 +6650,12 @@ var PULSE = (function(){
       return;
     }
     var lostCombo=combo;
-    running=false; shake=16; combo=0; noMiss=0; goldT=0; multiHits=0; perfHits=0;
+    /* ⚓ Ancre : le combo garde une part de lui-meme. Le module ne rend pas le
+       rate indolore — il rend la REPRISE possible, ce qui n'est pas la meme
+       chose et change completement la façon de jouer les fins de partie. */
+    var garde=mKeepCombo();
+    running=false; shake=16; combo=garde; noMiss=0; goldT=0; multiHits=0; perfHits=0;
+    if(garde>0) floatText(cx,cy-70,'⚓ combo '+garde+' gardé','#4DFFB1',true);
     /* point d'impact : la balle en mode arkanoid, la bille sur l'anneau sinon */
     var p = (phaseIs('arkanoid') && arkBall) ? {x:arkBall.x,y:Math.min(arkBall.y,arkPadY()+40)} : ptOn(angle,R());
     if(near){ floatText(p.x,p.y-26,'PRESQUE !','#FFD166',true); }
@@ -7844,6 +8079,8 @@ var PULSE = (function(){
     particles=[];floats=[];frites=[];flash=0;shake=0;passed100=false;
     if(THEME&&THEME.frites){ for(var bf=0;bf<10;bf++) friteRain2(); }
     combo=0;comboRun=0;noMiss=0;stats={taps:0,hits:0};recordShown=false;
+    mods={}; draftDone=0; draftOffer=[]; renderBuild();
+    MERIT_COMBO=MERIT_COMBO0; MERIT_MULTI=MERIT_MULTI0; MERIT_PERF=MERIT_PERF0;
     zoneKind=''; freezeSlowT=0; dblT=0; xlT=0; shieldOn=0;
     wizzMilestone=0; wizzShakeT=0; startLive();
     setTimeout(pushPresence, 50);
@@ -7976,6 +8213,7 @@ var PULSE = (function(){
 
   return {
     setMelody:setMelody,
+    draftPick:function(id){ draftPick(id); },
     /* Pseudo + code. Trois cas, et un seul bouton :
          - pseudo libre                  -> creation
          - pseudo connu + bon code        -> RECUPERATION de la progression
