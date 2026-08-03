@@ -727,6 +727,11 @@
   .bonusbar{position:fixed;right:12px;bottom:calc(142px + env(safe-area-inset-bottom));
     z-index:9;display:none;flex-direction:column;gap:10px;pointer-events:none}
   body.playing .bonusbar{display:flex}
+  /* Avec six bonus en reserve la colonne monterait jusque dans le HUD sur un
+     petit telephone. Au-dela de quatre, les pastilles se resserrent. */
+  .bonusbar.dense{gap:7px}
+  .bonusbar.dense .bb{width:43px;height:43px}
+  .bonusbar.dense .bb .bi{font-size:18px}
   .bb{pointer-events:auto;width:50px;height:50px;border-radius:50%;cursor:pointer;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
     border:1.5px solid rgba(255,255,255,.16);background:rgba(10,15,30,.72);
@@ -884,6 +889,23 @@
   .dr-c .dn{font-size:15px;font-weight:900;color:#fff}
   .dr-c .dd{font-size:12px;color:var(--ink2);line-height:1.35;margin-top:2px}
   .dr-c .dlv{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--gold);margin-top:3px}
+  .dpass{font-size:9px;font-weight:900;letter-spacing:1.2px;color:#7CF5E2;
+    border:1px solid rgba(124,245,226,.4);border-radius:5px;padding:1px 4px;vertical-align:middle}
+  /* Etiquette a GAUCHE de chaque bouton rond : la barre est collee au bord
+     droit, c'est le seul cote ou du texte tient sans deborder. Un rond avec un
+     emoji ne dit pas ce qu'il fait ni combien de temps il dure — or ces deux
+     informations decident du bon moment pour appuyer. */
+  .bb .bl{position:absolute;right:58px;top:50%;transform:translateY(-50%);
+    white-space:nowrap;font-size:10px;font-weight:800;color:var(--ink2);
+    background:rgba(6,10,22,.7);border-radius:6px;padding:2px 6px;pointer-events:none}
+  .bonusbar.dense .bb .bl{right:50px;font-size:9px}
+  /* Rappel des modules sur l'ecran de pause : c'est le seul moment ou le
+     joueur a le temps de lire. */
+  .modlist{width:100%;max-width:320px;margin:0 auto 14px;text-align:left}
+  .modlist .ml{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px}
+  .modlist .mli{font-size:17px;width:22px;text-align:center;flex:none}
+  .modlist .mlt{font-size:12px;color:var(--ink2);line-height:1.35}
+  .modlist .mlt b{color:#fff}
   /* La rarete se lit a la couleur du liseré, jamais a un mot ecrit : sur trois
      cartes lues en deux secondes, un mot demande un aller-retour du regard. */
   .dr-c.r2{border-color:rgba(92,225,230,.55)}
@@ -1030,7 +1052,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b50</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b52</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1070,7 +1092,8 @@
   <div class="tag" id="missTag">tout ce qu'il y a &agrave; gagner aujourd'hui</div>
 
   <div class="explain">
-    <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Ils s'empilent et se combinent &mdash; c'est ce qui fait qu'aucune partie ne ressemble &agrave; la pr&eacute;c&eacute;dente. Certains se contredisent&nbsp;: &agrave; toi de voir.</div></div>
+    <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Ils sont <b>passifs</b> &mdash; <i>rien &agrave; d&eacute;clencher</i>, ils agissent seuls jusqu'&agrave; la fin de la partie. Ils s'empilent, se combinent, et certains se contredisent. Tu les retrouves list&eacute;s dans la <b>pause</b>.</div></div>
+    <div class="ex"><div class="exi">&#128266;</div><div class="ext">&Agrave; ne pas confondre&nbsp;: les <b>boutons ronds &agrave; droite</b> sont tes <b>bonus achet&eacute;s</b>. Eux, c'est toi qui les d&eacute;clenches, <i>au moment que tu choisis</i>. L'&eacute;tiquette &agrave; c&ocirc;t&eacute; dit ce qu'ils font et combien de temps &ccedil;a dure.</div></div>
     <div class="ex"><div class="exi">&#11088;</div><div class="ext">L'<b>XP</b> fait monter ton <b>rang</b>. Chaque rang d&eacute;bloque un th&egrave;me, une bille, une tra&icirc;n&eacute;e, un titre ou un <i>mode de jeu</i>. Tu en gagnes &agrave; <i>chaque partie</i>, m&ecirc;me rat&eacute;e.</div></div>
     <div class="ex"><div class="exi">&#128142;</div><div class="ext">Les <b>&eacute;clats &#128142;</b> (&agrave; ne pas confondre avec les WIZZ &#9889;) s'&eacute;changent contre des <b>bonus</b> que tu d&eacute;clenches en pleine partie&nbsp;: bouclier, ralenti, points &times;2, vies... <i>C'est ici qu'on en gagne le plus.</i></div></div>
   </div>
@@ -1169,6 +1192,8 @@
 <div class="overlay hide" id="pauseScreen">
   <div class="title">PAUSE</div>
   <div class="tag">souffle un coup</div>
+  <div class="ntitle" id="pauseModT" style="max-width:320px;display:none">Tes modules &mdash; ils agissent seuls</div>
+  <div class="modlist" id="pauseMods"></div>
   <div class="melolab">M&eacute;lodie de fond</div>
   <div class="melorow" id="meloRow"></div>
   <button class="go" onclick="PULSE.resume()">Reprendre</button>
@@ -1289,7 +1314,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b50</div>
+  <div class="buildtag">version 2026-08-03 · b52</div>
 </div>
 
 <script>
@@ -2089,7 +2114,7 @@ var PULSE = (function(){
      des eclats ne changeait rien a la partie suivante. Une monnaie qui n'agit
      pas sur le jeu n'est pas une recompense, c'est un score de plus.
 
-     Les bonus corrigent ca : ils s'achetent avec des eclats, s'emportent (3 max)
+     Les bonus corrigent ca : ils s'achetent avec des eclats, partent tous en partie
      et s'activent EN PARTIE, au doigt, au moment choisi. Le joueur decide quand
      il les consomme — c'est ce choix qui les rend interessants, pas leur effet.
      Ils sont consommables : on en possede une QUANTITE, elle descend a l'usage.
@@ -2132,8 +2157,9 @@ var PULSE = (function(){
     if(PROF.bonus[id]<0) PROF.bonus[id]=0;
     profDirty=true;
   }
-  /* Ce qu'on emporte en partie. Trois emplacements : assez pour avoir une
-     strategie, trop peu pour tout emporter — donc un vrai choix avant de jouer. */
+  /* BONUS_SLOTS et bonusLoadout ne servent plus a rien depuis que tout ce
+     qu'on possede part en partie. On les garde : d'anciens profils nuage
+     contiennent encore un champ `loadout`, et applySave le relit. */
   var BONUS_SLOTS=3;
   function bonusLoadout(){
     var out=[], L=(PROF.loadout||[]);
@@ -4938,14 +4964,15 @@ var PULSE = (function(){
     running=false; stopMusic();
     var el=$('draftCards'); if(!el) return;
     $('draftTitle').textContent = 'Module '+draftDone;
-    $('draftSub').textContent   = draftOffer.length===1 ? 'Un seul module disponible'
-                                                        : 'Choisis-en un, la partie reprend juste après';
+    /* La question que se pose tout le monde au premier tirage est "et je
+       l'utilise comment ?". On y repond AVANT qu'elle soit posee. */
+    $('draftSub').innerHTML = 'Choisis-en un. Il agit <b>tout seul</b> jusqu\'à la fin de la partie&nbsp;— rien à déclencher.';
     var h='';
     for(var i=0;i<draftOffer.length;i++){
       var d=draftOffer[i], lv=modLv(d.id)+1;
       h+='<div class="dr-c r'+d.r+'" onclick="PULSE.draftPick(\''+d.id+'\')">'
        + '<div class="di">'+d.ic+'</div><div>'
-       + '<div class="dn">'+d.n+'</div>'
+       + '<div class="dn">'+d.n+' <span class="dpass">PASSIF</span></div>'
        + '<div class="dd">'+d.d(lv)+'</div>'
        + (lv>1?'<div class="dlv">déjà pris '+(lv-1)+' fois → niveau '+lv+'</div>':'')
        + '</div></div>';
@@ -4965,6 +4992,7 @@ var PULSE = (function(){
     renderBuild();
     burst(cx,cy,'#FFD166',44); doFlash(0.5,'255,209,102');
     floatText(cx,cy-60,d.ic+' '+d.n,'#FFD166',true);
+    toast(d.ic+' '+d.n+' actif', 'il agit tout seul, rien à déclencher');
     sfxRank(); haptic([25,45,25,45,90]);
     countdown(function(){
       running=true; ready=true;
@@ -5437,9 +5465,10 @@ var PULSE = (function(){
     /* Ce que le solde permet a l'instant : c'est ca qui donne un sens au chiffre. */
     var mh=$('metaHint');
     if(mh){
-      var load=bonusLoadout(), dispo=null, i;
+      var dispo=null, i, res=[];
+      for(i=0;i<BONUS.length;i++) if(bonusQty(BONUS[i].id)>0) res.push(BONUS[i].ic);
       for(i=0;i<BONUS.length;i++) if(PROF.shards>=BONUS[i].cost && (!dispo||BONUS[i].cost>dispo.cost)) dispo=BONUS[i];
-      if(load.length) mh.innerHTML='Tu emportes '+load.map(function(id){return bonusById(id).ic;}).join(' ')
+      if(res.length) mh.innerHTML='En r&eacute;serve : '+res.join(' ')
         +' &mdash; <span class="go2">d&eacute;clenche-les en partie</span> avec les boutons ronds';
       else if(dispo) mh.innerHTML='Tes <b>'+PROF.shards+' &#128142;</b> paient un '+dispo.ic+' <b>'+dispo.n+'</b> &mdash; appuie sur &#128142;';
       else mh.innerHTML='Gagne des <b>&#128142; &eacute;clats</b> pour acheter des bonus utilisables en partie';
@@ -5574,23 +5603,26 @@ var PULSE = (function(){
       bh='<div class="explain">'
         +'<div class="ex"><div class="exi">💎</div><div class="ext">'
         +'Les <b>éclats</b>, gagnés à chaque partie, achètent <i>tous</i> les bonus. '
-        +'Tu en emportes <i>3 maximum</i>, et tu les déclenches <i>quand tu veux</i> '
+        +'Tout ce que tu possèdes part <i>automatiquement</i> en partie : pas d\'équipement, '
+        +'rien à préparer. Tu les déclenches <i>quand tu veux</i> '
         +'avec les boutons ronds à droite de l\'écran.</div></div>'
         +'<div class="ex"><div class="exi">⚡</div><div class="ext">'
         +'Les <b>WIZZ</b> paient les trois bonus qui te <i>sauvent la mise</i> : '
         +'🛡️ Bouclier, 💖 +2 vies et 🔁 2e chance. Mais ce sont les mêmes WIZZ qui '
         +'servent à <i>secouer les autres joueurs</i> — chaque bonus acheté est un WIZZ '
         +'que tu n\'enverras pas.</div></div></div>';
-      bh+='<div class="ntitle" style="max-width:360px">Emportés ('+load.length+'/'+BONUS_SLOTS+')</div>';
+      bh+='<div class="ntitle" style="max-width:360px">Ta réserve</div>';
       bh+='<div class="mlist">';
       for(var q=0;q<BONUS.length;q++){
-        var d=BONUS[q], qt=bonusQty(d.id), pris=(load.indexOf(d.id)>=0);
-        bh+='<div class="mcard tap'+(pris?' sel':'')+(qt<=0?' lock':'')+'" onclick="PULSE.bonusTap(\''+d.id+'\')">'
+        var d=BONUS[q], qt=bonusQty(d.id);
+        /* Une carte grisee a zero exemplaire et vive des qu'on en possede un :
+           l'etat de la reserve doit se lire sans rien toucher. */
+        bh+='<div class="mcard tap'+(qt>0?' sel':' lock')+'" onclick="PULSE.bonusTap(\''+d.id+'\')">'
          + '<div class="mi">'+d.ic+'</div>'
          + '<div class="mm"><div class="mt">'+d.n+' <span style="color:var(--dim);font-weight:700">×'+qt+'</span>'
-         +   (pris?' <span style="color:#7CF5E2;font-size:11px">· emporté</span>':'')+'</div>'
+         +   (qt>0?' <span style="color:#7CF5E2;font-size:11px">· prêt en partie</span>':'')+'</div>'
          + '<div class="ms">'+d.d+'</div></div>'
-         + '<div class="mr">'+(qt>0?(pris?'✅':'＋'):'')+'</div></div>';
+         + '<div class="mr">'+(qt>0?'✅':'')+'</div></div>';
       }
       bh+='</div>';
       /* Recharge : chaque PRIX est un bouton distinct, pas la carte entiere.
@@ -5875,10 +5907,22 @@ var PULSE = (function(){
   var xlT=0;                       /* zones XL du bonus 🎯 */
   var reviveLeft=0;                /* secondes chances disponibles */
 
+  /* Plus d'etape d'equipement. Avant, il fallait acheter un bonus PUIS aller
+     le glisser dans un des trois emplacements avant de lancer la partie —
+     sinon il restait invisible. Ce choix se faisait a froid, dans un menu, sur
+     des bonus dont on ignorait encore si la partie en aurait besoin : c'est la
+     pire forme de decision, celle qu'on prend sans information. Et le joueur
+     qui achetait un Bouclier le retrouvait... nulle part.
+
+     Desormais : ce que tu possedes est dans la barre. Point. La vraie decision
+     n'a pas disparu, elle a change de place — elle se prend maintenant EN
+     partie, au moment de declencher, et dans le tirage de modules. */
   function initRunBonus(){
     runBonus=[]; shieldOn=0; dblT=0; xlT=0; reviveLeft=0;
-    var L=bonusLoadout();
-    for(var i=0;i<L.length;i++) runBonus.push({id:L[i], left:bonusQty(L[i])});
+    for(var i=0;i<BONUS.length;i++){
+      var q=bonusQty(BONUS[i].id);
+      if(q>0) runBonus.push({id:BONUS[i].id, left:q});
+    }
     renderBonusBar();
   }
   function renderBonusBar(){
@@ -5891,9 +5935,11 @@ var PULSE = (function(){
       h+='<div class="bb'+(b.left<=0?' spent':'')+(actif?' on':'')+'" id="bb_'+b.id+'"'
        + ' onclick="PULSE.useBonus(\''+b.id+'\')" title="'+d.n+'">'
        + '<span class="bi">'+d.ic+'</span>'
-       + '<span class="bq">'+b.left+'</span></div>';
+       + '<span class="bq">'+b.left+'</span>'
+       + '<span class="bl">'+(actif?'en cours':d.court)+'</span></div>';
     }
     el.innerHTML=h;
+    el.classList.toggle('dense', runBonus.length>4);
   }
   /* Consommation. Renvoie false si rien ne s'est passe — et dans ce cas on le
      DIT, parce qu'un bouton qui ne repond pas se lit comme un bouton casse. */
@@ -6523,6 +6569,11 @@ var PULSE = (function(){
       var total=gain*mPerf*m*rateNow()*zmul*(dblT>0?2:1)*mScore()*mCombo()*(rico?2:1);
       total=Math.round(total);
       if(rico){ floatText(pz.x,pz.y-52,'🎲 RICOCHET ×2','#B14DFF',true); sfxSpecial(); }
+      /* Un passif silencieux est un passif dont le joueur doute. Les deux qui
+         n'avaient AUCUNE trace a l'ecran parlent maintenant au moment ou ils
+         agissent — c'est la seule preuve qui compte. */
+      if(perfect && mPerf>1) floatText(pz.x,pz.y-78,'🎯 PLEIN CENTRE ×'+mPerf,'#FF8C42',true);
+      if(mCombo()>1.05) floatText(pz.x,pz.y-104,'⚡ SURTENSION ×'+mCombo().toFixed(2).replace('.',','),'#7C8CFF',false);
       dscore+=gain*m;
       if(goldT<=0 && feverM>oldM){
         toast(feverName(feverM), feverM===3?'Triple points !':'Points doubles !');
@@ -7884,11 +7935,28 @@ var PULSE = (function(){
 
   /* ---------- pause ---------- */
   var pausedState=null;
+  /* Liste lisible des modules, avec leur effet au niveau atteint. Le bandeau
+     du haut ne montre que des pictogrammes : suffisant comme rappel pendant
+     l'action, insuffisant pour comprendre. Ici on a le temps. */
+  function renderPauseMods(){
+    var box=$('pauseMods'), tit=$('pauseModT');
+    if(!box||!tit) return;
+    var h='', n=0, id;
+    for(id in mods){
+      var d=moduleById(id); if(!d) continue;
+      n++;
+      h+='<div class="ml"><div class="mli">'+d.ic+'</div>'
+       + '<div class="mlt"><b>'+d.n+(mods[id]>1?' ×'+mods[id]:'')+'</b> — '+d.d(mods[id])+'</div></div>';
+    }
+    box.innerHTML=h;
+    tit.style.display = n?'block':'none';
+  }
   function doPause(){
     if(!running) return;
     running=false; stopMusic();
     buildMeloBtns();
     buildAdmin();
+    renderPauseMods();
     hideAll(); document.body.classList.add('playing');
     $('pauseScreen').classList.remove('hide');
   }
@@ -8355,16 +8423,17 @@ var PULSE = (function(){
        les cartes "Recharger" sont tout en bas : on cliquait, l'achat passait,
        et la confirmation apparaissait 300 px au-dessus du champ de vision. Vu de
        l'utilisateur : "le bouton ne marche pas". Le toast est vu quoi qu'il arrive. */
+    /* La carte n'equipe plus rien — il n'y a plus rien a equiper. Elle
+       renseigne : combien il t'en reste, et ce que ca fait. */
     bonusTap:function(id){
       var d=bonusById(id); if(!d) return;
-      var r=bonusToggle(id);
-      if(r==='vide'){ toast('Épuisé', d.n+' : recharge-le plus bas pour '+d.cost+' 💎'); shopMsg('Tu n\'as plus de <b>'+d.n+'</b>. Recharge-le plus bas pour '+d.cost+' 💎.','err'); haptic(30); renderShop(); return; }
-      if(r==='plein'){ toast('Déjà 3 bonus', 'appuie sur un bonus emporté pour le reposer'); shopMsg('Tu emportes déjà 3 bonus. Appuie sur l\'un d\'eux pour le reposer.','info'); haptic(30); return; }
-      saveProf(); renderShop();
-      if(r==='ajoute') toast('✅ '+d.n+' emporté', 'tu le déclencheras en partie');
-      else toast(d.n+' reposé','');
-      shopMsg(r==='ajoute' ? '<b>'+d.n+'</b> emporté — '+d.court+'. Tu le déclencheras en partie.'
-                           : '<b>'+d.n+'</b> reposé.', r==='ajoute'?'ok':'info');
+      var qt=bonusQty(id);
+      if(qt<=0){
+        toast('Épuisé', d.n+' : recharge-le plus bas pour '+d.cost+' 💎');
+        shopMsg('Tu n\'as plus de <b>'+d.n+'</b>. Recharge-le plus bas pour '+d.cost+' 💎.','err');
+        haptic(30); return;
+      }
+      shopMsg('<b>'+d.n+'</b> ×'+qt+' — '+d.court+'. Il sera dans la barre dès ta prochaine partie, tu le déclencheras quand tu veux.','ok');
       sfxContract(); haptic(15);
     },
     buyBonus:function(id){
@@ -8376,11 +8445,6 @@ var PULSE = (function(){
         haptic(40); return;
       }
       PROF.shards-=d.cost; bonusAdd(id,1);
-      /* on l'emporte tout de suite s'il reste de la place : acheter puis devoir
-         penser a l'equiper est le genre d'etape qu'on oublie, et le joueur
-         croirait alors avoir paye pour rien */
-      bonusClean();
-      if(PROF.loadout.indexOf(id)<0 && PROF.loadout.length<BONUS_SLOTS) bonusToggle(id);
       saveProf(); renderShop();
       toast('🎉 '+d.n+' rechargé', 'tu en as '+bonusQty(id)+' · reste '+PROF.shards+' 💎');
       shopMsg('🎉 <b>'+d.n+'</b> acheté — '+d.court+'. Il te reste '+PROF.shards+' 💎','ok');
@@ -8404,8 +8468,6 @@ var PULSE = (function(){
       }
       wizzStock-=d.wcost; saveWizzStock(); updateWizzBtn();
       bonusAdd(id,1);
-      bonusClean();
-      if(PROF.loadout.indexOf(id)<0 && PROF.loadout.length<BONUS_SLOTS) bonusToggle(id);
       saveProf(true); renderShop();
       toast('⚡ '+d.n+' rechargé', 'tu en as '+bonusQty(id)+' · reste '+wizzStock+' WIZZ');
       shopMsg('⚡ <b>'+d.n+'</b> payé en WIZZ — '+d.court+'. Il te reste <b>'+wizzStock+' WIZZ</b> pour secouer les autres.','ok');
