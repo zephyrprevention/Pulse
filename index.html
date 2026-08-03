@@ -96,6 +96,39 @@
     color:#fff;font-size:19px;cursor:pointer;transition:transform .12s}
   #soundBtn{bottom:calc(20px + env(safe-area-inset-bottom));right:16px}
   #pauseBtn{bottom:calc(20px + env(safe-area-inset-bottom));left:16px}
+  /* Bouton d'apparence, colle au bouton pause : les trois commandes de confort
+     (pause, apparence, son) forment ainsi une seule rangee au ras du pouce. */
+  #skinBtn{position:fixed;z-index:8;width:44px;height:44px;border-radius:50%;
+    display:none;align-items:center;justify-content:center;border:1px solid var(--glass-b);
+    background:rgba(10,15,30,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    color:#fff;font-size:19px;cursor:pointer;transition:transform .12s;
+    bottom:calc(20px + env(safe-area-inset-bottom));left:68px}
+  body.playing #skinBtn{display:flex}
+  #skinBtn:active{transform:scale(.9)}
+  /* Le panneau ne couvre que le BAS de l'ecran : l'anneau reste visible au
+     dessus, donc chaque essai se juge sur la vraie bille en vraie taille, pas
+     sur une vignette. C'est toute la difference avec la boutique. */
+  #skinPicker{position:fixed;left:0;right:0;bottom:0;z-index:24;display:none;
+    padding:14px 12px calc(16px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(4,6,14,0),rgba(4,6,14,.93) 22%);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #skinPicker.show{display:block}
+  .sk-tabs{display:flex;gap:7px;justify-content:center;margin-bottom:10px}
+  .sk-tab{font-size:11px;font-weight:900;letter-spacing:.5px;padding:6px 13px;border-radius:100px;
+    border:1px solid var(--glass-b);background:rgba(14,20,38,.8);color:var(--ink2);cursor:pointer}
+  .sk-tab.on{border-color:var(--gold);color:var(--gold);background:rgba(255,209,102,.14)}
+  .sk-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}
+  .sk-it{flex:0 0 auto;min-width:78px;padding:9px 8px;border-radius:var(--r-md);cursor:pointer;
+    border:1.5px solid var(--glass-b);background:rgba(14,20,38,.85);text-align:center}
+  .sk-it.on{border-color:var(--gold);background:rgba(255,209,102,.16)}
+  .sk-it .sd{width:24px;height:24px;border-radius:50%;margin:0 auto 5px}
+  .sk-it .sn{font-size:10.5px;font-weight:800;color:#fff;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;max-width:70px}
+  .sk-bar{display:flex;gap:8px;margin-top:4px}
+  .sk-bar button{flex:1;padding:11px;border-radius:var(--r-md);font-weight:900;font-size:13px;
+    border:1px solid var(--glass-b);background:rgba(14,20,38,.9);color:#fff;cursor:pointer}
+  .sk-bar button.go2b{border-color:rgba(124,245,226,.5);color:#7CF5E2}
+  .sk-empty{font-size:11.5px;color:var(--dim);text-align:center;padding:14px 6px}
   #soundBtn:active,#pauseBtn:active{transform:scale(.9)}
   #wizzBtn{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     z-index:8;display:none;padding:11px 22px;border-radius:100px;cursor:pointer;
@@ -941,6 +974,15 @@
 <div id="stage"><canvas id="c"></canvas></div>
 <button id="soundBtn" onclick="PULSE.toggleSound()">&#128266;</button>
 <button id="pauseBtn" onclick="PULSE.pause()">&#10073;&#10073;</button>
+<button id="skinBtn" onclick="PULSE.skinOpen()">&#127912;</button>
+<div id="skinPicker">
+  <div class="sk-tabs" id="skTabs"></div>
+  <div class="sk-row" id="skRow"></div>
+  <div class="sk-bar">
+    <button onclick="PULSE.skinShop()">Tout voir</button>
+    <button class="go2b" onclick="PULSE.skinClose()">Reprendre</button>
+  </div>
+</div>
 <button id="wizzBtn" onclick="PULSE.wizz()">&#9889; WIZZ &times;2</button>
 
 <div class="hud" id="hud">
@@ -1067,7 +1109,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b54</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b55</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1335,7 +1377,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b54</div>
+  <div class="buildtag">version 2026-08-03 · b55</div>
 </div>
 
 <script>
@@ -4785,6 +4827,74 @@ var PULSE = (function(){
   }
   var skinBall='anneau', skinTrail='classic';
   function refreshSkins(){ skinBall=equipped('ball'); skinTrail=equipped('trail'); }
+
+  /* ============ CHANGER D'APPARENCE SANS QUITTER LA PARTIE ============
+     Jusqu'ici, essayer une bille demandait de mourir ou d'abandonner, d'aller
+     dans la Collection, de choisir, puis de relancer une partie — et de
+     decouvrir seulement la que la bille est illisible sur ce theme. Trois
+     ecrans et une partie perdue pour un essai.
+
+     Le panneau ne monte qu'au tiers bas de l'ecran : l'anneau reste visible,
+     donc le changement se juge sur la VRAIE bille, a sa vraie taille, sur le
+     vrai fond. On enchaine les essais tant qu'on veut, puis on reprend.
+     Seul ce qu'on possede deja est propose : ici on habille, on n'achete pas. */
+  var skTab='ball', skWasRunning=false;
+  var SK_TABS=[{k:'ball',n:'Bille'},{k:'theme',n:'Thème'},{k:'trail',n:'Traînée'}];
+  function skDot(kind,it){
+    /* Une pastille de couleur vaut mieux qu'un nom seul : sur un theme on voit
+       tout de suite s'il jure avec la bille, avant meme de l'essayer. */
+    if(kind==='theme') return 'background:linear-gradient(135deg,'+it.glow+','+it.core+')';
+    if(kind==='ball')  return 'background:'+THEME.glow+';box-shadow:0 0 10px '+THEME.glow;
+    return 'background:'+THEME.core+';opacity:.75';
+  }
+  function renderSkinPicker(){
+    var t=$('skTabs'), r=$('skRow');
+    if(!t||!r) return;
+    var h='';
+    for(var i=0;i<SK_TABS.length;i++){
+      h+='<div class="sk-tab'+(SK_TABS[i].k===skTab?' on':'')+'" onclick="PULSE.skinTab(\''+SK_TABS[i].k+'\')">'+SK_TABS[i].n+'</div>';
+    }
+    t.innerHTML=h;
+
+    var L=cosmoList(skTab), cur=equipped(skTab), hr='', n=0;
+    for(var j=0;j<L.length;j++){
+      var it=L[j];
+      if(!cosmoOwned(skTab,it.id)) continue;
+      n++;
+      hr+='<div class="sk-it'+(it.id===cur?' on':'')+'" onclick="PULSE.skinSet(\''+it.id+'\')">'
+        + '<div class="sd" style="'+skDot(skTab,it)+'"></div>'
+        + '<div class="sn">'+(it.name||'Aucune')+'</div></div>';
+    }
+    r.innerHTML = n ? hr : '<div class="sk-empty">Rien de débloqué ici pour l\'instant — monte en rang ou passe par la Collection.</div>';
+  }
+  function skinOpen(){
+    if(!document.body.classList.contains('playing')) return;
+    skWasRunning=running;
+    running=false;                       /* la bille s'arrete, elle reste visible */
+    skTab='ball';
+    renderSkinPicker();
+    $('skinPicker').classList.add('show');
+    haptic(12);
+  }
+  function skinClose(){
+    $('skinPicker').classList.remove('show');
+    if(!skWasRunning) return;            /* ouvert depuis une pause : on n'y touche pas */
+    countdown(function(){ running=true; ready=true; });
+  }
+  function skinSet(id){
+    if(!cosmoOwned(skTab,id)) return;
+    if(skTab==='theme'){
+      curTheme=id; try{localStorage.setItem('pulse_theme',id);}catch(e){}
+      /* spriteCache vide : les billes sont dessinees une fois puis mises en
+         cache, elles garderaient sinon les couleurs de l'ancien theme. */
+      applyTheme(); spriteCache={}; buildStars();
+    } else {
+      PROF.equip[skTab]=id; profDirty=true; saveProf();
+      refreshSkins(); spriteCache={};
+    }
+    renderSkinPicker();
+    sfxContract(); haptic(15);
+  }
   function drawBall(a,r,color,rad,noSkin){
     var p=ptOn(a,r), sp=ballSprite(color,rad, noSkin?'classic':skinBall);
     ctx.drawImage(sp.cv,p.x-sp.s,p.y-sp.s);
@@ -5452,6 +5562,7 @@ var PULSE = (function(){
     introHide();                      /* elle ne flotte au-dessus d'aucun ecran */
     document.body.classList.remove('playing');
     var d=$('draft'); if(d) d.classList.remove('show');
+    var sk=$('skinPicker'); if(sk) sk.classList.remove('show');
     var a=['pseudo','start','over','win','boardScreen','howtoScreen','pauseScreen','wizzPicker',
            'missionScreen','modeScreen','shopScreen','rankUp','biereScreen','biereRecu','biereVerdict'];
     for(var i=0;i<a.length;i++){ var e=$(a[i]); if(e) e.classList.add('hide'); }
@@ -8689,6 +8800,18 @@ var PULSE = (function(){
       renderBonusBar();
       toast('🔧 Admin','+5 de chaque bonus — la barre est pleine');
       haptic(15);
+    },
+    skinOpen:function(){ skinOpen(); },
+    skinClose:function(){ skinClose(); },
+    skinTab:function(k){ skTab=k; renderSkinPicker(); haptic(10); },
+    skinSet:function(id){ skinSet(id); },
+    /* "Tout voir" quitte la partie pour la Collection : on ne peut pas acheter
+       en plein vol sans mentir sur ce qu'on abandonne. On encaisse donc la
+       partie proprement, comme un abandon volontaire. */
+    skinShop:function(){
+      $('skinPicker').classList.remove('show');
+      doQuit();
+      setTimeout(function(){ PULSE.shop(); }, 260);
     },
     admShards:function(){
       if(!isAdmin) return;
