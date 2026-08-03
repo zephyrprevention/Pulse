@@ -964,7 +964,12 @@
   /* Colonne de gauche, en miroir exact des boutons ronds de droite. La
      symetrie porte tout le message : a droite ce sur quoi on APPUIE, a gauche
      ce qui agit TOUT SEUL. Deux colonnes, deux natures, aucun mot a lire. */
-  .buildstrip{position:fixed;left:12px;bottom:calc(78px + env(safe-area-inset-bottom));
+  /* 78 px placait la colonne PILE sur la barre d'objectif (elle-meme a 76 px,
+     sur toute la largeur) : les deux textes se chevauchaient. On remonte a
+     142 px, exactement la hauteur de la colonne de bonus a droite — les deux
+     colonnes sont donc a la meme altitude, et la barre d'objectif garde toute
+     sa largeur en dessous. */
+  .buildstrip{position:fixed;left:12px;bottom:calc(142px + env(safe-area-inset-bottom));
     z-index:5;display:none;flex-direction:column;gap:6px;pointer-events:none;max-width:58vw}
   body.playing .buildstrip{display:flex}
   .buildstrip .bs{display:flex;align-items:center;gap:6px;
@@ -1127,7 +1132,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b58</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b59</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1396,7 +1401,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b58</div>
+  <div class="buildtag">version 2026-08-03 · b59</div>
 </div>
 
 <script>
