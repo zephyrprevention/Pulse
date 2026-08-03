@@ -938,9 +938,15 @@
      droit, c'est le seul cote ou du texte tient sans deborder. Un rond avec un
      emoji ne dit pas ce qu'il fait ni combien de temps il dure — or ces deux
      informations decident du bon moment pour appuyer. */
+  /* Le libelle ne squatte plus le terrain de jeu. Il apparait quand il a
+     quelque chose a dire — au lancement, a la recharge, au declenchement —
+     puis s'efface. L'information reste disponible, elle cesse d'etre du decor
+     permanent pose par dessus l'anneau. */
   .bb .bl{position:absolute;right:58px;top:50%;transform:translateY(-50%);
     white-space:nowrap;font-size:10px;font-weight:800;color:var(--ink2);
-    background:rgba(6,10,22,.7);border-radius:6px;padding:2px 6px;pointer-events:none}
+    background:rgba(6,10,22,.78);border-radius:6px;padding:2px 6px;pointer-events:none;
+    opacity:0;transition:opacity .35s}
+  .bonusbar.say .bb .bl{opacity:1}
   .bonusbar.dense .bb .bl{right:50px;font-size:9px}
   /* Rappel des modules sur l'ecran de pause : c'est le seul moment ou le
      joueur a le temps de lire. */
@@ -968,7 +974,9 @@
   .buildstrip .bsi i{position:absolute;bottom:-3px;right:-5px;font-style:normal;
     font-size:8px;font-weight:900;color:var(--gold)}
   .buildstrip .bst{font-size:10px;font-weight:800;color:var(--ink2);white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis}
+    overflow:hidden;text-overflow:ellipsis;max-width:0;opacity:0;
+    transition:max-width .3s,opacity .3s}
+  .buildstrip.say .bst,.buildstrip .bs.fire .bst{max-width:44vw;opacity:1}
   /* Le module vient d'agir : la ligne s'allume et son libelle est remplace une
      seconde par CE QU'IL VIENT DE FAIRE. C'est la seule facon de relier un
      effet invisible a la cause qui l'a produit. */
@@ -1119,7 +1127,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b57</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b58</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1388,7 +1396,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b57</div>
+  <div class="buildtag">version 2026-08-03 · b58</div>
 </div>
 
 <script>
@@ -4999,8 +5007,13 @@ var PULSE = (function(){
      d:function(l){ return 'Zones +'+(10*l)+' % — tout devient plus large.'; }},
     {id:'metronome',ic:'🎯', r:1, max:3, n:'Métronome',
      d:function(l){ return 'Les touches en plein centre valent ×'+(1+l)+'.'; }},
+    /* L'Aimant disait "+45 % de zones speciales" : un pourcentage sur une
+       frequence qu'aucun joueur ne connait, donc un chiffre qui ne veut rien
+       dire. On nomme desormais ce qu'il fait tomber — ★ +1 vie, +30 eclats,
+       bouclier — parce que c'est CA que le joueur reconnait a l'ecran. Et il
+       tape plus fort, sinon l'effet reste sous le seuil du perceptible. */
     {id:'aimant',   ic:'🧲', r:1, max:3, n:'Aimant',
-     d:function(l){ return '+'+(45*l)+' % de zones spéciales.'; }},
+     d:function(l){ return 'Les zones ★ ♥ ⚡ 🛡 ❄ tombent '+(l===1?'bien plus':l===2?'deux fois plus':'trois fois plus')+' souvent — ce sont elles qui rapportent gros.'; }},
     {id:'avarice',  ic:'💎', r:1, max:3, n:'Avarice',
      d:function(l){ return 'Éclats ×'+(1+l)+' — la boutique arrive vite.'; }},
     {id:'vitalite', ic:'💖', r:1, max:5, n:'Vitalité',
@@ -5038,7 +5051,7 @@ var PULSE = (function(){
     switch(d.id){
       case 'lentille':  return 'zones +'+(10*l)+' %';
       case 'metronome': return 'centre ×'+(1+l);
-      case 'aimant':    return 'spéciales +'+(45*l)+' %';
+      case 'aimant':    return '★ ♥ ⚡ plus souvent';
       case 'avarice':   return 'éclats ×'+(1+l);
       case 'vitalite':  return '+'+(2*l)+' cœurs donnés';
       case 'ancre':     return 'combo gardé';
@@ -5063,7 +5076,7 @@ var PULSE = (function(){
      prend rien — condition pour que les anciens records gardent un sens. */
   function mZone(){ return 1 + 0.10*modLv('lentille') - 0.20*modLv('usurier'); }
   function mPerfect(){ return 1 + modLv('metronome'); }
-  function mSpecial(){ return 1 + 0.45*modLv('aimant'); }
+  function mSpecial(){ return 1 + 0.75*modLv('aimant'); }
   function mShards(){ return 1 + modLv('avarice'); }
   function mCombo(){ return 1 + 0.015*modLv('surtension')*combo; }
   function mScore(){ return (1 + 0.6*modLv('verre')) * (1 + 0.35*modLv('nitro')) * (modLv('usurier')?2:1); }
@@ -6141,6 +6154,20 @@ var PULSE = (function(){
   /* Les points marques alimentent TOUTES les jauges en meme temps. Un seul
      compteur a suivre du regard, et la recompense reste liee a la seule chose
      que le joueur controle vraiment : bien jouer. */
+  /* Revele les libelles pendant quelques secondes, puis les efface. Appele au
+     debut de partie (on apprend une fois) et a chaque recharge (on veut savoir
+     lequel vient de s'allumer). */
+  var sayT=null;
+  function sayLabels(ms){
+    var a=$('bonusBar'), b=$('buildStrip');
+    if(a) a.classList.add('say');
+    if(b) b.classList.add('say');
+    if(sayT) clearTimeout(sayT);
+    sayT=setTimeout(function(){
+      if(a) a.classList.remove('say');
+      if(b) b.classList.remove('say');
+    }, ms||2600);
+  }
   function addCharge(n){
     if(n<=0) return;
     var chg=false;
@@ -6154,7 +6181,7 @@ var PULSE = (function(){
       }
     }
     renderBonusBar();
-    if(chg) toast('🔋 Bonus rechargé','appuie sur le bouton pour t\'en servir');
+    if(chg){ toast('🔋 Bonus rechargé','appuie sur le bouton pour t\'en servir'); sayLabels(3200); }
   }
 
   function initRunBonus(){
@@ -6169,6 +6196,7 @@ var PULSE = (function(){
       runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
     }
     renderBonusBar();
+    sayLabels(4000);        /* une lecture au demarrage, puis l'ecran se degage */
   }
   function renderBonusBar(){
     var el=$('bonusBar'); if(!el) return;
