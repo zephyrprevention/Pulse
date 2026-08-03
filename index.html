@@ -991,7 +991,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-07-27 · b41</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b42</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1248,7 +1248,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-07-27 · b41</div>
+  <div class="buildtag">version 2026-08-03 · b42</div>
 </div>
 
 <script>
@@ -6848,6 +6848,7 @@ var PULSE = (function(){
     if(arkHintT>0 && running){ arkHintT-=dt; }
     if(dirCueT>0){ dirCueT-=dt; }
     if(running && freezeT<=0 && phaseIs('arkanoid')){
+      keyPadStep(step);
       arkStep(step);
     } else if(running && freezeT<=0 && phaseIs('gravite')){
       /* pendule : integration en secondes reelles, pas en frames, pour que le
@@ -6910,9 +6911,47 @@ var PULSE = (function(){
   stage.addEventListener('mousemove',function(e){
     if(running) arkAim(e.clientX);
   });
+  /* Barre Teniflip au clavier. Au bureau, la barre ne repondait qu'a la souris :
+     un joueur qui vient de taper ESPACE pendant tout le cercle devait lacher le
+     clavier pour attraper la souris au moment precis ou le jeu change de regle.
+     On ne bouge pas arkPadX directement — on deplace la CIBLE, exactement comme
+     le doigt : la barre garde ainsi son inertie et sa vitesse maxi, sinon le
+     clavier donnerait une barre plus rapide que le tactile. */
+  var keyPad=0;
+  function keyPadStep(step){
+    if(!keyPad || !phaseIs('arkanoid')) return;
+    if(arkTargetX===null) arkTargetX=arkPadX;
+    arkTargetX += keyPad*10*step;
+    if(arkTargetX<0) arkTargetX=0;
+    if(arkTargetX>W) arkTargetX=W;
+  }
   window.addEventListener('keydown',function(e){
+    if(e.repeat){ return; }
     if(e.code==='Space'){e.preventDefault();tap();}
     if(e.code==='KeyP'||e.code==='Escape'){ if(document.body.classList.contains('playing')&&running) doPause(); }
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){ keyPad=-1; e.preventDefault(); }
+    if(e.code==='ArrowRight'||e.code==='KeyD'){ keyPad=1; e.preventDefault(); }
+  });
+  window.addEventListener('keyup',function(e){
+    if((e.code==='ArrowLeft'||e.code==='KeyA') && keyPad<0) keyPad=0;
+    if((e.code==='ArrowRight'||e.code==='KeyD') && keyPad>0) keyPad=0;
+  });
+  /* La fenetre perd le focus alt-tab en plein vol : sans ceci la touche reste
+     "enfoncee" pour toujours et la barre part toute seule au retour. */
+  window.addEventListener('blur',function(){ keyPad=0; });
+
+  /* ---------- Mise en pause automatique quand l'appli passe derriere ----------
+     Un appel, une notification, un changement d'application : le navigateur
+     gele requestAnimationFrame, mais la partie, elle, reste "en cours". Au
+     retour le joueur retrouve une bille en mouvement sans avoir eu le temps de
+     reposer le doigt — et il meurt pour une raison qui n'a rien a voir avec le
+     jeu. On met en pause : il reprendra avec le compte a rebours 3-2-1, comme
+     apres une pause volontaire. Effet de bord bienvenu, la melodie s'arrete au
+     lieu de partir en morceaux (les setTimeout sont brides en arriere-plan). */
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible') return;
+    keyPad=0;
+    if(running && document.body.classList.contains('playing')) doPause();
   });
 
   /* ---------- multijoueur leger : presence en ligne + WIZZ ---------- */
@@ -8176,10 +8215,21 @@ if ('serviceWorker' in navigator) {
   });
   // recharge UNIQUEMENT si un ancien SW controlait deja la page (= vraie mise a jour)
   var refreshed = false;
+  // Une mise a jour qui tombe en pleine partie rechargeait la page et effacait
+  // le score en cours. La nouvelle version peut attendre : on ne recharge que
+  // si le joueur n'est PAS en train de jouer, sinon on retient le rechargement
+  // et on le declenche au retour au menu (le service worker mis a jour est deja
+  // installe, la page suivante partira dessus de toute facon).
+  function enPartie(){ return document.body.classList.contains('playing'); }
+  function rechargerQuandPossible(){
+    if(refreshed) return;
+    if(enPartie()){ setTimeout(rechargerQuandPossible, 4000); return; }
+    refreshed = true;
+    window.location.reload();
+  }
   navigator.serviceWorker.addEventListener('controllerchange', function(){
     if(!hadController) return;      // premier chargement : surtout pas de reload
-    if(refreshed) return; refreshed = true;
-    window.location.reload();
+    rechargerQuandPossible();
   });
 }
 </script>
