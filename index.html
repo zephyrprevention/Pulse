@@ -1144,7 +1144,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b66</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b68</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1415,7 +1415,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b66</div>
+  <div class="buildtag">version 2026-08-03 · b68</div>
 </div>
 
 <script>
@@ -1747,11 +1747,28 @@ var PULSE = (function(){
     return s;
   }
   // envoie le score s'il ameliore le precedent record en ligne du joueur
+  /* L'envoi etait muet : `.catch(function(){})` n'attrape que les pannes
+     reseau, et Firebase refuse une ecriture avec un code HTTP 401/400 — pas
+     une exception. Un score rejete par une regle de validation disparaissait
+     donc sans le moindre signe, et le joueur voyait son record a l'ecran mais
+     jamais son nom au classement. On lit desormais le statut, et on le DIT. */
+  var scoreErrShown=false;
   function submitScore(sc){
     if(!pseudo || !sc) return;
     var body=JSON.stringify({name:pseudo, score:sc, t:Date.now()});
     try{
-      fetch(SCORES_URL+'/'+myId+'.json',{method:'PUT',body:body}).catch(function(){});
+      fetch(SCORES_URL+'/'+myId+'.json',{method:'PUT',body:body})
+        .then(function(r){
+          if(r.ok){ scoreErrShown=false; return; }
+          return r.text().then(function(txt){
+            console.warn('PULSE — classement refuse :', r.status, txt);
+            if(scoreErrShown) return;
+            scoreErrShown=true;
+            toast('⚠️ Score non enregistré',
+                  'Firebase a refusé ('+r.status+') — règle pulse_scores à vérifier');
+          });
+        })
+        .catch(function(e){ console.warn('PULSE — classement injoignable :', e); });
     }catch(e){}
   }
 
@@ -8329,6 +8346,14 @@ var PULSE = (function(){
     stopLive();
     pushPresence();
     liveSelfTest();
+    /* Le classement n'etait ecrit qu'a l'instant precis ou l'on battait son
+       record. Consequence : un record etabli hors ligne, avant l'inscription,
+       sur un autre navigateur, ou perdu avec l'identifiant local (cache vide,
+       navigation privee, webview WhatsApp) ne remontait JAMAIS — le joueur
+       voyait son record a l'ecran et son nom absent du tableau.
+       On republie donc le meilleur score connu a chaque ouverture de session.
+       C'est un simple PUT sur sa propre cle : aucun risque d'ecraser autrui. */
+    if(best>0) submitScore(best);
     liveTimer=setInterval(pushPresence, 8000);
     wizzTimer=setInterval(function(){ checkWizz(); biereVerifier(); }, 4000);
     rivalsTimer=setInterval(function(){
