@@ -1138,7 +1138,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b62</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b64</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1409,7 +1409,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b62</div>
+  <div class="buildtag">version 2026-08-03 · b64</div>
 </div>
 
 <script>
@@ -2225,22 +2225,22 @@ var PULSE = (function(){
      Bareme : un bon run (dscore ~1500) rapporte ~7 WIZZ, donc une 2e chance ou
      trois boucliers. Assez pour que ce soit un choix, pas une formalite. */
   var BONUS=[
-    {id:'bouclier',n:'Bouclier',   ic:'🛡️',cost:120, wcost:2, fill:140,
+    {id:'bouclier',n:'Bouclier',   ic:'🛡️',cost:120, wcost:2, fill:38,
      d:'Annule ton prochain raté. Une vie sauvée, au moment où tu le décides.',
      court:'annule 1 raté'},
-    {id:'ralenti', n:'Ralenti',    ic:'❄️',cost:100, fill:170,
+    {id:'ralenti', n:'Ralenti',    ic:'❄️',cost:100, fill:48,
      d:'8 secondes au ralenti. De quoi reprendre la main quand ça s\'emballe.',
      court:'8 s de ralenti'},
-    {id:'zonexl',  n:'Zone XL',    ic:'🎯',cost:130, fill:200,
+    {id:'zonexl',  n:'Zone XL',    ic:'🎯',cost:130, fill:60,
      d:'12 secondes de zones élargies. Le combo repart sans risque.',
      court:'zones XL 12 s'},
-    {id:'double',  n:'Points ×2',  ic:'⭐',cost:180, fill:260,
+    {id:'double',  n:'Points ×2',  ic:'⭐',cost:180, fill:75,
      d:'15 secondes où tout compte double. À lancer pendant un gros combo.',
      court:'×2 pendant 15 s'},
-    {id:'vies',    n:'+2 vies',    ic:'💖',cost:150, wcost:3, fill:340,
+    {id:'vies',    n:'+2 vies',    ic:'💖',cost:150, wcost:3, fill:100,
      d:'Deux cœurs tout de suite. Le filet de sécurité quand ça sent le sapin.',
      court:'+2 cœurs'},
-    {id:'revive',  n:'2e chance',  ic:'🔁',cost:300, wcost:5, fill:700,
+    {id:'revive',  n:'2e chance',  ic:'🔁',cost:300, wcost:5, fill:200,
      d:'Reprends la partie après le game over, avec 3 vies. Le plus cher, et de loin le plus rentable sur un gros score.',
      court:'repart après la mort'}
   ];
@@ -5040,7 +5040,7 @@ var PULSE = (function(){
     {id:'surtension',ic:'⚡', r:2, max:3, n:'Surtension',
      d:function(l){ return '+'+(1.5*l).toFixed(1).replace('.',',')+' % de points par point de combo. Sans plafond.'; }},
     {id:'carapace', ic:'🛡️', r:2, max:2, n:'Carapace',
-     d:function(l){ return 'Un bouclier offert tous les '+(l===1?15:9)+' de combo.'; }},
+     d:function(l){ return 'Un bouclier offert tous les '+(l===1?22:14)+' de combo.'; }},
     {id:'ricochet', ic:'🎲', r:2, max:3, n:'Ricochet',
      d:function(l){ return (12*l)+' % de chance qu\'une touche compte double.'; }},
     {id:'prolonge', ic:'⏳', r:2, max:2, n:'Prolongation',
@@ -5070,7 +5070,7 @@ var PULSE = (function(){
       case 'ancre':     return 'combo gardé';
       case 'fournaise': return 'fever à '+(l===1?4:3);
       case 'surtension':return 'points ×'+mCombo().toFixed(2).replace('.',',');
-      case 'carapace':  return 'bouclier /'+(l===1?15:9);
+      case 'carapace':  return 'bouclier /'+(l===1?22:14);
       case 'ricochet':  return (12*l)+' % double';
       case 'prolonge':  return 'phases '+(15+7*l)+' s';
       case 'verre':     return 'points ×'+(1+0.6*l).toFixed(1).replace('.',',');
@@ -5097,7 +5097,7 @@ var PULSE = (function(){
   function mKeepCombo(){ var l=modLv('ancre'); return l===0?0 : Math.floor(combo*(l===1?0.5:0.667)); }
   function mFever(){ var l=modLv('fournaise'); return l===0?[6,12] : l===1?[4,9] : [3,7]; }
   function mSeqMs(){ var l=modLv('prolonge'); return SEQ_MS + 7000*l; }
-  function mCarapace(){ var l=modLv('carapace'); return l===0?0 : (l===1?15:9); }
+  function mCarapace(){ var l=modLv('carapace'); return l===0?0 : (l===1?22:14); }
   function mRicochet(){ return 0.12*modLv('ricochet'); }
 
   /* Le bandeau des modules acquis. */
@@ -5153,32 +5153,56 @@ var PULSE = (function(){
   }
   /* Un module au plafond ne ressort plus : proposer une carte inutile est la
      façon la plus simple de gacher un tirage sur trois. */
+  /* Nombre de fois qu'un module a ete PROPOSE dans cette partie. */
+  var draftSeen={};
   function draftPool(){
     var p=[], i, d;
     for(i=0;i<MODULES.length;i++){
       d=MODULES[i];
       if(modLv(d.id)>=d.max) continue;
-      /* les rares n'apparaissent qu'a partir du 3e tirage : les deux premiers
-         choix doivent etre lisibles par quelqu'un qui decouvre le systeme */
-      if(d.r===3 && draftDone<2) continue;
-      var poids = d.r===1?4 : d.r===2?3 : 1;
-      for(var w=0;w<poids;w++) p.push(d);
+      if(d.r===3 && draftDone<1) continue;   /* un seul tirage d'echauffement */
+      /* Un module deja propose voit son poids DIVISE a chaque fois qu'il
+         revient. Avec des poids fixes, les cinq modules courants sortaient
+         presque a tous les tirages et le joueur revoyait les memes cartes toute
+         la partie — le choix devenait decoratif. Ici, plus on a vu une carte,
+         moins elle a de chances de revenir : la pioche se renouvelle d'
+         elle-meme sans qu'on ait a interdire quoi que ce soit. */
+      var poids = (d.r===1?6 : d.r===2?5 : 3) / (1 + 1.6*(draftSeen[d.id]||0));
+      var n=Math.max(1, Math.round(poids));
+      for(var w=0;w<n;w++) p.push(d);
     }
     return p;
+  }
+  /* Tire 3 cartes en imposant DEUX raretes differentes quand c'est possible :
+     trois cartes courantes d'affilee, c'est un tirage qu'on ne regarde meme
+     pas. Le contraste entre un reglage tranquille et un pari est ce qui rend
+     la decision interessante. */
+  function draftDraw(rnd){
+    var pool=draftPool(), out=[], garde=0;
+    if(!pool.length) return out;
+    while(out.length<3 && garde++<80){
+      var c=pool[Math.floor(rnd()*pool.length)], deja=false;
+      for(var i=0;i<out.length;i++) if(out[i].id===c.id) deja=true;
+      if(!deja) out.push(c);
+    }
+    if(out.length===3 && out[0].r===out[1].r && out[1].r===out[2].r){
+      var autres=[];
+      for(var j=0;j<pool.length;j++){
+        if(pool[j].r===out[0].r) continue;
+        var vu=false;
+        for(var k=0;k<autres.length;k++) if(autres[k].id===pool[j].id) vu=true;
+        if(!vu) autres.push(pool[j]);
+      }
+      if(autres.length) out[2]=autres[Math.floor(rnd()*autres.length)];
+    }
+    for(var m=0;m<out.length;m++) draftSeen[out[m].id]=(draftSeen[out[m].id]||0)+1;
+    return out;
   }
   function checkDraft(){
     if(seqKind || restT>0) return false;        /* jamais pendant une phase */
     if(score < nextDraftAt()) return false;
-    var pool=draftPool();
-    if(!pool.length){ draftDone++; return false; }
-    draftOffer=[];
-    var garde=0;
-    while(draftOffer.length<3 && garde++<60){
-      var c=pool[Math.floor(gr('draft')*pool.length)];
-      var deja=false;
-      for(var i=0;i<draftOffer.length;i++) if(draftOffer[i].id===c.id) deja=true;
-      if(!deja) draftOffer.push(c);
-    }
+    draftOffer=draftDraw(function(){ return gr('draft'); });
+    if(!draftOffer.length){ draftDone++; return false; }
     draftDone++;
     openDraft();
     return true;
@@ -5285,19 +5309,24 @@ var PULSE = (function(){
 
      Elles arrivent une par une pour rester lisibles, et jamais avant 30 points :
      le debut de partie doit rester le tutoriel muet qu'il est aujourd'hui. */
+  /* Les seuils etaient trop tardifs et le poids de ZONE OR trop lourd : avant
+     60 points, la SEULE zone possible etait l'etoile, et elle restait deux fois
+     plus probable que les autres ensuite. D'ou l'impression que le jeu offre
+     toujours le meme cadeau. Les seuils descendent, les poids se resserrent :
+     chaque zone speciale garde son caractere sans monopoliser le tirage. */
   var SPECIALS={
-    or:     {at:30,  ic:'★', col:'#FFD166', txt:'ZONE OR ×5',      w:26},
+    or:     {at:20,  ic:'★', col:'#FFD166', txt:'ZONE OR ×5',      w:17},
     /* Les deux plus recentes sont posees TRES tot (45 et 75) et pesent lourd
        dans le tirage : ce sont les seules recompenses du jeu qu'un joueur
        rencontre avant son centieme point. Toutes les deux reprennent un effet
        de bonus payant — c'est aussi la meilleure publicite pour la boutique :
        on y goute gratuitement, on rachete ensuite. */
-    bouclier:{at:45, ic:'🛡', col:'#4DFFB1', txt:'BOUCLIER',        w:18},
-    coeur:  {at:60,  ic:'♥', col:'#FF4D6D', txt:'+1 VIE',           w:16},
-    viseur: {at:75,  ic:'◎', col:'#FF8C42', txt:'ZONES XL 8 s',     w:16},
-    eclair: {at:90,  ic:'⚡', col:'#7C8CFF', txt:'+30 💎',           w:20},
-    gel:    {at:140, ic:'❄', col:'#9FE8FF', txt:'RALENTI 6 s',      w:18},
-    quiz:   {at:200, ic:'?', col:'#B14DFF', txt:'QUESTION BONUS',   w:14}
+    bouclier:{at:30, ic:'🛡', col:'#4DFFB1', txt:'BOUCLIER',        w:16},
+    coeur:  {at:40,  ic:'♥', col:'#FF4D6D', txt:'+1 VIE',           w:15},
+    viseur: {at:50,  ic:'◎', col:'#FF8C42', txt:'ZONES XL 8 s',     w:15},
+    eclair: {at:65,  ic:'⚡', col:'#7C8CFF', txt:'+30 💎',           w:16},
+    gel:    {at:85,  ic:'❄', col:'#9FE8FF', txt:'RALENTI 6 s',      w:16},
+    quiz:   {at:130, ic:'?', col:'#B14DFF', txt:'QUESTION BONUS',   w:13}
   };
   var zoneKind='', zoneKindT=0;
   var freezeSlowT=0;          /* ralenti offert par la zone ❄ */
@@ -6912,7 +6941,13 @@ var PULSE = (function(){
       fxCount = (multi>=3)?55 : (multi>=2)?42 : (hitR?30:22);
 
       score+=total; setScore();
-      addCharge(total);          /* les points rechargent les bonus */
+      /* UNE touche = UNE unite de charge. Les jauges comptaient les POINTS :
+         en phase, avec le fever et les modules, un seul tap pouvait rapporter
+         600 points et donc recharger les six bonus d'un coup. Le joueur voyait
+         "pret" clignoter en boucle et le systeme n'avait plus aucun sens.
+         Compter les touches rend la recharge independante des multiplicateurs :
+         c'est la regularite qui paie, pas l'inflation. */
+      addCharge(1);
 
       var pr=outerHit?R():Rin();
       var pa=ptOn(outerHit?hitAngle:angleIn, pr);
@@ -8510,7 +8545,7 @@ var PULSE = (function(){
     particles=[];floats=[];frites=[];flash=0;shake=0;passed100=false;
     if(THEME&&THEME.frites){ for(var bf=0;bf<10;bf++) friteRain2(); }
     combo=0;comboRun=0;noMiss=0;stats={taps:0,hits:0};recordShown=false;
-    mods={}; draftDone=0; draftOffer=[]; renderBuild();
+    mods={}; draftDone=0; draftOffer=[]; draftSeen={}; renderBuild();
     MERIT_COMBO=MERIT_COMBO0; MERIT_MULTI=MERIT_MULTI0; MERIT_PERF=MERIT_PERF0;
     zoneKind=''; freezeSlowT=0; dblT=0; xlT=0; shieldOn=0;
     wizzMilestone=0; wizzShakeT=0; startLive();
@@ -8923,7 +8958,7 @@ var PULSE = (function(){
     },
     admModsReset:function(){
       if(!isAdmin) return;
-      mods={}; draftDone=0; draftOffer=[];
+      mods={}; draftDone=0; draftOffer=[]; draftSeen={};
       MERIT_COMBO=MERIT_COMBO0; MERIT_MULTI=MERIT_MULTI0; MERIT_PERF=MERIT_PERF0;
       renderBuild(); renderPauseMods(); buildAdmin();
       toast('🔧 Modules vidés','le compteur de tirages repart à zéro');
@@ -8932,15 +8967,8 @@ var PULSE = (function(){
        de juger la LISIBILITE des cartes, que la liste ci-dessus court-circuite. */
     admDraft:function(){
       if(!isAdmin) return;
-      var pool=draftPool();
-      if(!pool.length){ toast('Rien à tirer','tous les modules sont au plafond'); return; }
-      draftOffer=[];
-      var garde=0;
-      while(draftOffer.length<3 && garde++<60){
-        var c=pool[Math.floor(Math.random()*pool.length)], deja=false;
-        for(var i=0;i<draftOffer.length;i++) if(draftOffer[i].id===c.id) deja=true;
-        if(!deja) draftOffer.push(c);
-      }
+      draftOffer=draftDraw(Math.random);
+      if(!draftOffer.length){ toast('Rien à tirer','tous les modules sont au plafond'); return; }
       draftDone++;
       $('pauseScreen').classList.add('hide');
       openDraft();
