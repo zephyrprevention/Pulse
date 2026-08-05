@@ -831,7 +831,7 @@
   .duelres.win{background:rgba(0,200,83,.16);border-color:rgba(0,200,83,.5);color:#8CE99A}
   .duelres.lose{background:rgba(255,77,109,.14);border-color:rgba(255,77,109,.45);color:#FFA8B8}
   .duelres b{font-size:19px}
-  /* --- defi Paye ta biere --- */
+  /* --- defi Paye un verre (identifiants internes : biere, historiques) --- */
   .bierepot{max-width:340px;margin:0 auto 12px;padding:11px 15px;border-radius:var(--r-md);
     background:rgba(255,209,102,.10);border:1px solid rgba(255,209,102,.32);
     font-size:12.5px;font-weight:800;color:#FFE3A3;line-height:1.4}
@@ -1001,6 +1001,19 @@
     transform:scale(1.06)}
   .buildstrip .bs.fire .bst{color:#FFD166}
   @media (prefers-reduced-motion:reduce){.buildstrip .bs.fire{transform:none}}
+  /* ---------- MODE ECONOMIE ----------
+     Les seize `backdrop-filter` sont le deuxieme poste de depense apres la
+     resolution : chacun oblige le navigateur a recomposer tout ce qui se trouve
+     sous l'element, a chaque image. On les remplace par un fond opaque — le
+     resultat est moins joli mais parfaitement lisible, et les menus redeviennent
+     instantanes. Les animations purement decoratives s'arretent aussi. */
+  body.perf-low *{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+  body.perf-low .overlay,body.perf-low #skinPicker{background:rgba(6,9,18,.97)}
+  body.perf-low .bb,body.perf-low #skinBtn,body.perf-low #soundBtn,
+  body.perf-low #pauseBtn{background:rgba(12,17,32,.94)}
+  body.perf-low .bb.ready .bi{animation:none}
+  body.perf-low .buildstrip .bs.fire{transform:none}
+  body.perf-low .bs,body.perf-low .bb{transition:none}
 </style>
 
 </head>
@@ -1144,7 +1157,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b68</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b70</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1172,7 +1185,7 @@
   <div class="prog-mini" id="progMini"></div>
   <button class="btn-defi" id="btnGuest" onclick="PULSE.secure()" style="display:none">&#127942; Enregistrer mon score au classement</button>
   <button class="btn-defi" id="btnDefi" onclick="PULSE.defi()">&#9876;&#65039; D&eacute;fier un ami</button>
-  <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#127866; Paye ta bi&egrave;re &middot; joueur en ligne</button>
+  <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#129346; Paye un verre &middot; joueur en ligne</button>
   <button class="go" onclick="PULSE.play()">Rejouer</button>
   <button class="ghost" id="overMissBtn" onclick="PULSE.missions()">&#9989; Missions du jour</button>
   <button class="ghost" onclick="PULSE.board()">Classement</button>
@@ -1253,32 +1266,31 @@
 </div>
 
 <div class="overlay hide" id="biereScreen" style="z-index:27">
-  <div class="title" style="font-size:34px">&#127866; Paye ta bi&egrave;re</div>
+  <div class="title" style="font-size:34px">&#129346; Paye un verre</div>
   <div class="tag">choisis ton adversaire</div>
   <div class="bierepot" id="bierePot"></div>
   <div class="board" id="biereList"><div class="board-loading">Recherche des joueurs...</div></div>
-  <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <div class="bieremention">L'enjeu reste entre les joueurs &mdash; un caf&eacute;, un jus, ce que vous voulez.<br><span>Si c'est de l'alcool&nbsp;: interdit aux mineurs, et &agrave; consommer avec mod&eacute;ration.</span></div>
   <button class="ghost" onclick="PULSE.biereCancel()">Annuler</button>
 </div>
 
 <div class="overlay hide" id="biereRecu" style="z-index:28">
-  <div class="bieregros">&#127866;</div>
+  <div class="bieregros">&#129346;</div>
   <div class="title" style="font-size:32px">Un d&eacute;fi&nbsp;!</div>
   <div class="bieretxt" id="biereTxt"></div>
   <div class="bierergl">M&ecirc;me graine, m&ecirc;me partie&nbsp;: m&ecirc;mes zones, m&ecirc;mes bonus, m&ecirc;me ordre.</div>
   <button class="go" onclick="PULSE.biereAccepter()">Relever le d&eacute;fi</button>
-  <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <div class="bieremention">L'enjeu reste entre les joueurs &mdash; un caf&eacute;, un jus, ce que vous voulez.<br><span>Si c'est de l'alcool&nbsp;: interdit aux mineurs, et &agrave; consommer avec mod&eacute;ration.</span></div>
   <button class="ghost" onclick="PULSE.biereRefuser()">Une autre fois</button>
 </div>
 
 <div class="overlay hide" id="biereVerdict" style="z-index:29">
-  <div class="bieregros" id="bvIcone">&#127866;</div>
+  <div class="bieregros" id="bvIcone">&#129346;</div>
   <div class="title" style="font-size:30px" id="bvTitre">R&eacute;sultat</div>
   <div class="bieretxt" id="bvTxt"></div>
   <div class="bvscores" id="bvScores"></div>
-  <div class="bieremention">L'alcool est interdit aux mineurs.<br>
-    L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br>
-    <span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <div class="bieremention">L'enjeu reste entre les joueurs &mdash; un caf&eacute;, un jus, ce que vous voulez.<br>
+    <span>Si c'est de l'alcool&nbsp;: interdit aux mineurs, et &agrave; consommer avec mod&eacute;ration.</span></div>
   <button class="go" onclick="PULSE.biereVerdictOk()" style="margin-top:20px">C'est not&eacute;</button>
 </div>
 
@@ -1287,6 +1299,8 @@
   <div class="tag">souffle un coup</div>
   <div class="ntitle" id="pauseModT" style="max-width:320px;display:none">Tes modules &mdash; ils agissent seuls</div>
   <div class="modlist" id="pauseMods"></div>
+  <div class="ntitle" style="max-width:320px">Affichage</div>
+  <button class="ghost" id="perfBtn" onclick="PULSE.perfToggle()">Mode &eacute;conomie</button>
   <div class="ntitle" style="max-width:320px">Tes bonus &mdash; boutons de droite</div>
   <div class="modlist" id="pauseBonus"></div>
   <div class="melolab">M&eacute;lodie de fond</div>
@@ -1415,7 +1429,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b68</div>
+  <div class="buildtag">version 2026-08-03 · b70</div>
 </div>
 
 <script>
@@ -4167,9 +4181,52 @@ var PULSE = (function(){
   applyTheme();
 
   /* ==================== MOTEUR DE JEU v2 ==================== */
+  /* ==================== MODE ECONOMIE ====================
+     Trois choses coutent cher sur une machine agee, et aucune n'est le jeu
+     lui-meme :
+
+     1. LA RESOLUTION. Le canvas est rendu a devicePixelRatio, plafonne a 2.
+        Sur un ecran 1920x1080 cela fait 3840x2160, soit 8,3 millions de pixels
+        redessines soixante fois par seconde. Un GPU integre de 2013 n'a aucune
+        chance. C'est de tres loin le premier poste.
+
+     2. LES FLOUS. Seize `backdrop-filter: blur()` dans la feuille de style.
+        Chacun force le navigateur a recomposer la zone sous l'element a chaque
+        image. C'est le deuxieme poste, et il frappe surtout les menus.
+
+     3. LA BOUCLE QUI NE S'ARRETE JAMAIS. requestAnimationFrame tourne a 60 Hz
+        meme quand on lit le classement, sans qu'un seul pixel du jeu ne bouge.
+
+     On mesure donc les images par seconde en jouant. Sous 45 en moyenne, le
+     mode economie s'enclenche seul et se souvient de son choix. Le joueur n'a
+     rien a regler, mais il peut forcer l'un ou l'autre depuis la pause : une
+     detection automatique se trompe parfois, il faut pouvoir la contredire. */
+  var perfLow=false, perfAuto=true;
+  try{
+    var pv=localStorage.getItem('pulse_perf');
+    if(pv==='low'){ perfLow=true; perfAuto=false; }
+    else if(pv==='high'){ perfLow=false; perfAuto=false; }
+  }catch(e){}
+  /* Applique des le chargement, avant le premier resize : sinon la premiere
+     image serait rendue en pleine resolution puis rebasculee, ce qui produit un
+     clignotement au demarrage precisement sur les machines qu'on veut menager. */
+  try{ document.body.classList.toggle('perf-low', perfLow); }catch(e){}
+  function perfApply(){
+    document.body.classList.toggle('perf-low', perfLow);
+    resize();                 /* la resolution du canvas depend du mode */
+    spriteCache={};           /* les billes sont pre-rendues a l'ancienne echelle */
+  }
+  /* Raccourci utilise partout ou l'on posait une ombre : en mode economie elle
+     vaut zero, donc le rendu reste correct sans la passe de flou. */
+  function SH(v){ return perfLow?0:v; }
+
   var W,H,cx,cy,DPR;
   function resize(){
-    DPR=Math.min(window.devicePixelRatio||1,2);
+    /* En mode economie on rend a 1 pixel pour 1 pixel CSS. L'image est un peu
+       moins fine, mais elle coute jusqu'a quatre fois moins cher a produire —
+       et un jeu de rythme a 25 images par seconde est injouable, alors qu'un
+       jeu de rythme legerement moins net ne gene personne. */
+    DPR = perfLow ? 1 : Math.min(window.devicePixelRatio||1,2);
     W=window.innerWidth; H=window.innerHeight;
     cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px';
     ctx.setTransform(DPR,0,0,DPR,0,0); cx=W/2; cy=H/2;
@@ -4542,7 +4599,7 @@ var PULSE = (function(){
       ctx.fillStyle='rgba('+rgb+','+(0.10+h*0.55)+')';
       ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.fill();
       ctx.strokeStyle=h>0.02?'#fff':vif; ctx.lineWidth=2+h*2.5;
-      ctx.shadowColor=vif; ctx.shadowBlur=10+h*22;
+      ctx.shadowColor=vif; ctx.shadowBlur=SH(10+h*22);
       ctx.beginPath(); ctx.arc(bp.x,bp.y,r,0,Math.PI*2); ctx.stroke();
       ctx.shadowBlur=0;
       /* halo permanent tant qu'il peut donner une vie : il doit se voir de loin */
@@ -4723,7 +4780,7 @@ var PULSE = (function(){
     /* raquette : s'ecrase brievement a l'impact */
     var hh=13-arkSquash*4, pw=ph*(1+arkSquash*0.10);
     var gcol=(goldT>0||mult()>1)?'#FFD166':THEME.glow;
-    ctx.fillStyle=gcol; ctx.shadowColor=gcol; ctx.shadowBlur=18;
+    ctx.fillStyle=gcol; ctx.shadowColor=gcol; ctx.shadowBlur=SH(18);
     ctx.beginPath();
     if(ctx.roundRect) ctx.roundRect(arkPadX-pw,padY-hh,pw*2,hh*2,hh); else ctx.rect(arkPadX-pw,padY-hh,pw*2,hh*2);
     ctx.fill(); ctx.shadowBlur=0;
@@ -5015,7 +5072,10 @@ var PULSE = (function(){
   var stars=[];
   function buildStars(){
     stars=[];
-    var n=Math.floor(W*H/22000);
+    /* Un point scintillant coute une passe de remplissage complete. Sur un
+       grand ecran ils etaient presque deux cents, redessines a chaque image
+       pour un decor que personne ne regarde. */
+    var n=Math.floor(W*H/(perfLow?70000:22000));
     for(var i=0;i<n;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:0.5+Math.random()*1.3,tw:Math.random()*Math.PI*2,sp:0.008+Math.random()*0.02});
   }
   resize();
@@ -7251,7 +7311,7 @@ var PULSE = (function(){
       duelActif=false;              /* le verdict ne s'affiche qu'une fois */
     }
 
-    /* Verdict du defi \u00ab Paye ta bi\u00e8re \u00bb. Il remplace celui du duel :
+    /* Verdict du defi \u00ab Paye un verre \u00bb. Il remplace celui du duel :
        les deux portent sur la meme partie, l'afficher deux fois n'apprendrait
        rien de plus au joueur. */
     var br=$('biereRes');
@@ -7261,14 +7321,16 @@ var PULSE = (function(){
         var ec=score-biereScore, adv=biereDe||'ton adversaire';
         /* La mention accompagne le verdict : c'est le moment ou l'enjeu est
            annonce, donc celui ou elle doit etre sous les yeux. */
-        var legal='<div class="bieremini">L\'abus d\'alcool est dangereux pour la sant\u00e9, '
-          +'\u00e0 consommer avec mod\u00e9ration \u00b7 interdit aux mineurs</div>';
+        /* La mention accompagne le verdict, mais elle n'est plus le sujet :
+           l'enjeu appartient aux joueurs et rien n'oblige a parier de l'alcool. */
+        var legal='<div class="bieremini">L\'enjeu reste entre vous \u00b7 si c\'est de l\'alcool, '
+          +'interdit aux mineurs et \u00e0 consommer avec mod\u00e9ration</div>';
         if(ec>=0){
-          br.innerHTML='\uD83C\uDF7A <b>'+adv+' te doit une bi\u00e8re !</b><br>'
+          br.innerHTML='\uD83E\uDD42 <b>'+adv+' te doit un verre !</b><br>'
             +score+' contre '+biereScore+' \u2014 +'+ec+' d\'avance'+legal;
           setTimeout(function(){ try{ fireworks(); sfxRank(); }catch(e){} }, 400);
         } else {
-          br.innerHTML='\uD83C\uDF7B <b>C\'est ta tourn\u00e9e.</b><br>'
+          br.innerHTML='\uD83E\uDD64 <b>C\'est ta tourn\u00e9e.</b><br>'
             +score+' contre '+biereScore+' \u2014 il te manquait '+(-ec)+' points'+legal;
         }
         br.style.display='';
@@ -7300,7 +7362,7 @@ var PULSE = (function(){
     /* Fin de partie d'un invite : c'est ICI qu'on demande le pseudo, et nulle
        part ailleurs. Le joueur vient de faire un score, il voit sa progression
        et le classement juste en dessous — la demande a enfin un sens.
-       Defier un ami et Paye ta biere disparaissent : les deux ont besoin d'un
+       Defier un ami et Paye un verre disparaissent : les deux ont besoin d'un
        nom pour fonctionner, un bouton qui echoue vaut moins que pas de bouton. */
     var bg=$('btnGuest'), bd=$('btnDefi'), bb=$('btnBiere');
     if(bg) bg.style.display = (!pseudo && score>0) ? 'block' : 'none';
@@ -7426,7 +7488,7 @@ var PULSE = (function(){
         ctx.beginPath(); ctx.arc(op.x,op.y,17+pulse*3,0,7);
         ctx.strokeStyle=sur?'#FFFFFF':'#FFD166';
         ctx.lineWidth=sur?3.5:2.2;
-        ctx.shadowColor='#FFD166'; ctx.shadowBlur=sur?26:14;
+        ctx.shadowColor='#FFD166'; ctx.shadowBlur=SH(sur?26:14);
         ctx.globalAlpha=sur?1:0.55+pulse*0.3;
         ctx.stroke(); ctx.shadowBlur=0; ctx.globalAlpha=1;
         ctx.font='16px system-ui,sans-serif';
@@ -7445,14 +7507,14 @@ var PULSE = (function(){
       if(SP) zc = SP.col;
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn,targetA+zn);
       ctx.strokeStyle=zc;ctx.globalAlpha=za;ctx.lineWidth=zw;ctx.lineCap='round';
-      ctx.shadowColor=zc;ctx.shadowBlur=SP?30:22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.shadowColor=zc;ctx.shadowBlur=SH(SP?30:22);ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
       ctx.beginPath();ctx.arc(cx,cy,r,targetA-zn*0.35,targetA+zn*0.35);ctx.strokeStyle=SP?'#ffffff':THEME.core;ctx.lineWidth=zw;ctx.globalAlpha=zg;ctx.stroke();ctx.globalAlpha=1;
       /* SURCHARGE : la 2e zone est dessinee a l'identique, sans marque
          distinctive. Deux zones egales = aucune regle a apprendre. */
       if(phaseIs('surcharge')){
         ctx.beginPath();ctx.arc(cx,cy,r,targetB-zn,targetB+zn);
         ctx.strokeStyle=zc;ctx.globalAlpha=za;ctx.lineWidth=zw;ctx.lineCap='round';
-        ctx.shadowColor=zc;ctx.shadowBlur=22;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+        ctx.shadowColor=zc;ctx.shadowBlur=SH(22);ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
         ctx.beginPath();ctx.arc(cx,cy,r,targetB-zn*0.35,targetB+zn*0.35);ctx.strokeStyle=THEME.core;ctx.lineWidth=zw;ctx.stroke();
       }
       /* le symbole, pose sur l'anneau au milieu de la zone. Il pulse et un
@@ -7489,7 +7551,7 @@ var PULSE = (function(){
         ctx.beginPath();ctx.arc(cx,cy,ri,0,Math.PI*2);ctx.strokeStyle='rgba(90,107,140,.25)';ctx.lineWidth=3;ctx.stroke();
         ctx.beginPath();ctx.arc(cx,cy,ri,targetIn-zn,targetIn+zn);
         ctx.strokeStyle='#FF4D9D';ctx.globalAlpha=.9;ctx.lineWidth=11;ctx.lineCap='round';
-        ctx.shadowColor='#FF4D9D';ctx.shadowBlur=16;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+        ctx.shadowColor='#FF4D9D';ctx.shadowBlur=SH(16);ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
       }
 
       /* fleche de sens (aide au controle apres l'inversion) */
@@ -7710,8 +7772,37 @@ var PULSE = (function(){
       if(zoneDrift){ targetA+=0.0022*step; if(targetA>Math.PI)targetA-=Math.PI*2; }
       if(zoneAnim>0){ zoneAnim=Math.max(0,zoneAnim-0.06*step); }
     }
-    draw(); requestAnimationFrame(loop);
+    /* --- mesure du debit, uniquement en partie ---
+       On ne juge que pendant le jeu : les menus sont volontairement calmes et
+       donneraient une note flatteuse qui ne veut rien dire. */
+    if(perfAuto && running){
+      fpsN++; fpsAcc+=dt;
+      if(fpsN>=90){
+        var fps=1000/(fpsAcc/fpsN);
+        fpsN=0; fpsAcc=0;
+        if(fps<45){
+          perfLow=true; perfAuto=false;
+          try{ localStorage.setItem('pulse_perf','low'); }catch(e){}
+          perfApply();
+          toast('⚙️ Mode économie activé','affichage allégé pour gagner en fluidité');
+        } else if(++fpsOk>=3){ perfAuto=false; }   /* trois verdicts bons : on arrete de mesurer */
+      }
+    }
+
+    /* --- la boucle ne travaille a plein regime que si quelque chose bouge ---
+       Hors partie, rien du canvas ne change hormis le scintillement du fond.
+       Le redessiner soixante fois par seconde revient a faire tourner le moteur
+       au point mort, et c'est ce qui fait chauffer les vieilles machines quand
+       l'onglet reste ouvert sur le menu. */
+    var actif = running || particles.length || floats.length || shocks.length || flash>0.01;
+    if(actif){ draw(); }
+    else {
+      idleT+=dt;
+      if(idleT>=(perfLow?100:66)){ idleT=0; draw(); }   /* 10 a 15 images/s au repos */
+    }
+    requestAnimationFrame(loop);
   }
+  var fpsN=0, fpsAcc=0, fpsOk=0, idleT=0;
   loop();
 
   /* ---------- entrees ---------- */
@@ -7782,13 +7873,13 @@ var PULSE = (function(){
   /* ---------- multijoueur leger : presence en ligne + WIZZ ---------- */
   var LIVE_URL=DB+'/pulse_live', WIZZ_URL=DB+'/pulse_wizz';
 
-  /* ================= DEFI « PAYE TA BIÈRE » =================
+  /* ================= DEFI « PAYE UN VERRE » =================
      Le duel par lien marche entre gens qui se parlent deja. Celui-ci se lance
      a quelqu'un qui joue EN CE MOMENT : on voit qui est en ligne, on le
      designe, il recoit le defi dans la seconde.
 
-     L'enjeu n'est pas dans le jeu, il est entre les deux joueurs — une biere,
-     un cafe, ce qu'ils veulent. PULSE ne fait qu'arbitrer : meme graine, donc
+     L'enjeu n'est pas dans le jeu, il est entre les deux joueurs — un cafe,
+     un jus, ce qu'ils veulent. PULSE ne fait qu'arbitrer : meme graine, donc
      exactement la meme partie, et un verdict que personne ne peut contester.
 
      Un defi porte : qui l'envoie, son score, et la graine de sa partie. Il
@@ -7811,12 +7902,12 @@ var PULSE = (function(){
   var biereTimer=null, biereVu=0;
 
   function biereOuvrirPicker(){
-    if(score<=0){ toast('\uD83C\uDF7A Pas encore','fais d\'abord un score \u00e0 d\u00e9fendre'); return; }
+    if(score<=0){ toast('\uD83E\uDD42 Pas encore','fais d\'abord un score \u00e0 d\u00e9fendre'); return; }
     navEnter();
     hideAll();
     $('biereScreen').classList.remove('hide');
     var pot=$('bierePot');
-    if(pot) pot.innerHTML='Tu mets en jeu <b>'+score+' points</b>. Celui qui perd paie la tourn\u00e9e \uD83C\uDF7B';
+    if(pot) pot.innerHTML='Tu mets en jeu <b>'+score+' points</b>. Celui qui perd paie le verre \uD83E\uDD64';
     var list=$('biereList');
     list.innerHTML='<div class="board-loading">Recherche des joueurs...</div>';
     fetchLive(function(arr){
@@ -7834,7 +7925,7 @@ var PULSE = (function(){
       arr.slice(0,30).forEach(function(o){
         var d=document.createElement('div');
         d.className='row pick';
-        d.innerHTML='<div class="rk">\uD83C\uDF7A</div><div class="nm">'+escapeHtml(o.name)+'</div>'
+        d.innerHTML='<div class="rk">\uD83E\uDD42</div><div class="nm">'+escapeHtml(o.name)+'</div>'
           +'<div class="st">'+(o.st==='game'?('\uD83C\uDFAE en jeu \u00b7 '+o.score):'\uD83C\uDFE0 au menu')+'</div>';
         d.onclick=function(){ biereEnvoyer(o); };
         list.appendChild(d);
@@ -7854,7 +7945,7 @@ var PULSE = (function(){
     var mien=d.cible||0, sien=d.score||0, gagne=mien>=sien;
     var adv=d.name||'Ton adversaire';
     var ic=$('bvIcone'), ti=$('bvTitre'), tx=$('bvTxt'), sc=$('bvScores');
-    if(ic) ic.innerHTML = gagne ? '\uD83C\uDF7A' : '\uD83C\uDF7B';
+    if(ic) ic.innerHTML = gagne ? '\uD83E\uDD42' : '\uD83E\uDD64';
     if(ti) ti.textContent = gagne ? 'Tu gagnes !' : 'C\'est ta tourn\u00e9e';
     if(tx) tx.innerHTML = gagne
       ? ('<span class="qui">'+escapeHtml(adv)+'</span> a jou\u00e9 ta partie et n\'a pas fait mieux.')
@@ -7878,7 +7969,7 @@ var PULSE = (function(){
     hideAll();
     var t=$('biereTxt');
     if(t) t.innerHTML='<span class="qui">'+escapeHtml(d.name||'Quelqu\'un')+'</span> te d\u00e9fie \u00e0 <b>'
-      +d.score+'</b> points.<br>Le perdant paie la bi\u00e8re \uD83C\uDF7B';
+      +d.score+'</b> points.<br>Le perdant paie le verre \uD83E\uDD64';
     $('biereRecu').classList.remove('hide');
     try{ sfxRank(); }catch(e){}
     haptic([50,80,50,80,120]);
@@ -7916,7 +8007,7 @@ var PULSE = (function(){
     try{
       fetch(BIERE_URL+'/'+cible.id+'.json',{method:'PUT',body:corps}).catch(function(){});
     }catch(e){}
-    toast('\uD83C\uDF7A D\u00e9fi envoy\u00e9 \u00e0 '+cible.name, score+' points \u00e0 battre');
+    toast('\uD83E\uDD42 D\u00e9fi envoy\u00e9 \u00e0 '+cible.name, score+' points \u00e0 battre');
     haptic([40,60,40]);
     biereFermerPicker();
   }
@@ -8416,6 +8507,11 @@ var PULSE = (function(){
     }
     box.innerHTML=h;
   }
+  function renderPerfBtn(){
+    var b=$('perfBtn'); if(!b) return;
+    b.textContent = perfLow ? '⚙️ Mode économie : ACTIVÉ — revenir au bel affichage'
+                            : '✨ Bel affichage — passer en mode économie';
+  }
   function doPause(){
     if(!running) return;
     running=false; stopMusic();
@@ -8423,6 +8519,7 @@ var PULSE = (function(){
     buildAdmin();
     renderPauseMods();
     renderPauseBonus();
+    renderPerfBtn();
     hideAll(); document.body.classList.add('playing');
     $('pauseScreen').classList.remove('hide');
   }
@@ -9067,6 +9164,16 @@ var PULSE = (function(){
       for(i=0;i<BONUS.length;i++) runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
       renderBonusBar();
       toast('🔧 Admin','+5 de chaque bonus — la barre est pleine');
+      haptic(15);
+    },
+    /* Forcer un mode coupe la detection automatique : si le joueur a tranche,
+       la machine n'a plus a revenir sur sa decision. */
+    perfToggle:function(){
+      perfLow=!perfLow; perfAuto=false;
+      try{ localStorage.setItem('pulse_perf', perfLow?'low':'high'); }catch(e){}
+      perfApply(); renderPerfBtn();
+      toast(perfLow?'⚙️ Mode économie':'✨ Bel affichage',
+            perfLow?'moins de détails, beaucoup plus fluide':'tous les effets sont rétablis');
       haptic(15);
     },
     skinOpen:function(){ skinOpen(); },
