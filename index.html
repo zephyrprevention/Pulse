@@ -831,7 +831,7 @@
   .duelres.win{background:rgba(0,200,83,.16);border-color:rgba(0,200,83,.5);color:#8CE99A}
   .duelres.lose{background:rgba(255,77,109,.14);border-color:rgba(255,77,109,.45);color:#FFA8B8}
   .duelres b{font-size:19px}
-  /* --- defi Paye ta biere --- */
+  /* --- defi Paye un verre (identifiants internes : biere, historiques) --- */
   .bierepot{max-width:340px;margin:0 auto 12px;padding:11px 15px;border-radius:var(--r-md);
     background:rgba(255,209,102,.10);border:1px solid rgba(255,209,102,.32);
     font-size:12.5px;font-weight:800;color:#FFE3A3;line-height:1.4}
@@ -1144,7 +1144,7 @@
   </div>
 
   <button class="ghost" id="installBtn" onclick="PULSE.install()">&#128241; Installer l'appli</button>
-  <div class="buildtag" id="buildTag">version 2026-08-03 · b68</div>
+  <div class="buildtag" id="buildTag">version 2026-08-03 · b69</div>
 </div>
 
 <div class="overlay hide" id="over">
@@ -1172,7 +1172,7 @@
   <div class="prog-mini" id="progMini"></div>
   <button class="btn-defi" id="btnGuest" onclick="PULSE.secure()" style="display:none">&#127942; Enregistrer mon score au classement</button>
   <button class="btn-defi" id="btnDefi" onclick="PULSE.defi()">&#9876;&#65039; D&eacute;fier un ami</button>
-  <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#127866; Paye ta bi&egrave;re &middot; joueur en ligne</button>
+  <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#129346; Paye un verre &middot; joueur en ligne</button>
   <button class="go" onclick="PULSE.play()">Rejouer</button>
   <button class="ghost" id="overMissBtn" onclick="PULSE.missions()">&#9989; Missions du jour</button>
   <button class="ghost" onclick="PULSE.board()">Classement</button>
@@ -1253,32 +1253,31 @@
 </div>
 
 <div class="overlay hide" id="biereScreen" style="z-index:27">
-  <div class="title" style="font-size:34px">&#127866; Paye ta bi&egrave;re</div>
+  <div class="title" style="font-size:34px">&#129346; Paye un verre</div>
   <div class="tag">choisis ton adversaire</div>
   <div class="bierepot" id="bierePot"></div>
   <div class="board" id="biereList"><div class="board-loading">Recherche des joueurs...</div></div>
-  <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <div class="bieremention">L'enjeu reste entre les joueurs &mdash; un caf&eacute;, un jus, ce que vous voulez.<br><span>Si c'est de l'alcool&nbsp;: interdit aux mineurs, et &agrave; consommer avec mod&eacute;ration.</span></div>
   <button class="ghost" onclick="PULSE.biereCancel()">Annuler</button>
 </div>
 
 <div class="overlay hide" id="biereRecu" style="z-index:28">
-  <div class="bieregros">&#127866;</div>
+  <div class="bieregros">&#129346;</div>
   <div class="title" style="font-size:32px">Un d&eacute;fi&nbsp;!</div>
   <div class="bieretxt" id="biereTxt"></div>
   <div class="bierergl">M&ecirc;me graine, m&ecirc;me partie&nbsp;: m&ecirc;mes zones, m&ecirc;mes bonus, m&ecirc;me ordre.</div>
   <button class="go" onclick="PULSE.biereAccepter()">Relever le d&eacute;fi</button>
-  <div class="bieremention">L'alcool est interdit aux mineurs.<br>L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br><span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <div class="bieremention">L'enjeu reste entre les joueurs &mdash; un caf&eacute;, un jus, ce que vous voulez.<br><span>Si c'est de l'alcool&nbsp;: interdit aux mineurs, et &agrave; consommer avec mod&eacute;ration.</span></div>
   <button class="ghost" onclick="PULSE.biereRefuser()">Une autre fois</button>
 </div>
 
 <div class="overlay hide" id="biereVerdict" style="z-index:29">
-  <div class="bieregros" id="bvIcone">&#127866;</div>
+  <div class="bieregros" id="bvIcone">&#129346;</div>
   <div class="title" style="font-size:30px" id="bvTitre">R&eacute;sultat</div>
   <div class="bieretxt" id="bvTxt"></div>
   <div class="bvscores" id="bvScores"></div>
-  <div class="bieremention">L'alcool est interdit aux mineurs.<br>
-    L'abus d'alcool est dangereux pour la sant&eacute;, &agrave; consommer avec mod&eacute;ration.<br>
-    <span>L'enjeu reste entre les joueurs &mdash; un caf&eacute; ou un jus fait tr&egrave;s bien l'affaire.</span></div>
+  <div class="bieremention">L'enjeu reste entre les joueurs &mdash; un caf&eacute;, un jus, ce que vous voulez.<br>
+    <span>Si c'est de l'alcool&nbsp;: interdit aux mineurs, et &agrave; consommer avec mod&eacute;ration.</span></div>
   <button class="go" onclick="PULSE.biereVerdictOk()" style="margin-top:20px">C'est not&eacute;</button>
 </div>
 
@@ -1415,7 +1414,7 @@
   <div class="ptrow"><span>Ils ach&egrave;tent <b>tous</b> les bonus, les billes, tra&icirc;n&eacute;es et titres</span><span class="pv">&#127912;</span></div>
   <button class="go" onclick="PULSE.play()" style="margin-top:18px">Jouer</button>
   <button class="ghost" onclick="PULSE.home()">Retour</button>
-  <div class="buildtag">version 2026-08-03 · b68</div>
+  <div class="buildtag">version 2026-08-03 · b69</div>
 </div>
 
 <script>
@@ -7251,7 +7250,7 @@ var PULSE = (function(){
       duelActif=false;              /* le verdict ne s'affiche qu'une fois */
     }
 
-    /* Verdict du defi \u00ab Paye ta bi\u00e8re \u00bb. Il remplace celui du duel :
+    /* Verdict du defi \u00ab Paye un verre \u00bb. Il remplace celui du duel :
        les deux portent sur la meme partie, l'afficher deux fois n'apprendrait
        rien de plus au joueur. */
     var br=$('biereRes');
@@ -7261,14 +7260,16 @@ var PULSE = (function(){
         var ec=score-biereScore, adv=biereDe||'ton adversaire';
         /* La mention accompagne le verdict : c'est le moment ou l'enjeu est
            annonce, donc celui ou elle doit etre sous les yeux. */
-        var legal='<div class="bieremini">L\'abus d\'alcool est dangereux pour la sant\u00e9, '
-          +'\u00e0 consommer avec mod\u00e9ration \u00b7 interdit aux mineurs</div>';
+        /* La mention accompagne le verdict, mais elle n'est plus le sujet :
+           l'enjeu appartient aux joueurs et rien n'oblige a parier de l'alcool. */
+        var legal='<div class="bieremini">L\'enjeu reste entre vous \u00b7 si c\'est de l\'alcool, '
+          +'interdit aux mineurs et \u00e0 consommer avec mod\u00e9ration</div>';
         if(ec>=0){
-          br.innerHTML='\uD83C\uDF7A <b>'+adv+' te doit une bi\u00e8re !</b><br>'
+          br.innerHTML='\uD83E\uDD42 <b>'+adv+' te doit un verre !</b><br>'
             +score+' contre '+biereScore+' \u2014 +'+ec+' d\'avance'+legal;
           setTimeout(function(){ try{ fireworks(); sfxRank(); }catch(e){} }, 400);
         } else {
-          br.innerHTML='\uD83C\uDF7B <b>C\'est ta tourn\u00e9e.</b><br>'
+          br.innerHTML='\uD83E\uDD64 <b>C\'est ta tourn\u00e9e.</b><br>'
             +score+' contre '+biereScore+' \u2014 il te manquait '+(-ec)+' points'+legal;
         }
         br.style.display='';
@@ -7300,7 +7301,7 @@ var PULSE = (function(){
     /* Fin de partie d'un invite : c'est ICI qu'on demande le pseudo, et nulle
        part ailleurs. Le joueur vient de faire un score, il voit sa progression
        et le classement juste en dessous — la demande a enfin un sens.
-       Defier un ami et Paye ta biere disparaissent : les deux ont besoin d'un
+       Defier un ami et Paye un verre disparaissent : les deux ont besoin d'un
        nom pour fonctionner, un bouton qui echoue vaut moins que pas de bouton. */
     var bg=$('btnGuest'), bd=$('btnDefi'), bb=$('btnBiere');
     if(bg) bg.style.display = (!pseudo && score>0) ? 'block' : 'none';
@@ -7782,13 +7783,13 @@ var PULSE = (function(){
   /* ---------- multijoueur leger : presence en ligne + WIZZ ---------- */
   var LIVE_URL=DB+'/pulse_live', WIZZ_URL=DB+'/pulse_wizz';
 
-  /* ================= DEFI « PAYE TA BIÈRE » =================
+  /* ================= DEFI « PAYE UN VERRE » =================
      Le duel par lien marche entre gens qui se parlent deja. Celui-ci se lance
      a quelqu'un qui joue EN CE MOMENT : on voit qui est en ligne, on le
      designe, il recoit le defi dans la seconde.
 
-     L'enjeu n'est pas dans le jeu, il est entre les deux joueurs — une biere,
-     un cafe, ce qu'ils veulent. PULSE ne fait qu'arbitrer : meme graine, donc
+     L'enjeu n'est pas dans le jeu, il est entre les deux joueurs — un cafe,
+     un jus, ce qu'ils veulent. PULSE ne fait qu'arbitrer : meme graine, donc
      exactement la meme partie, et un verdict que personne ne peut contester.
 
      Un defi porte : qui l'envoie, son score, et la graine de sa partie. Il
@@ -7811,12 +7812,12 @@ var PULSE = (function(){
   var biereTimer=null, biereVu=0;
 
   function biereOuvrirPicker(){
-    if(score<=0){ toast('\uD83C\uDF7A Pas encore','fais d\'abord un score \u00e0 d\u00e9fendre'); return; }
+    if(score<=0){ toast('\uD83E\uDD42 Pas encore','fais d\'abord un score \u00e0 d\u00e9fendre'); return; }
     navEnter();
     hideAll();
     $('biereScreen').classList.remove('hide');
     var pot=$('bierePot');
-    if(pot) pot.innerHTML='Tu mets en jeu <b>'+score+' points</b>. Celui qui perd paie la tourn\u00e9e \uD83C\uDF7B';
+    if(pot) pot.innerHTML='Tu mets en jeu <b>'+score+' points</b>. Celui qui perd paie le verre \uD83E\uDD64';
     var list=$('biereList');
     list.innerHTML='<div class="board-loading">Recherche des joueurs...</div>';
     fetchLive(function(arr){
@@ -7834,7 +7835,7 @@ var PULSE = (function(){
       arr.slice(0,30).forEach(function(o){
         var d=document.createElement('div');
         d.className='row pick';
-        d.innerHTML='<div class="rk">\uD83C\uDF7A</div><div class="nm">'+escapeHtml(o.name)+'</div>'
+        d.innerHTML='<div class="rk">\uD83E\uDD42</div><div class="nm">'+escapeHtml(o.name)+'</div>'
           +'<div class="st">'+(o.st==='game'?('\uD83C\uDFAE en jeu \u00b7 '+o.score):'\uD83C\uDFE0 au menu')+'</div>';
         d.onclick=function(){ biereEnvoyer(o); };
         list.appendChild(d);
@@ -7854,7 +7855,7 @@ var PULSE = (function(){
     var mien=d.cible||0, sien=d.score||0, gagne=mien>=sien;
     var adv=d.name||'Ton adversaire';
     var ic=$('bvIcone'), ti=$('bvTitre'), tx=$('bvTxt'), sc=$('bvScores');
-    if(ic) ic.innerHTML = gagne ? '\uD83C\uDF7A' : '\uD83C\uDF7B';
+    if(ic) ic.innerHTML = gagne ? '\uD83E\uDD42' : '\uD83E\uDD64';
     if(ti) ti.textContent = gagne ? 'Tu gagnes !' : 'C\'est ta tourn\u00e9e';
     if(tx) tx.innerHTML = gagne
       ? ('<span class="qui">'+escapeHtml(adv)+'</span> a jou\u00e9 ta partie et n\'a pas fait mieux.')
@@ -7878,7 +7879,7 @@ var PULSE = (function(){
     hideAll();
     var t=$('biereTxt');
     if(t) t.innerHTML='<span class="qui">'+escapeHtml(d.name||'Quelqu\'un')+'</span> te d\u00e9fie \u00e0 <b>'
-      +d.score+'</b> points.<br>Le perdant paie la bi\u00e8re \uD83C\uDF7B';
+      +d.score+'</b> points.<br>Le perdant paie le verre \uD83E\uDD64';
     $('biereRecu').classList.remove('hide');
     try{ sfxRank(); }catch(e){}
     haptic([50,80,50,80,120]);
@@ -7916,7 +7917,7 @@ var PULSE = (function(){
     try{
       fetch(BIERE_URL+'/'+cible.id+'.json',{method:'PUT',body:corps}).catch(function(){});
     }catch(e){}
-    toast('\uD83C\uDF7A D\u00e9fi envoy\u00e9 \u00e0 '+cible.name, score+' points \u00e0 battre');
+    toast('\uD83E\uDD42 D\u00e9fi envoy\u00e9 \u00e0 '+cible.name, score+' points \u00e0 battre');
     haptic([40,60,40]);
     biereFermerPicker();
   }
