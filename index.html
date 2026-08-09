@@ -2346,9 +2346,9 @@ var PULSE = (function(){
     {id:'ralenti', n:'Ralenti',    ic:'❄️',cost:100, fill:48,
      d:'8 secondes au ralenti. De quoi reprendre la main quand ça s\'emballe.',
      court:'8 s de ralenti'},
-    {id:'zonexl',  n:'Zone XL',    ic:'🎯',cost:130, fill:60,
-     d:'12 secondes de zones élargies. Le combo repart sans risque.',
-     court:'zones XL 12 s'},
+    {id:'zonexl',  n:'Zone GÉANTE',ic:'🎯',cost:130, fill:60,
+     d:'15 secondes où la zone couvre la moitié du cercle. Marque un maximum de points d\'un coup.',
+     court:'zone géante 15 s'},
     {id:'double',  n:'Points ×2',  ic:'⭐',cost:180, fill:75,
      d:'15 secondes où tout compte double. À lancer pendant un gros combo.',
      court:'×2 pendant 15 s'},
@@ -5415,11 +5415,15 @@ var PULSE = (function(){
        cran seraient manges par la limite et l'empilement ne servirait a rien —
        c'est exactement le bug qu'on corrige. Il reste un plafond a 0.88 : une
        zone qui fait tout le tour supprime le jeu au lieu de l'aider. */
+    /* Zone GÉANTE : au lieu de multiplier la petite zone du moment (qui donnait
+       un resultat variable et souvent decevant a haut score), on impose un
+       PLANCHER : la zone couvre au moins la moitie du cercle (0.50) pendant
+       toute la duree. Un carton garanti, peu importe la difficulte du moment. */
     if(xlT>0 && xlStack>0){
-      z = Math.min(z*(1+0.55*xlStack), Math.min(0.66+0.09*(xlStack-1), 0.88));
+      z = Math.max(z, 0.50);
     }
     z *= mZone();                               /* modules 🔎 Lentille / ⚖️ Usurier */
-    return Math.max(0.05, Math.min(z, xlT>0 ? 0.90 : 0.72));
+    return Math.max(0.05, Math.min(z, xlT>0 ? 0.92 : 0.72));
   }
   function intensity(){ return Math.min(score/120, 1.2); }
   /* La courbe d'origine est intacte : les modes ne font que la multiplier a la
@@ -5464,7 +5468,7 @@ var PULSE = (function(){
        on y goute gratuitement, on rachete ensuite. */
     bouclier:{at:30, ic:'🛡', col:'#4DFFB1', txt:'BOUCLIER',        w:16},
     coeur:  {at:40,  ic:'♥', col:'#FF4D6D', txt:'+1 VIE',           w:15},
-    viseur: {at:50,  ic:'◎', col:'#FF8C42', txt:'ZONES XL 8 s',     w:15},
+    viseur: {at:50,  ic:'◎', col:'#FF8C42', txt:'ZONE GÉANTE 8 s', w:15},
     eclair: {at:65,  ic:'⚡', col:'#7C8CFF', txt:'+30 💎',           w:16},
     gel:    {at:85,  ic:'❄', col:'#9FE8FF', txt:'RALENTI 6 s',      w:16},
     quiz:   {at:130, ic:'?', col:'#B14DFF', txt:'QUESTION BONUS',   w:13}
@@ -5511,7 +5515,7 @@ var PULSE = (function(){
        (shieldOn, xlT) : elles s'affichent donc dans la barre du bas, se
        cumulent proprement et n'ajoutent aucun etat a nettoyer en fin de partie. */
     else if(k==='bouclier'){ shieldOn++; renderBonusBar(); toast('🛡️ Bouclier','ton prochain raté est annulé'); }
-    else if(k==='viseur'){ xlT=Math.max(xlT,8000); renderBonusBar(); toast('◎ Zones XL','élargies pendant 8 s'); }
+    else if(k==='viseur'){ xlStack=1; xlT=Math.max(xlT,8000); renderBonusBar(); toast('◎ Zone géante','moitié du cercle pendant 8 s'); }
     else if(k==='eclair'){ addShards(30,'zone'); }
     else if(k==='gel'){ freezeSlowT=6000; toast('❄ Ralenti','6 secondes pour respirer'); }
     else if(k==='quiz'){ setTimeout(function(){ if(running) askQuiz(Math.random()<0.4); }, 420); }
@@ -6377,7 +6381,7 @@ var PULSE = (function(){
        discret, c'est un systeme absent. Le bouton grise dit ce qu'il ferait et
        comment l'obtenir — c'est lui, la publicite du jeu. */
     for(var i=0;i<BONUS.length;i++){
-      runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
+      runBonus.push({id:BONUS[i].id});
     }
     renderBonusBar();
   }
@@ -6393,50 +6397,53 @@ var PULSE = (function(){
          AVANCER pendant qu'il joue. C'est ce qui transforme une reserve en
          recompense — on attend quelque chose au lieu d'aller le chercher. */
       var ring = pret ? '' : 'background:conic-gradient(rgba(124,245,226,.85) '+pct+'%,rgba(255,255,255,.07) 0);';
-      h+='<div class="bb'+(pret?' ready':(b.left>0?'':' spent'))+(actif?' on':'')+'" id="bb_'+b.id+'"'
+      /* Badge sur le bouton : on montre l'EFFET ACTIF empile, pas un stock.
+         - bouclier : combien de ratés annulés sont en réserve (🛡×2, ×3...)
+         - zone XL  : le cumul d'activations en cours
+         - 2e chance: combien de reprises gardées
+         C'est ce chiffre qui manquait : toucher une zone 🛡 fait bien +1, et ça
+         se voit maintenant. */
+      var badge='';
+      if(b.id==='bouclier' && shieldOn>0) badge='<span class="bq">'+shieldOn+'</span>';
+      else if(b.id==='zonexl' && xlStack>1) badge='<span class="bq">'+xlStack+'</span>';
+      else if(b.id==='revive' && reviveLeft>0) badge='<span class="bq">'+reviveLeft+'</span>';
+      h+='<div class="bb'+(pret?' ready':'')+(actif?' on':'')+'" id="bb_'+b.id+'"'
        + ' style="'+ring+'"'
        + ' onclick="PULSE.useBonus(\''+b.id+'\')" title="'+d.n+'">'
        + '<span class="bi">'+d.ic+'</span>'
-       + (b.left>0?'<span class="bq">'+b.left+'</span>':'')
-       + (b.id==='zonexl'&&xlStack>1 ? '<span class="bst2">×'+xlStack+'</span>' : '')
+       + badge
        + '</div>';
     }
     el.innerHTML=h;
     el.classList.toggle('dense', runBonus.length>4);   /* six boutons : toujours vrai */
   }
-  /* Consommation. Renvoie false si rien ne s'est passe — et dans ce cas on le
-     DIT, parce qu'un bouton qui ne repond pas se lit comme un bouton casse. */
+  /* Consommation. Un seul systeme : la JAUGE. Pleine -> on l'utilise, elle se
+     vide et repart. Plus de reserve stockable, plus de doublon : ce que le
+     joueur voit (l'anneau qui se remplit) est exactement ce qui se passe. */
   function useBonus(id){
     if(!running || !document.body.classList.contains('playing')) return;
     var slot=null;
     for(var i=0;i<runBonus.length;i++) if(runBonus[i].id===id) slot=runBonus[i];
     if(!slot) return;
     var d=bonusById(id);
-    /* Ordre volontaire : la jauge PASSE AVANT la reserve. Consommer un objet
-       paye alors qu'un usage gratuit etait disponible serait un vol. */
     if(bFull(id)){
-      bCharge[id]=0;
-    } else if(slot.left>0){
-      slot.left--; bonusAdd(id,-1); saveProf();
-      toast('📦 '+d.n, 'pris dans ta réserve · jauge à '+Math.round(bPct(id)*100)+' %');
+      bCharge[id]=0;                 /* la jauge se vide et recommence a se remplir */
     } else {
       toast(d.ic+' '+d.n+' — pas encore prêt',
             'jauge à '+Math.round(bPct(id)*100)+' % · continue de marquer des points');
       haptic(30); renderBonusBar(); return;
     }
 
-    if(id==='bouclier'){ shieldOn++; toast('🛡️ Bouclier','ton prochain raté est annulé'); }
+    if(id==='bouclier'){ shieldOn++; toast('🛡️ Bouclier ×'+shieldOn,'ton prochain raté est annulé'); }
     else if(id==='ralenti'){ freezeSlowT=Math.max(freezeSlowT,8000); toast('❄️ Ralenti','8 secondes pour respirer'); }
     else if(id==='zonexl'){
-      /* On EMPILE au lieu d'ecraser. Avant, relancer Zone XL pendant qu'il
-         tournait ne faisait que remettre le chrono a 12 s : le joueur depensait
-         une charge pleine pour un resultat invisible. Desormais chaque
-         activation elargit un cran de plus et ajoute 12 s. Depenser trois
-         charges d'un coup devient une decision, et ca se VOIT. */
-      xlStack=Math.min(xlStack+1, XL_MAX);
-      xlT=Math.min(xlT+12000, 48000);
-      toast('🎯 Zone XL ×'+xlStack, 'zones élargies · '+Math.round(xlT/1000)+' s');
-      if(xlStack>1){ floatText(cx,cy-130,'🎯 ZONE XL ×'+xlStack,'#FF8C42',true); }
+      /* Zone GEANTE : la zone couvre d'un coup la moitie du cercle, 15 s. Plus
+         besoin d'empiler — un seul declenchement suffit a faire un carton. Si on
+         la relance pendant qu'elle tourne, on prolonge simplement le chrono. */
+      xlStack=1;
+      xlT=Math.min(xlT+15000, 30000);
+      toast('🎯 Zone GÉANTE', 'moitié du cercle · '+Math.round(xlT/1000)+' s — marque un max !');
+      floatText(cx,cy-130,'🎯 ZONE GÉANTE','#FF8C42',true);
     }
     else if(id==='double'){ dblT=15000; toast('⭐ Points ×2','15 secondes, tout compte double'); }
     else if(id==='vies'){ lives+=2; updateLives(); toast('💖 +2 vies', lives+' cœurs'); sfxHeart(); }
@@ -7038,20 +7045,6 @@ var PULSE = (function(){
         burst(cx,cy,'#FFD166',18);
         floatText(cx,cy-72,'COMBO '+(Math.floor(combo/10)*10)+' !','#FFD166',true);
         haptic(25);
-      }
-      /* Recharge des bonus EN JOUANT : plus de boutique. Tous les 15 de combo,
-         un bonus utile tombe dans la reserve, en rotation, pour que le stock se
-         remplisse tout seul au merite. Le stock deja gagne n'est jamais touche. */
-      if(combo>0 && Math.floor(combo/15)>Math.floor(oldCombo/15)){
-        var rotB=['bouclier','ralenti','zonexl','vies'];
-        var pick=rotB[Math.floor(combo/15-1)%rotB.length];
-        var bd=bonusById(pick);
-        if(bd){
-          bonusAdd(pick,1); saveProf();
-          if(document.body.classList.contains('playing')) renderBonusBar();
-          floatText(cx,cy-100,bd.ic+' +1 '+bd.n,'#7CF5E2',true);
-          sfxContract&&sfxContract(); haptic([20,30,40]);
-        }
       }
       var feverM=mult();
       var m = goldT>0 ? 3 : feverM;
