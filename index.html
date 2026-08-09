@@ -5098,46 +5098,21 @@ var PULSE = (function(){
      Tirage seede (gr('draft')) : deux joueurs d'un meme duel recoivent les
      memes offres. Ce qui les separe, ce sont leurs CHOIX. */
   var MODULES=[
-    /* --- courants : ils reglent des chiffres, on les prend sans reflechir --- */
-    {id:'lentille', ic:'🔎', r:1, max:4, n:'Lentille',
-     d:function(l){ return 'Zones +'+(10*l)+' % — tout devient plus large.'; }},
-    {id:'metronome',ic:'🎯', r:1, max:3, n:'Métronome',
-     d:function(l){ return 'Les touches en plein centre valent ×'+(1+l)+'.'; }},
-    /* L'Aimant disait "+45 % de zones speciales" : un pourcentage sur une
-       frequence qu'aucun joueur ne connait, donc un chiffre qui ne veut rien
-       dire. On nomme desormais ce qu'il fait tomber — ★ +1 vie, +30 eclats,
-       bouclier — parce que c'est CA que le joueur reconnait a l'ecran. Et il
-       tape plus fort, sinon l'effet reste sous le seuil du perceptible. */
-    {id:'aimant',   ic:'🧲', r:1, max:3, n:'Aimant',
-     d:function(l){ return 'Les zones ★ ♥ ⚡ 🛡 ❄ tombent '+(l===1?'bien plus':l===2?'deux fois plus':'trois fois plus')+' souvent — ce sont elles qui rapportent gros.'; }},
-    {id:'avarice',  ic:'💎', r:1, max:3, n:'Avarice',
-     d:function(l){ return 'Éclats ×'+(1+l)+' — la boutique arrive vite.'; }},
-    {id:'vitalite', ic:'💖', r:1, max:5, n:'Vitalité',
-     d:function(l){ return '+2 cœurs, tout de suite.'; }},
-
-    /* --- interessants : ils changent une regle, donc une facon de jouer --- */
-    {id:'ancre',    ic:'⚓', r:2, max:2, n:'Ancre',
-     d:function(l){ return 'Un raté ne remet plus ton combo à zéro : il en garde '+(l===1?'la moitié':'les deux tiers')+'.'; }},
-    {id:'fournaise',ic:'🔥', r:2, max:2, n:'Fournaise',
-     d:function(l){ return 'Le FEVER se déclenche à '+(l===1?'4 et 9':'3 et 7')+' de combo au lieu de 6 et 12.'; }},
-    {id:'surtension',ic:'⚡', r:2, max:3, n:'Surtension',
-     d:function(l){ return '+'+(1.5*l).toFixed(1).replace('.',',')+' % de points par point de combo. Sans plafond.'; }},
-    {id:'carapace', ic:'🛡️', r:2, max:2, n:'Carapace',
-     d:function(l){ return 'Un bouclier offert tous les '+(l===1?22:14)+' de combo.'; }},
-    {id:'ricochet', ic:'🎲', r:2, max:3, n:'Ricochet',
-     d:function(l){ return (12*l)+' % de chance qu\'une touche compte double.'; }},
-    {id:'prolonge', ic:'⏳', r:2, max:2, n:'Prolongation',
-     d:function(l){ return 'Les phases durent '+(15+7*l)+' s au lieu de 15.'; }},
-
-    /* --- rares : de vrais paris. Ils donnent beaucoup et prennent beaucoup.
-           C'est la ou une partie devient une histoire qu'on raconte. --- */
-    {id:'verre',    ic:'🩸', r:3, max:2, n:'Cœur de verre',
-     d:function(l){ return '−2 cœurs maintenant, mais TOUS tes points ×'+(1+0.6*l).toFixed(1).replace('.',',')+'.'; }},
-    {id:'nitro',    ic:'🚀', r:3, max:3, n:'Nitro',
-     d:function(l){ return 'Billes +'+(14*l)+' % de vitesse, points +'+(35*l)+' %.'; }},
-    {id:'chasseur', ic:'👁️', r:3, max:1, n:'Chasseur',
-     d:function(l){ return 'Les phases tombent deux fois plus vite, et chacune paie un multiplicateur de plus.'; }},
-    {id:'usurier',  ic:'⚖️', r:3, max:1, n:'Usurier',
+    /* Six modules, tous au meme rang, un seul niveau chacun. On ne garde que
+       ceux qui font MONTER LE SCORE : plus de modules "confort" (soin, survie)
+       qui diluaient le choix. Chaque tirage devient une vraie question de
+       strategie de points, pas un catalogue. */
+    {id:'surtension',ic:'⚡', r:1, max:1, n:'Surtension',
+     d:function(l){ return '+1,5 % de points par point de combo. Sans plafond.'; }},
+    {id:'metronome',ic:'🎯', r:1, max:1, n:'Métronome',
+     d:function(l){ return 'Les touches en plein centre valent ×2.'; }},
+    {id:'aimant',   ic:'🧲', r:1, max:1, n:'Aimant',
+     d:function(l){ return 'Les zones ★ ♥ ⚡ 🛡 ❄ tombent bien plus souvent — ce sont elles qui rapportent gros.'; }},
+    {id:'nitro',    ic:'🚀', r:1, max:1, n:'Nitro',
+     d:function(l){ return 'Points +35 % (billes un peu plus rapides).'; }},
+    {id:'ricochet', ic:'🎲', r:1, max:1, n:'Ricochet',
+     d:function(l){ return '18 % de chance qu\'une touche compte double.'; }},
+    {id:'usurier',  ic:'⚖️', r:1, max:1, n:'Usurier',
      d:function(l){ return 'Zones −20 %, mais points ×2. Le pari le plus cher du jeu.'; }}
   ];
   /* Libelle court affiche en permanence dans la colonne. Quand une valeur bouge
@@ -5145,20 +5120,11 @@ var PULSE = (function(){
      DIRECT : le joueur voit le chiffre monter, il n'a rien a deduire. */
   function modLabel(d,l){
     switch(d.id){
-      case 'lentille':  return 'zones +'+(10*l)+' %';
-      case 'metronome': return 'centre ×'+(1+l);
-      case 'aimant':    return '★ ♥ ⚡ plus souvent';
-      case 'avarice':   return 'éclats ×'+(1+l);
-      case 'vitalite':  return '+'+(2*l)+' cœurs donnés';
-      case 'ancre':     return 'combo gardé';
-      case 'fournaise': return 'fever à '+(l===1?4:3);
       case 'surtension':return 'points ×'+mCombo().toFixed(2).replace('.',',');
-      case 'carapace':  return 'bouclier /'+(l===1?22:14);
-      case 'ricochet':  return (12*l)+' % double';
-      case 'prolonge':  return 'phases '+(15+7*l)+' s';
-      case 'verre':     return 'points ×'+(1+0.6*l).toFixed(1).replace('.',',');
-      case 'nitro':     return 'vite, +'+(35*l)+' %';
-      case 'chasseur':  return 'phases ×2';
+      case 'metronome': return 'centre ×2';
+      case 'aimant':    return '★ ♥ ⚡ plus souvent';
+      case 'nitro':     return 'points +35 %';
+      case 'ricochet':  return '18 % double';
       case 'usurier':   return 'zones −20 %, ×2';
     }
     return '';
@@ -5181,7 +5147,7 @@ var PULSE = (function(){
   function mFever(){ var l=modLv('fournaise'); return l===0?[6,12] : l===1?[4,9] : [3,7]; }
   function mSeqMs(){ var l=modLv('prolonge'); return SEQ_MS + 7000*l; }
   function mCarapace(){ var l=modLv('carapace'); return l===0?0 : (l===1?22:14); }
-  function mRicochet(){ return 0.12*modLv('ricochet'); }
+  function mRicochet(){ return 0.18*modLv('ricochet'); }
 
   /* Le bandeau des modules acquis. */
   function renderBuild(){
@@ -5249,14 +5215,10 @@ var PULSE = (function(){
     for(i=0;i<MODULES.length;i++){
       d=MODULES[i];
       if(modLv(d.id)>=d.max) continue;
-      if(d.r===3 && draftDone<1) continue;   /* un seul tirage d'echauffement */
-      /* Un module deja propose voit son poids DIVISE a chaque fois qu'il
-         revient. Avec des poids fixes, les cinq modules courants sortaient
-         presque a tous les tirages et le joueur revoyait les memes cartes toute
-         la partie — le choix devenait decoratif. Ici, plus on a vu une carte,
-         moins elle a de chances de revenir : la pioche se renouvelle d'
-         elle-meme sans qu'on ait a interdire quoi que ce soit. */
-      var poids = (d.r===1?6 : d.r===2?5 : 3) / (1 + 1.6*(draftSeen[d.id]||0));
+      /* Plus de rarete : tous les modules ont le meme poids de base. Un module
+         deja propose voit son poids divise a chaque fois qu'il revient, pour que
+         la pioche se renouvelle d'elle-meme au lieu de reproposer les memes. */
+      var poids = 6 / (1 + 1.6*(draftSeen[d.id]||0));
       var n=Math.max(1, Math.round(poids));
       for(var w=0;w<n;w++) p.push(d);
     }
@@ -5273,16 +5235,6 @@ var PULSE = (function(){
       var c=pool[Math.floor(rnd()*pool.length)], deja=false;
       for(var i=0;i<out.length;i++) if(out[i].id===c.id) deja=true;
       if(!deja) out.push(c);
-    }
-    if(out.length===3 && out[0].r===out[1].r && out[1].r===out[2].r){
-      var autres=[];
-      for(var j=0;j<pool.length;j++){
-        if(pool[j].r===out[0].r) continue;
-        var vu=false;
-        for(var k=0;k<autres.length;k++) if(autres[k].id===pool[j].id) vu=true;
-        if(!vu) autres.push(pool[j]);
-      }
-      if(autres.length) out[2]=autres[Math.floor(rnd()*autres.length)];
     }
     for(var m=0;m<out.length;m++) draftSeen[out[m].id]=(draftSeen[out[m].id]||0)+1;
     return out;
