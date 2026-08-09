@@ -1823,7 +1823,7 @@ var PULSE = (function(){
   (function(){var src=$('jojoImg').getAttribute('src');['jojoIntroImg','jojoPseudoImg'].forEach(function(id){var e=$(id);if(e)e.setAttribute('src',src);});})();
 
   /* ---- Classement en ligne (Firebase Realtime Database, via API REST) ---- */
-  var DB='https://art-de-vivre-6c94d-default-rtdb.europe-west1.firebasedatabase.app';
+  var DB='https://pulse-bc569-default-rtdb.europe-west1.firebasedatabase.app';
   var SCORES_URL=DB+'/pulse_scores';
   var pseudo='', myId='';
   try{ pseudo=localStorage.getItem('pulse_pseudo')||''; }catch(e){}
