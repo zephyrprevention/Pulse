@@ -6002,16 +6002,17 @@ var PULSE = (function(){
     if(shopKind==='bonus'){
       var load=bonusLoadout(), bh='';
       bh='<div class="explain">'
+        +'<div class="ex"><div class="exi">🎮</div><div class="ext">'
+        +'Tes <b>bonus se gagnent en jouant</b> : chaque palier de <b>15 combos</b> '
+        +'t\'offre un bonus (bouclier, ralenti, zone XL, +vies, en rotation). '
+        +'Tout ce que tu possèdes part <i>automatiquement</i> en partie : rien à préparer. '
+        +'Tu les déclenches <i>quand tu veux</i> avec les boutons ronds à droite de l\'écran.</div></div>'
         +'<div class="ex"><div class="exi">💎</div><div class="ext">'
-        +'Les <b>éclats</b>, gagnés à chaque partie, achètent <i>tous</i> les bonus. '
-        +'Tout ce que tu possèdes part <i>automatiquement</i> en partie : pas d\'équipement, '
-        +'rien à préparer. Tu les déclenches <i>quand tu veux</i> '
-        +'avec les boutons ronds à droite de l\'écran.</div></div>'
+        +'Les <b>éclats</b>, gagnés à chaque partie, servent à débloquer les '
+        +'<i>skins, thèmes et titres</i> dans la collection.</div></div>'
         +'<div class="ex"><div class="exi">⚡</div><div class="ext">'
-        +'Les <b>WIZZ</b> paient les trois bonus qui te <i>sauvent la mise</i> : '
-        +'🛡️ Bouclier, 💖 +2 vies et 🔁 2e chance. Mais ce sont les mêmes WIZZ qui '
-        +'servent à <i>secouer les autres joueurs</i> — chaque bonus acheté est un WIZZ '
-        +'que tu n\'enverras pas.</div></div></div>';
+        +'Les <b>WIZZ</b> servent à <i>secouer les autres joueurs</i> en ligne — '
+        +'un petit coup de pression amical pendant leur partie.</div></div></div>';
       bh+='<div class="ntitle" style="max-width:360px">Ta réserve</div>';
       bh+='<div class="mlist">';
       for(var q=0;q<BONUS.length;q++){
@@ -6026,26 +6027,11 @@ var PULSE = (function(){
          + '<div class="mr">'+(qt>0?'✅':'')+'</div></div>';
       }
       bh+='</div>';
-      /* Recharge : chaque PRIX est un bouton distinct, pas la carte entiere.
-         Avec deux monnaies possibles il faut pouvoir designer laquelle on paie —
-         un seul onclick sur la carte obligerait a inventer un geste (appui long,
-         second ecran) pour choisir, et personne ne le trouverait. */
-      bh+='<div class="ntitle" style="max-width:360px">Recharger</div><div class="mlist">';
-      for(var r=0;r<BONUS.length;r++){
-        var e=BONUS[r];
-        var okD=(PROF.shards>=e.cost), okW=(e.wcost && wizzStock>=e.wcost);
-        bh+='<div class="mcard">'
-         + '<div class="mi">'+e.ic+'</div>'
-         + '<div class="mm"><div class="mt">'+e.n+'</div>'
-         + '<div class="ms">'+e.court+' · tu en as '+bonusQty(e.id)+'</div></div>'
-         + '<div class="pays">'
-         +   '<button class="pay dia'+(okD?'':' off')+'" onclick="PULSE.buyBonus(\''+e.id+'\')">'+e.cost+' 💎</button>'
-         +   (e.wcost ? '<button class="pay wiz'+(okW?'':' off')+'" onclick="PULSE.buyBonusWizz(\''+e.id+'\')">'+e.wcost+' ⚡</button>' : '')
-         + '</div></div>';
-      }
-      bh+='</div>';
-      bh+='<div class="paynote">⚡ Les <b>WIZZ</b> paient les trois bonus qui te <b>sauvent la mise</b>. '
-        + 'Attention : ce sont les mêmes WIZZ qui servent à secouer les autres joueurs — à toi de choisir.</div>';
+      /* Plus de boutique : les bonus se rechargent EN JOUANT (tous les 15 de
+         combo, un bonus utile tombe dans la reserve). On garde juste un mot pour
+         que le joueur comprenne d'ou vient le stock. */
+      bh+='<div class="paynote">🎮 Tes bonus se <b>rechargent en jouant</b> : chaque palier de <b>15 combos</b> t\'en offre un (bouclier, ralenti, zone XL, +vies, en rotation). '
+        + 'Plus tu tiens un gros combo, plus ta réserve se remplit.</div>';
       body.innerHTML=bh;
       return;
     }
@@ -7052,6 +7038,20 @@ var PULSE = (function(){
         burst(cx,cy,'#FFD166',18);
         floatText(cx,cy-72,'COMBO '+(Math.floor(combo/10)*10)+' !','#FFD166',true);
         haptic(25);
+      }
+      /* Recharge des bonus EN JOUANT : plus de boutique. Tous les 15 de combo,
+         un bonus utile tombe dans la reserve, en rotation, pour que le stock se
+         remplisse tout seul au merite. Le stock deja gagne n'est jamais touche. */
+      if(combo>0 && Math.floor(combo/15)>Math.floor(oldCombo/15)){
+        var rotB=['bouclier','ralenti','zonexl','vies'];
+        var pick=rotB[Math.floor(combo/15-1)%rotB.length];
+        var bd=bonusById(pick);
+        if(bd){
+          bonusAdd(pick,1); saveProf();
+          if(document.body.classList.contains('playing')) renderBonusBar();
+          floatText(cx,cy-100,bd.ic+' +1 '+bd.n,'#7CF5E2',true);
+          sfxContract&&sfxContract(); haptic([20,30,40]);
+        }
       }
       var feverM=mult();
       var m = goldT>0 ? 3 : feverM;
@@ -9248,8 +9248,8 @@ var PULSE = (function(){
       var d=bonusById(id); if(!d) return;
       var qt=bonusQty(id);
       if(qt<=0){
-        toast('Épuisé', d.n+' : recharge-le plus bas pour '+d.cost+' 💎');
-        shopMsg('Tu n\'as plus de <b>'+d.n+'</b>. Recharge-le plus bas pour '+d.cost+' 💎.','err');
+        toast('Épuisé', d.n+' : enchaîne les combos pour le regagner');
+        shopMsg('Tu n\'as plus de <b>'+d.n+'</b>. Tiens un <b>gros combo</b> en partie pour le regagner (un bonus tous les 15 combos).','err');
         haptic(30); return;
       }
       shopMsg('<b>'+d.n+'</b> ×'+qt+' — '+d.court+'. Il sera dans la barre dès ta prochaine partie, tu le déclencheras quand tu veux.','ok');
