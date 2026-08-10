@@ -1295,7 +1295,7 @@
     <div class="ex"><div class="exi">&#129513;</div><div class="ext">Tous les <b>40 &agrave; 350 points</b>, la partie s'arr&ecirc;te et te propose <b>3 modules</b>&nbsp;: tu en gardes <i>un</i>. Trois <b>modules</b> viennent s'accrocher sur l'anneau. <b>Tape quand la bille passe sur celui que tu veux</b> &mdash; les deux autres dispara&icirc;ssent. Un tap sur un module ne peut <i>jamais</i> te tuer, m&ecirc;me hors zone. Ensuite ils sont <b>passifs</b>&nbsp;: rien &agrave; d&eacute;clencher, ils s'affichent dans la colonne de gauche.</div></div>
     <div class="ex"><div class="exi">&#128266;</div><div class="ext">Retiens juste les deux c&ocirc;t&eacute;s&nbsp;: <b>&agrave; gauche</b>, ce qui agit tout seul. <b>&Agrave; droite</b>, les <b>boutons ronds</b> &mdash; c'est toi qui les d&eacute;clenches.</div></div>
     <div class="ex"><div class="exi">&#128267;</div><div class="ext">Les boutons de droite <b>se rechargent en jouant</b>&nbsp;: chaque point marqu&eacute; remplit leur anneau. Plein, le bouton <b>s'allume en vert</b> &mdash; tu t'en sers <i>gratuitement</i>, autant de fois que la partie te le permet. Rien &agrave; acheter, rien &agrave; pr&eacute;parer.</div></div>
-    <div class="ex"><div class="exi">&#11088;</div><div class="ext">L'<b>XP</b> fait monter ton <b>rang</b>. Chaque rang d&eacute;bloque un th&egrave;me, une bille, une tra&icirc;n&eacute;e, un titre ou un <i>mode de jeu</i>. Tu en gagnes &agrave; <i>chaque partie</i>, m&ecirc;me rat&eacute;e.</div></div>
+    <div class="ex"><div class="exi">&#11088;</div><div class="ext">L'<b>XP</b> fait monter ton <b>rang</b>. Chaque rang d&eacute;bloque un th&egrave;me, une bille, une tra&icirc;n&eacute;e ou un <i>mode de jeu</i>. Tu en gagnes &agrave; <i>chaque partie</i>, m&ecirc;me rat&eacute;e.</div></div>
     <div class="ex"><div class="exi">&#128142;</div><div class="ext">Les <b>&eacute;clats &#128142;</b> (&agrave; ne pas confondre avec les WIZZ &#9889;) s'&eacute;changent contre des <b>bonus</b> que tu d&eacute;clenches en pleine partie&nbsp;: bouclier, ralenti, points &times;2, vies... <i>C'est ici qu'on en gagne le plus.</i></div></div>
   </div>
 
@@ -1330,7 +1330,6 @@
     <button class="tabb"    id="tab_theme" onclick="PULSE.shopTab('theme')">Th&egrave;mes</button>
     <button class="tabb"    id="tab_ball"  onclick="PULSE.shopTab('ball')">Billes</button>
     <button class="tabb"    id="tab_trail" onclick="PULSE.shopTab('trail')">Tra&icirc;n&eacute;es</button>
-    <button class="tabb"    id="tab_title" onclick="PULSE.shopTab('title')">Titres</button>
   </div>
   <div id="shopMsg" class="shopmsg"></div>
   <div id="shopBody"></div>
@@ -2255,20 +2254,9 @@ var PULSE = (function(){
     {id:'aucun',   name:'Aucune',    how:'boutique', cost:150},
     {id:'arc',     name:'Arc-en-ciel',how:'boutique',cost:1200}
   ];
-  var TITLES=[
-    {id:'',          name:'— aucun —',      how:'de base', cost:0},
-    {id:'debutant',  name:'Débutant·e',     how:'rang 2',  rank:2},
-    {id:'regulier',  name:'Régulier·ère',   how:'rang 8',  rank:8},
-    {id:'machine',   name:'Machine',        how:'rang 14', rank:14},
-    {id:'sniper',    name:'Sniper',         how:'rang 20', rank:20},
-    {id:'increvable',name:'Increvable',     how:'rang 25', rank:25},
-    {id:'legende',   name:'Légende',        how:'rang 35', rank:35},
-    {id:'pulse',     name:'PULSE',          how:'rang 40', rank:40},
-    {id:'noctambule',name:'Noctambule',     how:'série de 7 jours', streak:7},
-    {id:'assidu',    name:'Assidu·e',       how:'série de 30 jours', streak:30},
-    {id:'frites',    name:'Roi des frites',  how:'boutique', cost:800},
-    {id:'chanceux',  name:'Chanceux·se',    how:'boutique', cost:500}
-  ];
+  /* Les titres ont ete retires : ils ne s'affichaient nulle part dans le jeu.
+     On garde un tableau vide pour ne rien casser dans les fonctions qui le lisent. */
+  var TITLES=[];
   /* Les themes rejoignent les autres cosmetiques. Ils avaient leur propre ecran
      alors qu'ils obeissent exactement aux memes regles : on en possede, on en
      porte un. Deux interfaces pour un seul concept, c'est une de trop. */
@@ -2320,7 +2308,6 @@ var PULSE = (function(){
     if(it.cost)   return PROF.shards>=it.cost ? 'tu peux te l\'offrir !' : 'il te manque '+(it.cost-PROF.shards)+' 💎';
     return '';
   }
-  function titleName(id){ for(var i=0;i<TITLES.length;i++) if(TITLES[i].id===id) return TITLES[i].name; return ''; }
 
   /* ================== BONUS ÉQUIPABLES ==================
      Le vrai reproche fait au jeu : "on ne sait pas ce qu'on gagne, a part les
@@ -2396,7 +2383,6 @@ var PULSE = (function(){
     for(var i=0;i<THEMES.length;i++) if(THEMES[i].rank===r) out.push({t:'theme',n:'Thème '+THEMES[i].name,i:'🎨'});
     for(var b=0;b<BALLSKINS.length;b++) if(BALLSKINS[b].rank===r) out.push({t:'ball',n:'Bille '+BALLSKINS[b].name,i:'⚪'});
     for(var t=0;t<TRAILS.length;t++) if(TRAILS[t].rank===r) out.push({t:'trail',n:'Traînée '+TRAILS[t].name,i:'💫'});
-    for(var u=0;u<TITLES.length;u++) if(TITLES[u].rank===r) out.push({t:'title',n:'Titre « '+TITLES[u].name+' »',i:'🏷️'});
     for(var m=0;m<MODES.length;m++) if(MODES[m].rank===r) out.push({t:'mode',n:'Mode '+MODES[m].name,i:MODES[m].icon});
     if(!out.length) out.push({t:'shards',n:(40+r*6)+' éclats',i:'💎',v:40+r*6});
     return out;
@@ -2693,13 +2679,13 @@ var PULSE = (function(){
 
   // --- Jojo : le pote encourageant ---
   var JOJO={
-    start:["Allez, on y va ! Je crois en toi \u{1F600}","C'est parti champion !","Montre-moi ce que tu sais faire \u{1F44A}","On se chauffe, tranquille."],
-    good:["Nickel !"," Souple comme un chat \u{1F63A}","Tu geres grave","Continue, c'est beau"],
-    perfect:["PARFAIT ! T'es en feu \u{1F525}","Pile au centre, magnifique !","La classe totale \u{2728}"],
-    level:["Niveau suivant, tu montes en puissance !","Tu progresses, je suis fier \u{1F60E}","Encore un ! T'arretes plus."],
-    hard:["Ca s'accelere... reste concentre !","Attention ca chauffe \u{1F605}","Respire, tu vas y arriver","La c'est du serieux, focus !"],
-    unlock:["Nouveau theme pour toi, cadeau \u{1F381}","Tiens, un theme rien que pour toi !","Debloque ! T'as merite \u{1F31F}"],
-    infini:["Mode infini ! Maintenant on vise le record \u{1F525}","Plus de limite ! Montre-leur qui est le boss \u{1F60E}","La legende commence ici, vas-y !","Top 20 mondial, c'est pour toi ca !"],
+    start:["Allez, on y va ! Touche quand la bille entre dans la zone \u{1F600}","C'est parti ! Vise la zone lumineuse.","On se chauffe : un tap au bon moment, c'est tout."],
+    good:["Vise le centre de la zone, ca rapporte plus \u{1F3AF}","Enchaine sans rater : le combo fait grimper le score","Garde le rythme, reste regulier"],
+    perfect:["PARFAIT ! Plein centre = max de points \u{1F525}","Pile au centre, c'est la que ca paie !","La classe \u2728 continue comme ca"],
+    level:["Niveau suivant, ca se corse un peu !","Tu montes en puissance \u{1F60E}","Encore un palier de passe !"],
+    hard:["Ca accelere : respire et anticipe l'entree dans la zone","Un bonus a droite est peut-etre pret : tape dessus si besoin \u{1F6E1}\u{FE0F}","Focus : mieux vaut une touche sure qu'un combo casse"],
+    unlock:["Nouveau theme debloque, va le choisir \u{1F381}","Debloque ! File le voir dans la Collection \u{1F31F}"],
+    infini:["Mode infini ! Maintenant on vise le record \u{1F525}","Plus de limite : montre ton meilleur score \u{1F60E}","La legende commence ici, vas-y !"],
     die:["Pas grave, on retente !","Presque ! T'y etais \u{1F642}","Allez, une derniere pour la route ?","Tombe sept fois, releve-toi huit \u{1F4AA}"]
   };
   var jojoTimer=null;
@@ -4495,7 +4481,7 @@ var PULSE = (function(){
   var GRAV_ACC=13;            /* rad/s2 : nervosite de la chute */
   var GRAV_START=0.52;        /* ~30 deg sous le haut : le depart n'est pas en equilibre */
   var GRAV_ZONE=0.34;         /* demi-largeur de la zone, en rad */
-  var GRAV_R=0.385;           /* rayon de l'anneau agrandi (part de min(W,H)) */
+  var GRAV_R=0.34;            /* rayon de l'anneau agrandi (part de min(W,H)) — reduit de 0.385 pour rester lisible */
   var GRAV_SMIN=Math.sin(-Math.PI/2+GRAV_START);  /* sinus du point de rebroussement */
   /* La zone suit la bille, mais a un quart de son deplacement seulement : elle
      part du meme cote, plus lentement, et la bille finit par la rattraper en
@@ -4513,13 +4499,10 @@ var PULSE = (function(){
   /* Rythme de points courant : x10 pendant GRAVITE, x2 de plus a chaque cycle
      complet. S'applique au cercle ET a l'Teniflip, en plus du combo/fever. */
   function rateNow(){ return seqKind ? seqMult : 1; }
-  /* ECLIPSE : amplitude VOLONTAIREMENT forte. A +-0.10 sur un cycle de 5 s,
-     l'anneau bougeait de ~12 px : personne ne le voyait. A 0.22, le rayon varie
-     de plus de 50 % entre le minimum et le maximum, et le cycle dure ~2 s. */
-  /* ECLIPSE : l'anneau enfle et se contracte de plus de 50 % entre son minimum
-     et son maximum, sur un cycle d'environ 2 s. L'amplitude ne suit plus le
-     score (devenu enorme) mais le nombre de bonus deja traverses. */
-  function eclipseAmp(){ return Math.min(0.22 + seqCount*0.012, 0.32); }
+  /* ECLIPSE : l'anneau respire, mais avec une amplitude MODEREE. A +-0.32 il se
+     contractait de plus de 50 % et la bille devenait dure a suivre. A +-0.10/0.15
+     l'effet reste bien visible sans casser la lisibilite ni la jouabilite. */
+  function eclipseAmp(){ return Math.min(0.10 + seqCount*0.006, 0.15); }
 
   /* ================== MODE TENIFLIP (phase 1000) ==================
      Le cercle se deroule : la piste devient une raquette en bas de l'ecran et la
@@ -5519,7 +5502,11 @@ var PULSE = (function(){
 
   /* ---------- effets ---------- */
   function burst(x,y,c,n){
-    if(particles.length>320) return;
+    /* Cap abaisse de 320 a 220 : sur mobile modeste, au-dela le framerate
+       chute sans que le joueur voie la difference (les particules se
+       superposent). En mode eco on plafonne encore plus bas. */
+    var cap = document.body.classList.contains('perf-low') ? 130 : 220;
+    if(particles.length>cap) return;
     for(var i=0;i<n;i++){var a=Math.random()*Math.PI*2,s=2+Math.random()*5.5;
       particles.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color:c,r:2+Math.random()*2.4});}
   }
@@ -5812,7 +5799,7 @@ var PULSE = (function(){
   }
   function shopTodo(){
     var n=0, k, L, i;
-    var kinds=['ball','trail','title'];
+    var kinds=['ball','trail'];
     for(k=0;k<kinds.length;k++){
       L=cosmoList(kinds[k]);
       for(i=0;i<L.length;i++){
@@ -5938,7 +5925,7 @@ var PULSE = (function(){
   /* --- collection : la vitrine. Chaque case est dessinee pour de vrai avec le
      meme code que le jeu, sinon le joueur ne sait pas ce qu'il achete. --- */
   var shopKind='bonus';
-  var SHOP_TABS=[['bonus','Bonus'],['theme','Thèmes'],['ball','Billes'],['trail','Traînées'],['title','Titres']];
+  var SHOP_TABS=[['bonus','Bonus'],['theme','Thèmes'],['ball','Billes'],['trail','Traînées']];
   function shopMsg(html,cls){
     var m=$('shopMsg'); if(!m) return;
     m.innerHTML=html||'';
@@ -6005,18 +5992,6 @@ var PULSE = (function(){
     function section(titre, arr, owned){
       if(!arr.length) return '';
       var s='<div class="ntitle" style="max-width:360px">'+titre+' <span style="color:var(--dim);font-weight:700">('+arr.length+')</span></div>';
-      if(shopKind==='title'){
-        s+='<div class="mlist">';
-        for(var k=0;k<arr.length;k++){
-          var it=arr[k], on=(equipped('title')===it.id);
-          s+='<div class="mcard'+(owned?' tap':' lock')+(on?' sel':'')+'" onclick="PULSE.shopPick(\''+it.id+'\')">'
-           + '<div class="mi">'+(owned?(on?'✅':'🏷️'):'🔒')+'</div>'
-           + '<div class="mm"><div class="mt">'+it.name+'</div>'
-           + '<div class="ms">'+(owned?(on?'porté actuellement':'appuie pour le porter'):cosmoHow('title',it)+' — '+cosmoGap('title',it))+'</div></div>'
-           + '</div>';
-        }
-        return s+'</div>';
-      }
       s+='<div class="grid3">';
       for(var j=0;j<arr.length;j++){
         var c=arr[j], sel=(equipped(shopKind)===c.id);
@@ -7085,9 +7060,11 @@ var PULSE = (function(){
 
       if(multi>=2){ jojo('perfect', msg+' \u{1F525}'); sfxBonus(); }
       else if(hitR){ sfxPerfect(); }
-      else if(perfect){ if(combo%5===0){ jojo('perfect'); } sfxPerfect(); }
+      else if(perfect){ if(combo>0 && combo%20===0){ jojo('perfect'); } sfxPerfect(); }
       else {
-        if(score>=50 && Math.random()<0.10) jojo('hard'); else if(Math.random()<0.06) jojo('good');
+        /* Jojo se fait DISCRET : encouragements aleatoires rares (2 % / 1,2 %)
+           au lieu de 10 % / 6 %. Quand il parle, ca compte — fini le radotage. */
+        if(score>=50 && Math.random()<0.02) jojo('hard'); else if(Math.random()<0.012) jojo('good');
         /* le son monte avec le combo : chaque enchainement sonne plus haut */
         if(combo>=2){ beep(440*Math.pow(1.06,Math.min(combo,20)),0.06,'triangle',0.3); }
         else beep(500+Math.min(combo,16)*32, 0.06, 'square', 0.3);
@@ -9208,8 +9185,8 @@ var PULSE = (function(){
         }
         PROF.news[shopKind+':'+id]=1; profDirty=true; saveProf();
         refreshSkins(); renderShop();
-        toast('✅ '+(it.name||'Aucun titre'), 'équipé');
-        shopMsg('<b>'+(it.name||'Aucun titre')+'</b> équipé ✓','ok');
+        toast('✅ '+(it.name||'Équipé'), 'équipé');
+        shopMsg('<b>'+(it.name||'Équipé')+'</b> ✓','ok');
         sfxContract(); haptic(15);
         return;
       }
