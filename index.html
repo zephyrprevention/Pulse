@@ -335,6 +335,25 @@
   .jojo-hi{font-size:14px;color:var(--ink);text-align:left;line-height:1.4}
   .jojo-hi b{color:var(--gold)}
 
+  /* ===== TUTORIEL JOJO : plein ecran, jeu en pause le temps de lire ===== */
+  #jojoTuto{position:fixed;inset:0;z-index:38;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(4,8,14,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    padding:24px calc(24px + env(safe-area-inset-right)) 24px calc(24px + env(safe-area-inset-left))}
+  #jojoTuto.show{display:flex}
+  .jt-card{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r-lg);
+    padding:22px 22px 20px;max-width:360px;width:100%;text-align:center;
+    box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .jt-avatar{width:88px;height:auto;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));margin-bottom:8px}
+  .jt-who{font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;font-weight:800;margin-bottom:10px}
+  .jt-title{font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px}
+  .jt-msg{font-size:15px;color:var(--ink);line-height:1.5;margin-bottom:18px}
+  .jt-msg b{color:var(--gold)}
+  .jt-btn{display:inline-block;background:var(--accent,#4DFFB1);color:#052;font-weight:800;font-size:15px;
+    border:none;border-radius:999px;padding:13px 34px;cursor:pointer;letter-spacing:.5px;
+    box-shadow:0 4px 16px rgba(77,255,177,.35)}
+  .jt-btn:active{transform:scale(.95)}
+  .jt-step{font-size:11px;color:var(--dim);margin-top:12px;letter-spacing:1px}
+
   .centerjoke{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-8px);
     z-index:7;pointer-events:none;width:90%;max-width:360px;opacity:0;transition:opacity .3s,transform .3s}
   .centerjoke.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -1259,7 +1278,6 @@
 
   <div class="jojo-joke hide" id="jojoJoke"></div>
   <div class="nextgoal" id="nextGoal"></div>
-  <div class="prog-mini" id="progMini"></div>
   <button class="btn-defi" id="btnGuest" onclick="PULSE.secure()" style="display:none">&#127942; Enregistrer mon score au classement</button>
   <button class="btn-defi" id="btnDefi" onclick="PULSE.defi()">&#9876;&#65039; D&eacute;fier un ami</button>
   <button class="btn-biere" id="btnBiere" onclick="PULSE.biere()">&#129346; Paye un verre &middot; joueur en ligne</button>
@@ -1954,8 +1972,6 @@ var PULSE = (function(){
         PROF.bestStreak=Math.max(PROF.bestStreak, p.bestStreak||0);
       }
       if(!PROF.owned) PROF.owned={};
-      if(!PROF.bonus) PROF.bonus={};
-      if(!PROF.loadout) PROF.loadout=[];
       if(!PROF.equip) PROF.equip={ball:'classic',trail:'classic',title:''};
       if(!PROF.bestBy) PROF.bestBy={};
       if(!PROF.news) PROF.news={};
@@ -2182,18 +2198,6 @@ var PULSE = (function(){
     if(!PROF.missions) PROF.missions=[];
     if(!PROF.news) PROF.news={};
     if(!PROF.playedModes) PROF.playedModes={};
-    if(!PROF.bonus) PROF.bonus={};
-    if(!PROF.loadout) PROF.loadout=[];
-    /* Cadeau de bienvenue : sans un bonus de chaque en poche, personne ne
-       decouvre a quoi ils servent — et une mecanique qu'on n'a jamais essayee
-       ne donne pas envie d'en acheter. On offre donc le premier essai. */
-    if(!PROF.welcomed){
-      PROF.welcomed=1;
-      PROF.bonus.bouclier=(PROF.bonus.bouclier||0)+1;
-      PROF.bonus.ralenti =(PROF.bonus.ralenti ||0)+1;
-      PROF.bonus.vies    =(PROF.bonus.vies    ||0)+1;
-      PROF.loadout=['bouclier','ralenti','vies'];
-    }
   })();
   var profDirty=false;
   /* Toute sauvegarde locale declenche aussi le miroir en ligne (bride a une
@@ -2360,45 +2364,6 @@ var PULSE = (function(){
      court:'repart après la mort'}
   ];
   function bonusById(id){ for(var i=0;i<BONUS.length;i++) if(BONUS[i].id===id) return BONUS[i]; return null; }
-  function bonusQty(id){ return (PROF.bonus&&PROF.bonus[id])||0; }
-  function bonusAdd(id,n){
-    if(!PROF.bonus) PROF.bonus={};
-    PROF.bonus[id]=(PROF.bonus[id]||0)+n;
-    if(PROF.bonus[id]<0) PROF.bonus[id]=0;
-    profDirty=true;
-  }
-  /* BONUS_SLOTS et bonusLoadout ne servent plus a rien depuis que tout ce
-     qu'on possede part en partie. On les garde : d'anciens profils nuage
-     contiennent encore un champ `loadout`, et applySave le relit. */
-  var BONUS_SLOTS=3;
-  function bonusLoadout(){
-    var out=[], L=(PROF.loadout||[]);
-    for(var i=0;i<L.length && out.length<BONUS_SLOTS;i++){
-      if(bonusById(L[i]) && bonusQty(L[i])>0) out.push(L[i]);
-    }
-    return out;
-  }
-  /* Un bonus tombe a zero reste dans la liste et occupe un emplacement pour
-     rien : le joueur en rachete un autre et le jeu lui repond "tu emportes
-     deja 3 bonus" alors que la barre est vide. On purge donc les emplacements
-     morts avant toute operation. */
-  function bonusClean(){
-    if(!PROF.loadout) { PROF.loadout=[]; return; }
-    var out=[];
-    for(var i=0;i<PROF.loadout.length;i++){
-      if(bonusById(PROF.loadout[i]) && bonusQty(PROF.loadout[i])>0) out.push(PROF.loadout[i]);
-    }
-    if(out.length!==PROF.loadout.length){ PROF.loadout=out; profDirty=true; }
-  }
-  function bonusToggle(id){
-    bonusClean();
-    var k=PROF.loadout.indexOf(id);
-    if(k>=0){ PROF.loadout.splice(k,1); profDirty=true; return 'retire'; }
-    if(bonusQty(id)<=0) return 'vide';
-    if(PROF.loadout.length>=BONUS_SLOTS) return 'plein';
-    PROF.loadout.push(id); profDirty=true; return 'ajoute';
-  }
-
   /* ---------- ECLATS ---------- */
   function addShards(n,why){
     if(n<=0) return;
@@ -5867,16 +5832,11 @@ var PULSE = (function(){
     if(mv) mv.textContent=done+'/'+(PROF.missions||[]).length;
     var cm=$('chipMiss'); if(cm) cm.classList.toggle('alert', done<(PROF.missions||[]).length);
     var cs=$('chipStreak'); if(cs) cs.classList.toggle('hot', PROF.streak>=3);
-    /* Ce que le solde permet a l'instant : c'est ca qui donne un sens au chiffre. */
+    /* Ce que le solde d'eclats permet a l'instant : c'est ca qui donne un sens au chiffre. */
     var mh=$('metaHint');
     if(mh){
-      var dispo=null, i, res=[];
-      for(i=0;i<BONUS.length;i++) if(bonusQty(BONUS[i].id)>0) res.push(BONUS[i].ic);
-      for(i=0;i<BONUS.length;i++) if(PROF.shards>=BONUS[i].cost && (!dispo||BONUS[i].cost>dispo.cost)) dispo=BONUS[i];
-      if(res.length) mh.innerHTML='En r&eacute;serve : '+res.join(' ')
-        +' &mdash; <span class="go2">d&eacute;clenche-les en partie</span> avec les boutons ronds';
-      else if(dispo) mh.innerHTML='Tes <b>'+PROF.shards+' &#128142;</b> paient un '+dispo.ic+' <b>'+dispo.n+'</b> &mdash; appuie sur &#128142;';
-      else mh.innerHTML='Gagne des <b>&#128142; &eacute;clats</b> pour acheter des bonus utilisables en partie';
+      mh.innerHTML='Tes <b>&#128142; &eacute;clats</b> d&eacute;bloquent skins, th&egrave;mes et titres &mdash; '
+        +'les <b>bonus</b>, eux, se chargent en jouant et se d&eacute;clenchent avec les boutons ronds';
     }
     var m=modeById(gameMode);
     var mi=$('mpIcon'), mn=$('mpName'), ms=$('mpSub');
@@ -6004,38 +5964,28 @@ var PULSE = (function(){
        Il ouvre la Collection parce que c'est la reponse a "ca me sert a quoi".
        Chaque carte dit son EFFET en toutes lettres, pas son nom seul. */
     if(shopKind==='bonus'){
-      var load=bonusLoadout(), bh='';
+      var bh='';
       bh='<div class="explain">'
         +'<div class="ex"><div class="exi">🎮</div><div class="ext">'
-        +'Tes <b>bonus se gagnent en jouant</b> : chaque palier de <b>15 combos</b> '
-        +'t\'offre un bonus (bouclier, ralenti, zone XL, +vies, en rotation). '
-        +'Tout ce que tu possèdes part <i>automatiquement</i> en partie : rien à préparer. '
-        +'Tu les déclenches <i>quand tu veux</i> avec les boutons ronds à droite de l\'écran.</div></div>'
+        +'Chaque bonus a une <b>jauge qui se remplit en marquant des points</b>. '
+        +'Dès qu\'elle est pleine, le bouton s\'allume à droite de l\'écran et tu peux '
+        +'le déclencher <i>quand tu veux</i>. Une fois utilisé, la jauge repart de zéro.</div></div>'
         +'<div class="ex"><div class="exi">💎</div><div class="ext">'
         +'Les <b>éclats</b>, gagnés à chaque partie, servent à débloquer les '
         +'<i>skins, thèmes et titres</i> dans la collection.</div></div>'
         +'<div class="ex"><div class="exi">⚡</div><div class="ext">'
         +'Les <b>WIZZ</b> servent à <i>secouer les autres joueurs</i> en ligne — '
         +'un petit coup de pression amical pendant leur partie.</div></div></div>';
-      bh+='<div class="ntitle" style="max-width:360px">Ta réserve</div>';
+      bh+='<div class="ntitle" style="max-width:360px">Tes bonus</div>';
       bh+='<div class="mlist">';
       for(var q=0;q<BONUS.length;q++){
-        var d=BONUS[q], qt=bonusQty(d.id);
-        /* Une carte grisee a zero exemplaire et vive des qu'on en possede un :
-           l'etat de la reserve doit se lire sans rien toucher. */
-        bh+='<div class="mcard tap'+(qt>0?' sel':' lock')+'" onclick="PULSE.bonusTap(\''+d.id+'\')">'
+        var d=BONUS[q];
+        bh+='<div class="mcard">'
          + '<div class="mi">'+d.ic+'</div>'
-         + '<div class="mm"><div class="mt">'+d.n+' <span style="color:var(--dim);font-weight:700">×'+qt+'</span>'
-         +   (qt>0?' <span style="color:#7CF5E2;font-size:11px">· prêt en partie</span>':'')+'</div>'
-         + '<div class="ms">'+d.d+'</div></div>'
-         + '<div class="mr">'+(qt>0?'✅':'')+'</div></div>';
+         + '<div class="mm"><div class="mt">'+d.n+'</div>'
+         + '<div class="ms">'+d.d+'</div></div></div>';
       }
       bh+='</div>';
-      /* Plus de boutique : les bonus se rechargent EN JOUANT (tous les 15 de
-         combo, un bonus utile tombe dans la reserve). On garde juste un mot pour
-         que le joueur comprenne d'ou vient le stock. */
-      bh+='<div class="paynote">🎮 Tes bonus se <b>rechargent en jouant</b> : chaque palier de <b>15 combos</b> t\'en offre un (bouclier, ralenti, zone XL, +vies, en rotation). '
-        + 'Plus tu tiens un gros combo, plus ta réserve se remplit.</div>';
       body.innerHTML=bh;
       return;
     }
@@ -6292,7 +6242,7 @@ var PULSE = (function(){
      `runBonus` = ce qu'on a emporte pour CETTE partie, avec sa quantite figee
      au depart. On ne pioche pas dans la reserve en cours de route : le joueur
      doit sentir qu'il depense une ressource limitee, pas ouvrir un robinet. */
-  var runBonus=[];                 /* [{id, left}] */
+  var runBonus=[];                 /* [{id}] — les 6 bonus, jauge gerée par bCharge */
   var shieldOn=0;                  /* raté(s) annulé(s) en reserve */
   var dblT=0;                      /* points x2 du bonus ⭐ */
   var xlT=0;                       /* zones XL du bonus 🎯 */
@@ -8731,13 +8681,12 @@ var PULSE = (function(){
     var box=$('pauseBonus'); if(!box) return;
     var h='';
     for(var i=0;i<BONUS.length;i++){
-      var d=BONUS[i], pct=Math.round(bPct(d.id)*100), q=bonusQty(d.id), pret=bFull(d.id);
+      var d=BONUS[i], pct=Math.round(bPct(d.id)*100), pret=bFull(d.id);
       var etat = pret ? '<b style="color:#7CF5E2">PRÊT</b>'
                       : '<b>'+pct+' %</b> chargé';
-      if(d.id==='zonexl' && xlT>0 && xlStack>0) etat='<b style="color:#FFD166">en cours ×'+xlStack+'</b>';
+      if(d.id==='zonexl' && xlT>0 && xlStack>0) etat='<b style="color:#FFD166">en cours</b>';
       h+='<div class="ml"><div class="mli">'+d.ic+'</div>'
-       + '<div class="mlt">'+etat+' — '+d.court
-       + (q>0?' · <span style="color:var(--dim)">'+q+' en réserve</span>':'')+'</div></div>';
+       + '<div class="mlt">'+etat+' — '+d.court+'</div></div>';
     }
     box.innerHTML=h;
   }
@@ -9235,56 +9184,6 @@ var PULSE = (function(){
        les cartes "Recharger" sont tout en bas : on cliquait, l'achat passait,
        et la confirmation apparaissait 300 px au-dessus du champ de vision. Vu de
        l'utilisateur : "le bouton ne marche pas". Le toast est vu quoi qu'il arrive. */
-    /* La carte n'equipe plus rien — il n'y a plus rien a equiper. Elle
-       renseigne : combien il t'en reste, et ce que ca fait. */
-    bonusTap:function(id){
-      var d=bonusById(id); if(!d) return;
-      var qt=bonusQty(id);
-      if(qt<=0){
-        toast('Épuisé', d.n+' : enchaîne les combos pour le regagner');
-        shopMsg('Tu n\'as plus de <b>'+d.n+'</b>. Tiens un <b>gros combo</b> en partie pour le regagner (un bonus tous les 15 combos).','err');
-        haptic(30); return;
-      }
-      shopMsg('<b>'+d.n+'</b> ×'+qt+' — '+d.court+'. Il sera dans la barre dès ta prochaine partie, tu le déclencheras quand tu veux.','ok');
-      sfxContract(); haptic(15);
-    },
-    buyBonus:function(id){
-      var d=bonusById(id); if(!d) return;
-      if(PROF.shards<d.cost){
-        toast('Pas assez d\'éclats', 'il te manque '+(d.cost-PROF.shards)+' 💎 pour '+d.n);
-        shopMsg('🔒 <b>'+d.n+'</b> coûte '+d.cost+' 💎 — il te manque <b>'+(d.cost-PROF.shards)+' éclats</b>.'
-          +'<br>Les missions du jour et la série en rapportent le plus.','err');
-        haptic(40); return;
-      }
-      PROF.shards-=d.cost; bonusAdd(id,1);
-      saveProf(); renderShop();
-      toast('🎉 '+d.n+' rechargé', 'tu en as '+bonusQty(id)+' · reste '+PROF.shards+' 💎');
-      shopMsg('🎉 <b>'+d.n+'</b> acheté — '+d.court+'. Il te reste '+PROF.shards+' 💎','ok');
-      sfxMission(); haptic([25,40,25,40,80]);
-    },
-    /* Meme achat, autre monnaie. Le WIZZ etant aussi la munition sociale, on
-       rappelle systematiquement ce qu'il en reste pour secouer les copains :
-       c'est la moitie de l'interet du choix. */
-    buyBonusWizz:function(id){
-      var d=bonusById(id); if(!d) return;
-      if(!d.wcost){
-        toast(d.n+' : éclats seulement', 'seuls les bonus de secours passent en WIZZ');
-        shopMsg('<b>'+d.n+'</b> ne s\'achète qu\'en éclats 💎. Les WIZZ ⚡ ne paient que les bonus de secours : 🛡️ Bouclier, 💖 +2 vies et 🔁 2e chance.','info');
-        haptic(30); return;
-      }
-      if(wizzStock<d.wcost){
-        toast('Pas assez de WIZZ', 'il te manque '+(d.wcost-wizzStock)+' ⚡ pour '+d.n);
-        shopMsg('🔒 <b>'+d.n+'</b> coûte '+d.wcost+' ⚡ — il te manque <b>'+(d.wcost-wizzStock)+' WIZZ</b>.'
-          +'<br>Tu en gagnes à 500 points, puis tous les 200.','err');
-        haptic(40); return;
-      }
-      wizzStock-=d.wcost; saveWizzStock(); updateWizzBtn();
-      bonusAdd(id,1);
-      saveProf(true); renderShop();
-      toast('⚡ '+d.n+' rechargé', 'tu en as '+bonusQty(id)+' · reste '+wizzStock+' WIZZ');
-      shopMsg('⚡ <b>'+d.n+'</b> payé en WIZZ — '+d.court+'. Il te reste <b>'+wizzStock+' WIZZ</b> pour secouer les autres.','ok');
-      sfxMission(); haptic([25,40,25,40,80]);
-    },
     /* Un seul geste pour trois etats : equipe si possede, achete si abordable,
        explique ce qu'il manque sinon. Un bouton "acheter" separe rajoutait un
        clic pour rien — et surtout, AUCUN appui ne reste sans reponse. */
@@ -9389,15 +9288,11 @@ var PULSE = (function(){
     },
     admBonus:function(){
       if(!isAdmin) return;
-      for(var i=0;i<BONUS.length;i++) bonusAdd(BONUS[i].id,5);
-      saveProf();
-      /* On reconstruit la barre SANS passer par initRunBonus : celui-ci remet
-         a zero shieldOn, dblT, xlT et reviveLeft, et effacerait donc les effets
-         en cours au moment meme ou on veut les observer. */
-      runBonus=[];
-      for(i=0;i<BONUS.length;i++) runBonus.push({id:BONUS[i].id, left:bonusQty(BONUS[i].id)});
+      /* Plus de reserve : on remplit directement toutes les JAUGES a bloc pour
+         pouvoir tester chaque bonus tout de suite en partie. */
+      for(var i=0;i<BONUS.length;i++) bCharge[BONUS[i].id]=BONUS[i].fill;
       renderBonusBar();
-      toast('🔧 Admin','+5 de chaque bonus — la barre est pleine');
+      toast('🔧 Admin','toutes les jauges pleines — déclenche quand tu veux');
       haptic(15);
     },
     /* Forcer un mode coupe la detection automatique : si le joueur a tranche,
