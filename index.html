@@ -7365,13 +7365,15 @@ var PULSE = (function(){
     $('statCombo').textContent = comboRun;
     $('statLevel').textContent = level;
     var remain=GOAL-score;
-    if(!isMode('classic')){ $('progMini').innerHTML = modeById(gameMode).icon+' Mode <b>'+modeById(gameMode).name+'</b>'; }
-    else if(score>=GOAL){ $('progMini').innerHTML = 'Mode infini \u2014 score de <b>'+score+'</b> !'; }
-    else if(false){
-      var toBel=2000-score;
-      $('progMini').innerHTML = toBel>0 ? 'Encore <b>'+toBel+'</b> pts pour le th\u00e8me Belgique \u{1F1E7}\u{1F1EA}\u{1F35F}' : 'Th\u00e8me Belgique atteint !';
+    /* progMini a ete retire de l'ecran de fin : on n'y ecrit que s'il existe
+       encore, sinon $('progMini') vaut null et .innerHTML plante tout le
+       gameOver (le jeu restait fige sur la derniere image). */
+    var pm=$('progMini');
+    if(pm){
+      if(!isMode('classic')){ pm.innerHTML = modeById(gameMode).icon+' Mode <b>'+modeById(gameMode).name+'</b>'; }
+      else if(score>=GOAL){ pm.innerHTML = 'Mode infini \u2014 score de <b>'+score+'</b> !'; }
+      else { pm.innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour le mode infini':''); }
     }
-    else { $('progMini').innerHTML = allUnlocked() ? 'Tous les themes debloques \u2713' : (remain>0?'Encore <b>'+remain+'</b> pour le mode infini':''); }
     /* Fin de partie d'un invite : c'est ICI qu'on demande le pseudo, et nulle
        part ailleurs. Le joueur vient de faire un score, il voit sa progression
        et le classement juste en dessous — la demande a enfin un sens.
