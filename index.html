@@ -7246,6 +7246,27 @@ var PULSE = (function(){
        minuterie continue de s'ecouler (jusqu'a 16 s pour le repos) et retarde
        d'autant l'affichage de l'ecran de fin. La mort doit conclure tout de suite. */
     restT=0; seqKind=''; seqT=0; seqMult=1;
+    /* Filet de securite : si une des fonctions ci-dessous jette une erreur (calcul
+       de recompense, classement, verdict...), l'ecran de fin doit QUAND MEME
+       s'afficher. Sans ce garde-fou, une exception laissait le jeu fige sur la
+       derniere image, body.playing jamais retire, plus aucun clic possible. */
+    try{
+      gameOverBody(clean, p);
+    }catch(err){
+      try{ console.error('[PULSE] gameOver a échoué :', err); }catch(e){}
+    }
+    /* Affichage de l'ecran de fin — HORS du try : il part quoi qu'il arrive. */
+    if(!clean){ try{ jojo('die'); }catch(e){} }
+    setTimeout(function(){
+      document.body.classList.remove('playing');
+      var ov=$('over'); if(ov) ov.classList.remove('hide');
+      var jj=$('jojo'); if(jj) jj.classList.remove('show');
+      try{ updateWizzBtn(); }catch(e){}
+      try{ pushPresence(); }catch(e){}
+    }, clean?600:900);
+  }
+
+  function gameOverBody(clean, p){
     stopMusic();
     unlockReached();
     prevBestForVerdict=best;
@@ -7365,9 +7386,6 @@ var PULSE = (function(){
     $('jojoJoke').classList.add('hide');
     $('quizbox').classList.add('hide');
     document.body.classList.remove('timed'); document.body.classList.remove('daily');
-
-    if(!clean) jojo('die');
-    setTimeout(function(){document.body.classList.remove('playing');$('over').classList.remove('hide');$('jojo').classList.remove('show');updateWizzBtn();pushPresence();},clean?600:900);
   }
 
   /* ---------- rendu ---------- */
