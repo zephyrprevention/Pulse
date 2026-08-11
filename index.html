@@ -7242,6 +7242,10 @@ var PULSE = (function(){
 
   function gameOver(clean, p){
     running=false; ready=false;
+    /* On coupe net tout repos post-bonus et toute phase en cours : sinon leur
+       minuterie continue de s'ecouler (jusqu'a 16 s pour le repos) et retarde
+       d'autant l'affichage de l'ecran de fin. La mort doit conclure tout de suite. */
+    restT=0; seqKind=''; seqT=0; seqMult=1;
     stopMusic();
     unlockReached();
     prevBestForVerdict=best;
@@ -7363,7 +7367,7 @@ var PULSE = (function(){
     document.body.classList.remove('timed'); document.body.classList.remove('daily');
 
     if(!clean) jojo('die');
-    setTimeout(function(){document.body.classList.remove('playing');$('over').classList.remove('hide');$('jojo').classList.remove('show');updateWizzBtn();pushPresence();},clean?600:1500);
+    setTimeout(function(){document.body.classList.remove('playing');$('over').classList.remove('hide');$('jojo').classList.remove('show');updateWizzBtn();pushPresence();},clean?600:900);
   }
 
   /* ---------- rendu ---------- */
