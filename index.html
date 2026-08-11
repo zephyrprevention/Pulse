@@ -7179,6 +7179,7 @@ var PULSE = (function(){
       reviveLeft--;
       lives=3; updateLives();
       combo=0; noMiss=0;
+      restT=0; seqKind=''; seqT=0;   /* on repart sur une base propre : aucun repos ni phase residuelle ne doit bloquer la reprise */
       fireworks(); sfxRank(); doFlash(0.6,'124,245,226'); haptic([40,60,40,60,100]);
       toast('🔁 SECONDE CHANCE','tu repars avec 3 vies !');
       setTimeout(function(){ jojo('level','Et hop, on repart ! Cette fois c\'est la bonne \u{1F525}'); }, 900);
@@ -7700,10 +7701,16 @@ var PULSE = (function(){
           seqT-=dt;
           if(seqT<=0){ seqT=0; endSeq(); }
         }
-      } else if(restT>0){
-        restT-=dt; if(restT<0) restT=0;
       }
       updateSeqChip();
+    }
+    /* Le repos post-bonus (restT) doit s'ecouler MEME quand running est false :
+       sinon, si une 2e chance (revive) met le jeu en pause pendant ce repos, la
+       barre "Reprise en cours" reste figee a l'infini et la partie ne repart
+       jamais. On le decremente donc hors de la condition running. */
+    if(restT>0 && freezeT<=0){
+      restT-=dt; if(restT<0) restT=0;
+      if(!seqKind) updateSeqChip();
     }
     if(wizzShakeT>0){ wizzShakeT-=dt; }
     if(arkHintT>0 && running){ arkHintT-=dt; }
